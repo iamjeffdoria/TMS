@@ -1,0 +1,516 @@
+    {% extends 'myapp/base.html' %}
+    {% load static %}
+    {% block content %}
+
+    <style>
+           .table-responsive {
+        font-size: 0.95rem;
+        overflow-x: auto;
+    }
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+    </style>
+
+                        <!-- DataTales Example -->
+                        <div class="card shadow mb-4">
+                           <div class="card-header py-3 d-flex justify-content-between align-items-center">
+
+                              <h6 class="m-0 font-weight-bold text-primary">Mayor's Permit / Printing Permit</h6>
+
+                              <div class="btn-group">
+
+                                 <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#importModal">
+                                    <i class="fas fa-file-import"></i> Import CSV
+                                </button>
+
+                                  <!-- EXPORT BUTTON -->
+                                  <a href="{% url 'export-mayors-permit' %}" class="btn btn-sm btn-danger">
+                                      <i class="fas fa-file-export"></i> Export CSV
+                                  </a>
+
+                                  <!-- ADD PERMIT BUTTON -->
+                                  <a href="{% url 'add-mayors-permit' %}" class="btn btn-sm btn-primary">
+                                      <i class="fas fa-plus"></i> Add New Permit
+                                  </a>
+
+                              </div>
+
+                          </div>
+
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                  <tr>
+                                      <th>Control No</th>
+                                      <th>Status</th>
+                                      <th>Name</th>
+                                      <th>Address</th>
+                                      <th>Business Name</th>
+                                      <th>Motorized Operation</th>
+                                      <th>OR No</th>
+                                      <th>Amount Paid</th>
+                                      <th>Issue Date</th>
+                                      <th>Expiry Date</th>
+                                      <th>Issued At</th>
+                                      <th>Mayor</th>
+                                      <th>Quarter</th>
+                                      <th>Action</th>
+                                  </tr>
+                                  <tr>
+                                      <th><input type="text"  class="form-control form-control-sm border-secondary" /></th>
+                                      <th>
+                                          <select class="form-control form-control-sm border-secondary" id="statusFilter">
+                                              <option value="">All</option>
+                                              <option value="Active">Active</option>
+                                              <option value="Inactive">Inactive</option>
+                                              <option value="Expired">Expired</option>
+                                          </select>
+                                      </th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
+                                      <th></th>
+                                  </tr>
+                                </thead>
+
+                                        <tfoot>
+                                            <tr>
+                                                <th>Control No</th>
+                                                <th>Status</th>
+                                                <th>Name</th>
+                                                <th>Address</th>
+                                                <th>Business Name</th>
+                                                <th>Motorized Operation</th>
+                                                <th>OR No</th>
+                                                <th>Amount Paid</th>
+                                                <th>Issue Date</th>
+                                                <th>Expiry Date</th>
+                                                <th>Issued At</th>
+                                                <th>Mayor</th>
+                                                <th>Quarter</th>
+                                                <th>Action</th>
+                                               
+                                            </tr>
+                                        </tfoot>
+                                        <tbody>
+                                          {% for permit in permits %} 
+                                            <tr>
+                                                <td>{{ permit.control_no }}</td>
+                                                <td data-search="{{ permit.status }}" data-order="{{ permit.status }}">
+                                                    {% if permit.status == "active" %}
+                                                        <span class="badge badge-success">Active</span>
+                                                    {% elif permit.status == "inactive" %}
+                                                        <span class="badge badge-warning">Inactive</span>
+                                                    {% elif permit.status == "expired" %}
+                                                        <span class="badge badge-danger">Expired</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{{ permit.status|capfirst }}</span>
+                                                    {% endif %}
+                                                </td>
+
+                                                <td>{{ permit.name }}</td>
+                                                <td>{{ permit.address }}</td>
+                                                <td>{{ permit.business_name }}</td>
+                                                <td>{{ permit.motorized_operation }}</td>
+                                                <td>{{ permit.or_no }}</td>
+                                                <td>{{ permit.amount_paid }}</td>
+                                                <td>{{ permit.issue_date }}</td>
+                                                <td>{{ permit.expiry_date }}</td>
+                                                <td>{{ permit.issued_at }}</td>
+                                                <td>{{ permit.mayor }}</td>
+                                                <td>{{ permit.get_quarter_display }}</td>
+                                                <td class="text-center">
+                                                    <div class="btn-group" role="group" aria-label="actions">
+                                                        <a href="#" class="btn btn-sm btn-primary btn-view" data-id="{{ permit.id }}" title="View">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        <a href="{% url 'print-mayors-permit' permit.id %}" target="_blank"
+                                                            class="btn btn-sm btn-secondary">
+                                                              <i class="fas fa-print"></i>
+                                                          </a>
+
+                                                        <a href="#" class="btn btn-sm btn-info btn-update" data-id="{{ permit.id }}" title="Update">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <!-- History Button -->
+                                                      <a href="{% url 'mayors-permit-history' %}" class="btn btn-sm btn-warning btn-history" data-id="{{ permit.id }}" title="History">
+                                                          <i class="fas fa-history"></i>
+                                                      </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="13" class="text-center text-muted">No permits found</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+    <!-- View Modal -->
+    <div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg border-0">
+
+          <!-- Header -->
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title font-weight-bold" id="viewModalLabel">
+              <i class="fas fa-file-alt mr-2"></i> Permit Information
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <!-- Body -->
+          <div class="modal-body p-0">
+            <table class="table table-hover mb-0">
+              <tbody id="modalContent">
+                <!-- Injected by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer -->
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">
+              <i class="fas fa-times mr-1"></i> Close
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Modal -->
+    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg border-0">
+
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title font-weight-bold">
+              <i class="fas fa-edit mr-2"></i> Update Mayor's Permit
+            </h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+              <span>&times;</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+
+            <form id="updateForm">
+
+              {% csrf_token %}
+
+              <input type="hidden" id="u_id">
+
+              <div class="form-row">
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Control No</label>
+                  <input type="text" id="u_control_no" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Status</label>
+                  <select id="u_status" class="form-control">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="expired">Expired</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Name</label>
+                  <input type="text" id="u_name" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Address</label>
+                  <input type="text" id="u_address" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Business Name</label>
+                  <input type="text" id="u_business_name" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Motorized Operation</label>
+                  <input type="text" id="u_motorized" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">OR No</label>
+                  <input type="text" id="u_or_no" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Amount Paid</label>
+                  <input type="number" id="u_amount_paid" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Issue Date</label>
+                  <input type="date" id="u_issue_date" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Expiry Date</label>
+                  <input type="date" id="u_expiry_date" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Issued At</label>
+                  <input type="text" id="u_issued_at" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Mayor</label>
+                  <input type="text" id="u_mayor" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold">Quarter</label>
+                  <select id="u_quarter" class="form-control">
+                    <option value="First Quarter">Q1</option>
+                    <option value="Second Quarter">Q2</option>
+                    <option value="Third Quarter">Q3</option>
+                    <option value="Fourth Quarter">Q4</option>
+                  </select>
+                </div>
+
+              </div>
+
+            </form>
+
+          </div>
+
+          <div class="modal-footer bg-light">
+            <button class="btn btn-primary" id="saveUpdateBtn">
+              <i class="fas fa-check"></i> Save Changes
+            </button>
+            <button class="btn btn-danger" data-dismiss="modal">
+              Close
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+
+      document.querySelectorAll(".btn-view").forEach(button => {
+      button.addEventListener("click", function () {
+
+          let row = table.row($(this).closest("tr"));   // DataTables row
+          let data = row.data();                        // get ALL columns including hidden
+
+          let fields = [
+              "Control No", "Status", "Name", "Address", "Business Name",
+              "Motorized Operation", "OR No", "Amount Paid", "Issue Date",
+              "Expiry Date", "Issued At", "Mayor", "Quarter"
+          ];
+
+          let html = "";
+
+          for (let i = 0; i < fields.length; i++) {
+              html += `
+                  <tr>
+                      <th>${fields[i]}</th>
+                      <td>${data[i]}</td>
+                  </tr>
+              `;
+          }
+
+          document.getElementById("modalContent").innerHTML = html;
+          $("#viewModal").modal("show");
+      });
+  });
+
+
+
+
+        function toInputDate(dateStr) {
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+            let d = new Date(dateStr);
+            if (isNaN(d.getTime())) return "";
+            let m = ("0" + (d.getMonth() + 1)).slice(-2);
+            let day = ("0" + d.getDate()).slice(-2);
+            return `${d.getFullYear()}-${m}-${day}`;
+        }
+
+  document.querySelectorAll(".btn-update").forEach(button => {
+    button.addEventListener("click", function () {
+
+        let $tr = $(this).closest("tr");  // the table row
+        let row = table.row($tr);
+        let data = row.data();   // array including hidden columns
+
+        document.getElementById("u_id").value = this.dataset.id;
+
+        document.getElementById("u_control_no").value = data[0];
+
+        // ✅ Use data-search instead of data[1]
+        let status = $tr.find("td:eq(1)").data("search"); 
+        document.getElementById("u_status").value = status;
+
+        document.getElementById("u_name").value = data[2];
+        document.getElementById("u_address").value = data[3];
+        document.getElementById("u_business_name").value = data[4];
+        document.getElementById("u_motorized").value = data[5];
+        document.getElementById("u_or_no").value = data[6];
+        document.getElementById("u_amount_paid").value = data[7];
+        document.getElementById("u_issue_date").value = toInputDate(data[8]);
+        document.getElementById("u_expiry_date").value = toInputDate(data[9]);
+        document.getElementById("u_issued_at").value = data[10];
+        document.getElementById("u_mayor").value = data[11];
+        document.getElementById("u_quarter").value = data[12].trim();
+
+        $("#updateModal").modal("show");
+    });
+});
+
+
+        // SAVE UPDATE
+        document.getElementById("saveUpdateBtn").addEventListener("click", function () {
+
+            let id = document.getElementById("u_id").value;
+            let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+            let formData = new FormData();
+            formData.append("control_no", document.getElementById("u_control_no").value);
+            formData.append("status", document.getElementById("u_status").value);
+            formData.append("name", document.getElementById("u_name").value);
+            formData.append("address", document.getElementById("u_address").value);
+            formData.append("business_name", document.getElementById("u_business_name").value);
+            formData.append("motorized_operation", document.getElementById("u_motorized").value);
+            formData.append("or_no", document.getElementById("u_or_no").value);
+            formData.append("amount_paid", document.getElementById("u_amount_paid").value);
+            formData.append("issue_date", document.getElementById("u_issue_date").value);
+            formData.append("expiry_date", document.getElementById("u_expiry_date").value);
+            formData.append("issued_at", document.getElementById("u_issued_at").value);
+            formData.append("mayor", document.getElementById("u_mayor").value);
+            formData.append("quarter", document.getElementById("u_quarter").value);
+
+            fetch(`/mayors-permit/update/${id}/`, {
+                method: "POST",
+                body: formData,
+                headers: { "X-CSRFToken": csrftoken },
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    $("#updateModal").modal("hide");
+
+                    // Show success alert
+                    let alertBox = document.createElement("div");
+                    alertBox.className = "alert alert-success mt-3";
+                    alertBox.innerText = data.message;
+                    document.querySelector(".card-body").prepend(alertBox);
+
+                    setTimeout(() => alertBox.remove(), 3000);
+
+                    location.reload(); // Optional: refresh after update
+                }
+            });
+
+        });
+
+  var table = $('#dataTable').DataTable({
+      "pageLength": 5,
+      "lengthChange": false,
+      "ordering": false,
+      "searching": true,
+      "columnDefs": [
+          {
+              "targets": [9, 8, 7, 10, 11, 12],
+              "visible": false,
+              "searchable": true
+          },
+          
+      ]
+  });
+
+ // Apply column search from header inputs (for text inputs)
+    table.columns().every(function(index) {
+        var that = this;
+        
+        // Skip the Status column (index 1) and Action column (index 13)
+        if (index === 1 || index === 13) {
+            return;
+        }
+        
+        $('input', this.header()).on('keyup change clear', function() {
+            if (that.search() !== this.value) {
+                that.search(this.value).draw();
+            }
+        });
+    });
+// Handle Status dropdown filter separately with exact match
+$('#statusFilter').on('change', function() {
+    var searchValue = this.value;
+    
+    if (searchValue === '') {
+        // Show all if "All" is selected
+        table.column(1).search('').draw();
+    } else {
+        // Use regex for exact word match (case insensitive)
+        table.column(1).search('^' + searchValue + '$', true, false).draw();
+    }
+});
+
+    });
+    </script>
+  
+
+  <!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="fas fa-file-import"></i> Import CSV</h5>
+        <button class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" action="{% url 'import-mayors-permit' %}">
+        {% csrf_token %}
+
+        <div class="modal-body">
+          <label><strong>Select CSV File</strong></label>
+          <input type="file" name="csv_file" accept=".csv" class="form-control" required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-upload"></i> Upload
+          </button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+
+
+
+    {% endblock %}

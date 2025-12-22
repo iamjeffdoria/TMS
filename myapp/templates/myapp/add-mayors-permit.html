@@ -1,0 +1,167 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Add Mayor's Permit</h6>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="control_no" class="font-weight-bold">Control No <span class="text-danger">*</span></label>
+                                    <input type="text" id="control_no" name="control_no" class="form-control" placeholder="e.g., CTRL-001" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="name" class="font-weight-bold">Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="name" name="name" class="form-control" placeholder="Applicant name" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="address" class="font-weight-bold">Address <span class="text-danger">*</span></label>
+                                    <input type="text" id="address" name="address" class="form-control" placeholder="Business address" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="business_name" class="font-weight-bold">Business Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="business_name" name="business_name" class="form-control" placeholder="Business name" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="motorized_operation" class="font-weight-bold">Motorized Operation <span class="text-danger">*</span></label>
+                                    <input type="text" id="motorized_operation" name="motorized_operation" class="form-control" placeholder="e.g., Tricycle, Van" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="or_no" class="font-weight-bold">OR No (Official Receipt) <span class="text-danger">*</span></label>
+                                    <input type="text" id="or_no" name="or_no" class="form-control" placeholder="e.g., OR-2025-001" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="amount_paid" class="font-weight-bold">Amount Paid <span class="text-danger">*</span></label>
+                                    <input type="number" id="amount_paid" name="amount_paid" class="form-control" placeholder="0.00" required>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="issue_date" class="font-weight-bold">Issue Date <span class="text-danger">*</span></label>
+                                    <input type="date" id="issue_date" name="issue_date" class="form-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="expiry_date" class="font-weight-bold">Expiry Date <span class="text-danger">*</span></label>
+                                    <input type="date" id="expiry_date" name="expiry_date" class="form-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="issued_at" class="font-weight-bold">Issued At <span class="text-danger">*</span></label>
+                                    <input type="text" id="issued_at" name="issued_at" class="form-control" placeholder="Issuing location" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="mayor" class="font-weight-bold">Mayor <span class="text-danger">*</span></label>
+                                    <input type="text" id="mayor" name="mayor" class="form-control" placeholder="Mayor's name" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="quarter" class="font-weight-bold">Quarter <span class="text-danger">*</span></label>
+                                    <select id="quarter" name="quarter" class="form-control" required>
+                                        <option value="">-- Select Quarter --</option>
+                                        <option value="First Quarter">First Quarter (Q1)</option>
+                                        <option value="Second Quarter">Second Quarter (Q2)</option>
+                                        <option value="Third Quarter">Third Quarter (Q3)</option>
+                                        <option value="Fourth Quarter">Fourth Quarter (Q4)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="status" class="font-weight-bold">Status <span class="text-danger">*</span></label>
+                                    <select id="status" name="status" class="form-control" required>
+                                        <option value="">-- Select Status --</option>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="expired">Expired</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <div>
+                                        <button id="save-permit-btn" type="submit" class="btn btn-primary btn-block" disabled aria-disabled="true">
+                                            <i class="fas fa-save"></i> Save Permit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    {% block scripts %}
+                    <script>
+                        (function($){
+                            $(function(){
+                                var $form = $('form[method="POST"]').first();
+                                var $save = $('#save-permit-btn');
+                                var $required = $form.find('[required]');
+
+                                function checkRequired(){
+                                    var ok = true;
+                                    $required.each(function(){
+                                        var val = $(this).val();
+                                        if (val === null || typeof val === 'undefined') { ok = false; return false; }
+                                        if (String(val).trim() === '') { ok = false; return false; }
+                                    });
+                                    $save.prop('disabled', !ok).attr('aria-disabled', !ok);
+                                }
+
+                                // initial check
+                                checkRequired();
+
+                                // watch for changes
+                                $required.on('input change', checkRequired);
+
+                                // extra: prevent submit if button somehow enabled incorrectly
+                                $form.on('submit', function(e){
+                                    if ($save.prop('disabled')){
+                                        e.preventDefault();
+                                        checkRequired();
+                                    }
+                                });
+                            });
+                        })(jQuery);
+                    </script>
+                    {% endblock %}
+
+                    <hr>
+                    <a href="{% url 'mayors-permit' %}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

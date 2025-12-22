@@ -1,0 +1,993 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .table-responsive {
+        font-size: 0.95rem;
+        overflow-x: auto;
+    }
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+ 
+</style>
+
+<div class="card shadow mb-4">
+   <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Mayor's Permit Tricycle Records</h6>
+       <div class="btn-group">
+        <!-- IMPORT (Front-end only, no URL yet) -->
+        <button type="button" class="btn btn-success btn-sm">
+            <i class="fas fa-file-import"></i> Import CSV
+        </button>
+
+        <!-- EXPORT (Front-end only, no URL yet) -->
+        <button type="button" class="btn btn-danger btn-sm">
+            <i class="fas fa-file-export"></i> Export CSV
+        </button>
+
+        <!-- ADD PERMIT -->
+        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addPermitModal">
+            <i class="fas fa-plus"></i> Add Permit
+        </button>
+    </div>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Control No</th>
+                        <th>Status</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Motorized Operation</th>
+                        <th>Business Name</th>
+                        <th>Expiry Date</th>
+                        <th>Amount Paid</th>
+                        <th>OR No</th>
+                        <th>Issue Date</th>
+                        <th>Issued At</th>
+                        <th>Mayor</th>
+                        <th>Quarter</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tfoot>
+                    <tr>
+                        <th>Control No</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Motorized Operation</th>
+                        <th>Business Name</th>
+                        <th>Expiry Date</th>
+                        <th>Amount Paid</th>
+                        <th>OR No</th>
+                        <th>Issue Date</th>
+                        <th>Issued At</th>
+                        <th>Mayor</th>
+                        <th>Quarter</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </tfoot>
+
+                <tbody>
+                {% for permit in permits %}
+                <tr id="permit-{{ permit.id }}">
+                    <td>{{ permit.control_no }}</td>
+                    <td data-search="{{ permit.status }}" data-order="{{ permit.status }}">
+                        {% if permit.status == "active" %}
+                            <span class="badge badge-success">Active</span>
+                        {% elif permit.status == "inactive" %}
+                            <span class="badge badge-warning">Inactive</span>
+                        {% elif permit.status == "expired" %}
+                            <span class="badge badge-danger">Expired</span>
+                        {% else %}
+                            <span class="badge badge-secondary">{{ permit.status|capfirst }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ permit.name }}</td>
+                    <td>{{ permit.address }}</td>
+                    <td>{{ permit.motorized_operation }}</td>
+                    <td>{{ permit.business_name }}</td>
+                    <td>{{ permit.expiry_date }}</td>
+                    <td>{{ permit.amount_paid }}</td>
+                    <td>{{ permit.or_no }}</td>
+                    <td>{{ permit.issue_date }}</td>
+                    <td>{{ permit.issued_at }}</td>
+                    <td>{{ permit.mayor }}</td>
+                    <td>{{ permit.quarter }}</td>
+                    <td class="text-center">
+                        <div class="btn-group" role="group" aria-label="actions">
+
+                                  <!-- View Button -->
+                        <a href="#" class="btn btn-sm btn-info" title="View">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                            <!-- Print Button -->
+                        <button class="btn btn-sm btn-primary print-btn" title="Print" 
+                                data-permit-id="{{ permit.id }}"
+                                data-control-no="{{ permit.control_no }}"
+                                data-name="{{ permit.name }}"
+                                data-address="{{ permit.address }}"
+                                data-motorized="{{ permit.motorized_operation }}"
+                                data-business="{{ permit.business_name }}"
+                                data-expiry="{{ permit.expiry_date }}"
+                                data-quarter="{{ permit.quarter }}"
+                                data-amount="{{ permit.amount_paid }}"
+                                data-or="{{ permit.or_no }}"
+                                data-issue="{{ permit.issue_date }}"
+                                data-issued-at="{{ permit.issued_at }}"
+                                data-mayor="{{ permit.mayor }}">
+                            <i class="fas fa-print"></i>
+                        </button>
+                      <!-- Update Button -->
+                            <button type="button" 
+                                    class="btn btn-sm btn-warning update-btn" 
+                                    title="Update"
+                                    data-toggle="modal" data-target="#updatePermitModal"
+                                    data-id="{{ permit.id }}"
+                                    data-control_no="{{ permit.control_no }}"
+                                    data-status="{{ permit.status }}"
+                                    data-name="{{ permit.name }}"
+                                    data-address="{{ permit.address }}"
+                                    data-motorized_operation="{{ permit.motorized_operation }}"
+                                    data-business_name="{{ permit.business_name }}"
+                                    data-expiry_date="{{ permit.expiry_date }}"
+                                    data-amount_paid="{{ permit.amount_paid }}"
+                                    data-or_no="{{ permit.or_no }}"
+                                    data-issue_date="{{ permit.issue_date }}"
+                                    data-issued_at="{{ permit.issued_at }}"
+                                    data-mayor="{{ permit.mayor }}"
+                                    data-quarter="{{ permit.quarter }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+
+
+                                        <!-- History Button -->
+                    <button class="btn btn-sm btn-secondary" title="History">
+                        <i class="fas fa-history"></i>
+                    </button>
+                     
+                    </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="14" class="text-center text-muted">No records found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Permit Modal -->
+<div class="modal fade" id="addPermitModal" tabindex="-1" role="dialog" aria-labelledby="addPermitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addPermitModalLabel">
+                    <i class="fas fa-plus-circle"></i> Add New Permit
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form method="post" action="{% url 'add-mayors-permit-tri' %}" id="addPermitForm">
+                {% csrf_token %}
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="control_no">Control No <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="control_no" name="control_no" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="motorized_operation">Motorized Operation <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="motorized_operation" name="motorized_operation" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="business_name">Business Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="business_name" name="business_name" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="issue_date">Issue Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="issue_date" name="issue_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="expiry_date">Expiry Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="expiry_date" name="expiry_date" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="amount_paid">Amount Paid <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="amount_paid" name="amount_paid" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="or_no">OR No <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="or_no" name="or_no" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="issued_at">Issued At <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="issued_at" name="issued_at" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="mayor">Mayor <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="mayor" name="mayor" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="quarter">Quarter <span class="text-danger">*</span></label>
+                                <select class="form-control" id="quarter" name="quarter" required>
+                                    <option value="First Quarter">First Quarter</option>
+                                    <option value="Second Quarter">Second Quarter</option>
+                                    <option value="Third Quarter">Third Quarter</option>
+                                    <option value="Fourth Quarter">Fourth Quarter</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="status">Status <span class="text-danger">*</span></label>
+                                <select class="form-control" id="status" name="status" required>
+                                    <option value="active" selected>Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="expired">Expired</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="address">Address <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="address" name="address" required>
+                    </div>
+                </div>
+            </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Permit
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Update Permit Modal -->
+<div class="modal fade" id="updatePermitModal" tabindex="-1" role="dialog" aria-labelledby="updatePermitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="updatePermitModalLabel">
+                    <i class="fas fa-edit"></i> Update Permit
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form id="updatePermitForm">
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <input type="hidden" id="update_permit_id">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_control_no">Control No</label>
+                                <input type="text" class="form-control" id="update_control_no" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_name">Name</label>
+                                <input type="text" class="form-control" id="update_name" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_motorized_operation">Motorized Operation</label>
+                                <input type="text" class="form-control" id="update_motorized_operation" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_business_name">Business Name</label>
+                                <input type="text" class="form-control" id="update_business_name" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_issue_date">Issue Date</label>
+                                <input type="date" class="form-control" id="update_issue_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_expiry_date">Expiry Date</label>
+                                <input type="date" class="form-control" id="update_expiry_date" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_amount_paid">Amount Paid</label>
+                                <input type="number" class="form-control" id="update_amount_paid" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_or_no">OR No</label>
+                                <input type="text" class="form-control" id="update_or_no" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_issued_at">Issued At</label>
+                                <input type="text" class="form-control" id="update_issued_at" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_mayor">Mayor</label>
+                                <input type="text" class="form-control" id="update_mayor" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_quarter">Quarter</label>
+                                <select class="form-control" id="update_quarter" required>
+                                    <option>First Quarter</option>
+                                    <option>Second Quarter</option>
+                                    <option>Third Quarter</option>
+                                    <option>Fourth Quarter</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="update_status">Status</label>
+                                <select class="form-control" id="update_status" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="expired">Expired</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="update_address">Address</label>
+                                <input type="text" class="form-control" id="update_address" required>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save"></i> Update Permit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+const logoURL = "{% static 'assets/img/lgu.png' %}"; // server-side parsed URL\
+
+
+
+ document.addEventListener("DOMContentLoaded", function () {
+    // ▶ Clone header row for filtering
+    $('#dataTable thead tr').clone(true).appendTo('#dataTable thead');
+
+    $('#dataTable thead tr:eq(1) th').each(function (i) {
+
+        // Do NOT add search boxes for the Action column
+        if (i === 13) {
+            $(this).html('');
+            return;
+        }
+
+        // Status column (index 1) → dropdown
+        if (i === 1) {
+            $(this).html(
+                '<select class="form-control form-control-sm border-secondary">' +
+                '<option value="">All</option>' +
+                '<option value="active">Active</option>' +
+                '<option value="inactive">Inactive</option>' +
+                '<option value="expired">Expired</option>' +
+                '</select>'
+            );
+
+            $('select', this).on('change', function () {
+                var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                table.column(i).search(val ? '^' + val + '$' : '', true, false).draw();
+            });
+        } else {
+            // Other columns → input
+            $(this).html('<input type="text" class="form-control form-control-sm border-secondary" />');
+            $('input', this).on('keyup change', function () {
+                if (table.column(i).search() !== this.value) {
+                    table.column(i).search(this.value).draw();
+                }
+            });
+        }
+    });
+
+    var table = $('#dataTable').DataTable({
+    "pageLength": 5,
+    "lengthChange": false,
+    "ordering": false,
+    "searching": true,
+    "columnDefs": [
+        {
+            "targets": [6, 7,9,10,11, 12],
+            "visible": false,
+            "searchable": true
+        },
+    ]
+});
+
+// Add this after the DataTables initialization
+$(document).on('click', '.print-btn', function() {
+    const permitId = $(this).data('permit-id');
+    printPermit(permitId);
+});
+// Populate update form when update button is clicked
+const updateButtons = document.querySelectorAll('.update-btn');
+
+updateButtons.forEach(button => {
+    button.addEventListener('click', function () {
+        // Helper to convert any date string to YYYY-MM-DD
+        const toDateInputFormat = (dateStr) => {
+            if (!dateStr) return '';
+            // Try parsing using Date object
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return '';
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        document.getElementById('update_permit_id').value = this.dataset.id;
+        document.getElementById('update_control_no').value = this.dataset.control_no;
+        document.getElementById('update_status').value = this.dataset.status;
+        document.getElementById('update_name').value = this.dataset.name;
+        document.getElementById('update_address').value = this.dataset.address;
+        document.getElementById('update_motorized_operation').value = this.dataset.motorized_operation;
+        document.getElementById('update_business_name').value = this.dataset.business_name;
+
+        // Convert dates to YYYY-MM-DD for <input type="date">
+        document.getElementById('update_issue_date').value = toDateInputFormat(this.dataset.issue_date);
+        document.getElementById('update_expiry_date').value = toDateInputFormat(this.dataset.expiry_date);
+
+        document.getElementById('update_amount_paid').value = this.dataset.amount_paid;
+        document.getElementById('update_or_no').value = this.dataset.or_no;
+        document.getElementById('update_issued_at').value = this.dataset.issued_at;
+        document.getElementById('update_mayor').value = this.dataset.mayor;
+        document.getElementById('update_quarter').value = this.dataset.quarter;
+    });
+});
+
+// Handle update form submission
+document.getElementById('updatePermitForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const permitId = document.getElementById('update_permit_id').value;
+    const formData = {
+        control_no: document.getElementById('update_control_no').value,
+        name: document.getElementById('update_name').value,
+        address: document.getElementById('update_address').value,
+        motorized_operation: document.getElementById('update_motorized_operation').value,
+        business_name: document.getElementById('update_business_name').value,
+        issue_date: document.getElementById('update_issue_date').value,
+        expiry_date: document.getElementById('update_expiry_date').value,
+        amount_paid: document.getElementById('update_amount_paid').value,
+        or_no: document.getElementById('update_or_no').value,
+        issued_at: document.getElementById('update_issued_at').value,
+        mayor: document.getElementById('update_mayor').value,
+        quarter: document.getElementById('update_quarter').value,
+        status: document.getElementById('update_status').value
+    };
+
+    // Get CSRF token
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Send update request
+    fetch(`/update-permit/${permitId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            $('#updatePermitModal').modal('hide');
+            
+            // Show success message
+            alert('Permit updated successfully!');
+            
+            // Reload page to show updated data
+            location.reload();
+        } else {
+            alert('Error updating permit: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating permit. Please try again.');
+    });
+});
+
+});
+
+
+</script>
+<script>
+
+
+
+function printPermit(permitId) {
+    const button = document.querySelector(`[data-permit-id="${permitId}"]`);
+    if (!button) return alert('Button not found');
+
+    // Extract data from data attributes instead of cells
+    const controlNo = button.dataset.controlNo || '';
+    const operatorName = button.dataset.name || '';
+    const operatorAddress = button.dataset.address || '';
+    const motorizedOperation = button.dataset.motorized || '';
+    const businessName = button.dataset.business || '';
+    const expiryDate = button.dataset.expiry || '';
+    const quarter = button.dataset.quarter || '';
+    const amount_paid = button.dataset.amount || '';
+    const or_no = button.dataset.or || '';
+    const issueDate = button.dataset.issue || '';
+    const issued_at = button.dataset.issuedAt || '';
+    const mayor = button.dataset.mayor || '';
+
+
+    function formatIssueDate(dateStr) {
+        if (!dateStr) return '&nbsp;';
+
+        const dateObj = new Date(dateStr);
+        if (isNaN(dateObj)) return '&nbsp;';
+
+        const day = dateObj.getDate();
+        const month = dateObj.toLocaleString('default', { month: 'long' });
+        const year = dateObj.getFullYear();
+        const yearLastTwo = year.toString().slice(-2);
+
+        // Determine day suffix
+        let suffix = 'th';
+        if (day === 1 || day === 21 || day === 31) suffix = 'st';
+        else if (day === 2 || day === 22) suffix = 'nd';
+        else if (day === 3 || day === 23) suffix = 'rd';
+
+        // Underline style for dynamic values
+        const underlineStyle = `
+            display:inline-block; 
+            width: 60px;       
+            text-align:center; 
+            border-bottom:1px solid black; 
+            padding-bottom:2px;
+            margin:0 3px;
+        `;
+
+        const monthUnderlineStyle = `
+            display:inline-block; 
+            width: 90px;
+            text-align:center; 
+            border-bottom:1px solid black; 
+            padding-bottom:2px;
+            margin:0 3px;
+        `;
+
+        const dayHTML = `<span style="${underlineStyle}">${day}${suffix}</span>`;
+        const monthHTML = `<span style="${monthUnderlineStyle}">${month},</span>`;
+        const yearHTML = `<span style="${underlineStyle}">${yearLastTwo}</span>`;
+
+        return `${dayHTML} day of ${monthHTML} 20 ${yearHTML}`;
+    }
+
+    const formattedIssueDate = formatIssueDate(issueDate);
+
+    // Determine which quarter checkboxes to check
+    const isFirstQuarter = quarter === 'First Quarter';
+    const isSecondQuarter = quarter === 'Second Quarter';
+    const isThirdQuarter = quarter === 'Third Quarter';
+    const isFourthQuarter = quarter === 'Fourth Quarter';
+
+    const headerHTML = `
+    <div style="position: relative; margin-bottom: 10px; height: 140px;">
+        <!-- LEFT: LOGO -->
+        <div style="position: absolute; left: 0; top: 0;">
+            <img src="${typeof logoURL !== 'undefined' ? logoURL : ''}" alt="Logo" style="height:120px;">
+        </div>
+
+        <!-- RIGHT: CONTROL NUMBER -->
+        <div style="position: absolute; right: 0; top: 0; font-size:16px; text-align:right;">
+            <strong>Control No:</strong> ${controlNo}
+        </div>
+
+        <!-- CENTER: GOV HEADER -->
+        <div style="
+            position: absolute;
+            left: 50%;
+            top: 25px;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.3;
+            width: max-content;
+        ">
+            <div style="font-weight:bold;">Republic of the Philippines</div>
+            <div>Province of Leyte</div>
+            <div>Municipality of Palompon</div>
+        </div>
+    </div>
+
+    <!-- SUBHEADER -->
+    <div style="text-align:center; margin-bottom:20px; font-size:22px;">
+        <div style="letter-spacing:1px; font-weight: bold">OFFICE OF THE MUNICIPAL MAYOR</div>
+        <div style="margin-top:5px; font-weight: bold">MAYOR'S PERMIT</div>
+
+        <div style="margin-top:8px; font-size:15px; font-weight:normal; line-height:1.3;">
+            To Operate, Drive Public Utility Cab<br>
+            <span style="font-size:14px;">
+                (Pursuant to the Provision of Revised Municipal Tax Ordinance No. 298- 041004)
+            </span>
+        </div>
+
+        <div style="margin-top:10px; font-size:22px; font-weight:bold; letter-spacing:1px;">
+            PERMIT IS HEREBY GRANTED
+        </div>
+
+        <div style="margin-top:3px; font-size:16px; font-weight:normal; letter-spacing:1px;">
+            to
+        </div>
+
+        <!-- OPERATOR NAME -->
+        <div style="margin-top:10px; text-align:center; position: relative; width:300px; margin-left:auto; margin-right:auto;">
+            <div style="font-size:22px; letter-spacing:3px; border-bottom: 1px solid black; padding-bottom:5px; font-weight:bold;">
+                ${operatorName || '&nbsp;'}
+            </div>
+            <div style="font-size:13px; margin-top:5px; font-style:italic;">
+                Name of Operator
+            </div>
+        </div>
+
+        <!-- OPERATOR ADDRESS -->
+        <div style="margin-top:10px; text-align:center; position: relative; width:400px; margin-left:auto; margin-right:auto;">
+            <div style="font-size:22px; letter-spacing:1px; border-bottom: 1px solid black; padding-bottom:5px; font-weight:bold;">
+                ${operatorAddress || '&nbsp;'}
+            </div>
+            <div style="font-size:13px; margin-top:3px; font-style:italic;">
+                Home Address
+            </div>
+        </div>
+
+        <!-- MOTORIZED OPERATION INLINE -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            to engage in 
+            <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
+                <span style="position: relative; z-index: 1;">
+                    ${motorizedOperation || '&nbsp;'}
+                </span>
+                <span style="position: absolute; bottom: 0; left: 0; width: 100%; border-bottom:1px solid black;"></span>
+            </span>
+            with
+        </div>
+
+        <!-- BUSINESS NAME INLINE -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            business name (if any) 
+            <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
+                <span style="font-weight:bold; position: relative; z-index: 1;">
+                    ${businessName || '&nbsp;'}
+                </span>
+                <span style="position: absolute; bottom: 0; left: 0; width: 100%; border-bottom:1px solid black;"></span>
+            </span>
+            and with
+        </div>
+
+        <!-- BUSINESS ADDRESS INLINE -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            business address at 
+            <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
+                <span style="position: relative; z-index: 1;">
+                    &nbsp;
+                </span>
+                <span style="position: absolute; bottom: 0; left: 0; width: 100%; border-bottom:1px solid black;"></span>
+            </span>
+            Palompon, Leyte
+        </div>
+
+        <!-- EXPIRY DATE INLINE -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            This permit expires on 
+            <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
+                <span style="font-weight:bold; position: relative; z-index: 1;">
+                    ${expiryDate || '&nbsp;'}
+                </span>
+                <span style="position: absolute; bottom: 0; left: 0; width: 100%; border-bottom:1px solid black;"></span>
+            </span>
+            and may be earlier revoked for cause.
+        </div>
+
+        <!-- QUARTER CHECKBOXES -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            Applicable Quarter: <br>
+
+            <label class="custom-checkbox"><em>1<sup>st</sup> Quarter</em>
+                <input type="checkbox" ${isFirstQuarter ? 'checked' : ''} disabled>
+                <span class="checkmark"></span>
+            </label>
+
+            <label class="custom-checkbox"><em>2<sup>nd</sup> Quarter</em>
+                <input type="checkbox" ${isSecondQuarter ? 'checked' : ''} disabled>
+                <span class="checkmark"></span>
+            </label>
+
+            <label class="custom-checkbox"><em>3<sup>rd</sup> Quarter</em>
+                <input type="checkbox" ${isThirdQuarter ? 'checked' : ''} disabled>
+                <span class="checkmark"></span>
+            </label>
+
+            <label class="custom-checkbox"><em>4<sup>th</sup> Quarter</em>
+                <input type="checkbox" ${isFourthQuarter ? 'checked' : ''} disabled>
+                <span class="checkmark"></span>
+            </label>
+
+            <div style="font-size: 14px; margin-top: 5px; font-style: italic;">
+                (please mark (✓) the appropriate box)
+            </div>
+        </div>
+
+        <!-- ISSUE DATE -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            Issued this ${formattedIssueDate} at Palompon, Leyte, Philippines
+        </div>
+
+        <!-- MAYOR SIGNATURE -->
+        <div style="margin-top:60px; text-align:right; font-size:16px;">
+            <div style="display:inline-block; text-align:center;">
+                <div style="border-bottom:1px solid black; padding-bottom:2px; width:200px; font-weight:bold; text-transform:uppercase;">
+                    ${mayor || '&nbsp;'}
+                </div>
+                <div style="margin-top:3px; text-transform:uppercase;">
+                    MUNICIPAL MAYOR
+                </div>
+            </div>
+        </div>
+
+        <!-- PAYMENT & ISSUANCE INFO -->
+        <div style="margin-top:60px; text-align:left; font-size:16px;">
+            <div>
+                Amount Paid: 
+                <span style="display:inline-block; width:120px; margin-left:5px;">
+                    ${amount_paid || '&nbsp;'}
+                </span>
+            </div>
+            <div style="margin-top:5px;">
+                O.R No: 
+                <span style="display:inline-block; width:120px; margin-left:5px;">
+                    ${or_no || '&nbsp;'}
+                </span>
+            </div>
+            <div style="margin-top:5px;">
+                Issued On: ${issueDate || '&nbsp;'}
+            </div>
+            <div style="margin-top:5px;">
+                Issued At: ${issued_at || '&nbsp;'}
+            </div>
+        </div>
+    </div>
+    `;
+
+    // Create iframe for printing
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+        <html>
+        <head>
+            <title>Print Permit</title>
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                
+                body {
+                    margin: 0;
+                    font-family: "Times New Roman", Times, serif;
+                    font-size: 16px;
+                }
+                
+                .print-container {
+                    padding: 40px;
+                    width: 210mm;
+                    min-height: 297mm;
+                    margin: 0 auto;
+                }
+                
+                @media print {
+                    @page {
+                        size: A4;
+                        margin: 0;
+                    }
+                    
+                    body, html {
+                        width: 210mm;
+                        height: 297mm;
+                        margin: 0;
+                        padding: 0;
+                    }
+
+                    .print-container {
+                        page-break-after: avoid;
+                        page-break-before: avoid;
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                    }
+                }
+
+                /* Custom Checkbox */
+                .custom-checkbox {
+                    display: inline-block;
+                    position: relative;
+                    padding-left: 25px;
+                    margin-right: 15px;
+                    cursor: default;
+                    font-size: 16px;
+                    user-select: none;
+                }
+
+                .custom-checkbox input {
+                    position: absolute;
+                    opacity: 0;
+                    cursor: default;
+                    height: 0;
+                    width: 0;
+                }
+
+                .custom-checkbox .checkmark {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    height: 18px;
+                    width: 18px;
+                    background-color: #fff;
+                    border: 1px solid #000;
+                }
+
+                .custom-checkbox input:checked ~ .checkmark:after {
+                    display: block;
+                }
+
+                .custom-checkbox .checkmark:after {
+                    content: "";
+                    position: absolute;
+                    display: none;
+                    left: 5px;
+                    top: 1px;
+                    width: 5px;
+                    height: 10px;
+                    border: solid black;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(45deg);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-container">
+                ${headerHTML}
+            </div>
+        </body>
+        </html>
+    `);
+    doc.close();
+    
+    // Wait for content to load before printing
+    iframe.contentWindow.onload = function() {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => {
+            document.body.removeChild(iframe);
+        }, 100);
+    };
+}
+
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+{% block content %}
+
+<h1 class="mb-4">History</h1>
+
+<!-- History Container -->
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <!-- Example Front-End Only Log List -->
+        <ul class="list-group" id="historyList">
+
+            <!-- SAMPLE LOG -->
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>User:</strong> John Doe <br>
+                    <strong>Action:</strong> Logged in <br>
+                    <small class="text-muted">Date: 2025-02-18 • Time: 09:15 AM</small>
+                </div>
+                <i class="fas fa-sign-in-alt text-primary"></i>
+            </li>
+
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>User:</strong> Anna Cruz <br>
+                    <strong>Action:</strong> Added a new student <br>
+                    <small class="text-muted">Date: 2025-02-18 • Time: 09:25 AM</small>
+                </div>
+                <i class="fas fa-user-plus text-success"></i>
+            </li>
+
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>User:</strong> Admin <br>
+                    <strong>Action:</strong> Updated ID Card #1023 <br>
+                    <small class="text-muted">Date: 2025-02-18 • Time: 09:40 AM</small>
+                </div>
+                <i class="fas fa-edit text-warning"></i>
+            </li>
+
+        </ul>
+
+    </div>
+</div>
+
+<!-- Optional JS for Adding Logs (Front-End Simulation) -->
+<script>
+    // Example function to simulate adding a log entry
+    function addLog(user, action, iconClass) {
+        const now = new Date();
+        const date = now.toLocaleDateString();
+        const time = now.toLocaleTimeString();
+
+        let logHTML = `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>User:</strong> ${user}<br>
+                    <strong>Action:</strong> ${action}<br>
+                    <small class="text-muted">Date: ${date} • Time: ${time}</small>
+                </div>
+                <i class="${iconClass}"></i>
+            </li>
+        `;
+
+        document.getElementById("historyList").innerHTML =
+            logHTML + document.getElementById("historyList").innerHTML;
+    }
+
+    // Example usage (simulate):
+    // addLog("Carlos Dela Cruz", "Deleted Subject", "fas fa-trash text-danger");
+</script>
+
+{% endblock %}

@@ -1,0 +1,207 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>MTOP Print</title>
+
+
+<!-- Bootstrap (if needed) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        padding: 35px;
+    }
+
+
+    .print-header {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    .header-text {
+        font-size: 14px;
+        line-height: 1.2;
+        display: inline-block;
+    }
+
+    .header-text strong {
+        display: block;
+    }
+
+    .logo {
+        width: 100px;
+        height: 100px;
+        object-fit: contain;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    .header-line {
+        border-top: 1px solid #000; /* thinner line */
+        margin-top: 20px;
+        width: 100%;
+    }
+
+
+    h2 {
+        text-align: center;
+        text-transform: uppercase;
+        margin-bottom: 30px;
+    }
+
+    .row {
+        margin-bottom: 10px;
+    }
+
+    .label {
+        font-weight: bold;
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+
+
+</head>
+
+<body>
+
+<div class="no-print mb-3">
+    <a href="javascript:window.print()" class="btn btn-primary">
+        <i class="fas fa-print"></i> Print
+    </a>
+    <a href="{% url 'mtop' %}" class="btn btn-secondary">Back</a>
+</div>
+
+<!-- HEADER -->
+
+<div class="print-header">
+    <img src="{% static 'assets/img/lgu.png' %}" alt="Logo" class="logo">
+    <div class="header-text">
+        Republic of the Philippines<br>
+       PROVINCE OF LEYTE<br><br>
+       <strong> MUNICIPALITY OF PALOMPON</strong> 
+    </div>
+    <div class="header-line"></div>
+
+     <div class="mtop-title" style="text-align: center; margin-top: 5px; font-weight: bold;">
+        MOTORIZED TRICYCLE OPERATION'S PERMIT (MTOP)<br>
+        <span style="font-weight: normal;">(Legalization)</span>
+    </div>
+</div>
+
+<div>
+<!-- MTOP Information (plain, no borders) -->
+<div style="margin-top: 5px; font-size: 14px; line-height: 1.6;">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Name of Operator: <strong>{{ mtop.name }}</strong></span>
+        <span>Case No: {{ mtop.case_no }}</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Address: {{ mtop.address }}</span>
+        <span>No. of Units: {{ mtop.no_of_units }}</span>
+    </div>
+    <div style="margin-bottom: 4px;">
+        Route of Operation: {{ mtop.route_operation }}
+    </div>
+</div>
+
+<!-- Number below MTOP information -->
+<div style="margin-top: 5px; font-size: 14px; text-align: center;">
+    Number: 033-A
+</div>
+<hr style="margin-top: 5px; border: 1px solid #000; max-width: 99%; text-align: center;">
+<!-- Vehicle Info Row (dynamic from MTOP model) -->
+<div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px;">
+    <div style="text-align: center; margin-right: 20px; min-width: 80px;">
+        <div style="display: inline-block; border-bottom: 1px solid #000; padding-bottom: 4px;">{{ mtop.make }}</div>
+        <div><small><strong>MAKE</strong></small></div>
+    </div>
+    <div style="text-align: center; margin-right: 20px; min-width: 100px;">
+        <div style="display: inline-block; border-bottom: 1px solid #000; padding-bottom: 4px;">{{ mtop.motor_no }}</div>
+        <div><small><strong>MOTOR NO.</strong></small></div>
+    </div>
+    <div style="text-align: center; margin-right: 20px; min-width: 110px;">
+        <div style="display: inline-block; border-bottom: 1px solid #000; padding-bottom: 4px;">{{ mtop.chasses_no }}</div>
+        <div><small><strong>CHASSES NO.</strong></small></div>
+    </div>
+    <div style="text-align: center; min-width: 90px;">
+        <div style="display: inline-block; border-bottom: 1px solid #000; padding-bottom: 4px;">{{ mtop.plate_no }}</div>
+        <div><small><strong>PLATE NO.</strong></small></div>
+    </div>
+</div>
+
+<!-- Subject to the following -->
+<div style="margin-top: 10px; font-size: 14px; line-height: 1.5;">
+    <strong>Subject to the following:</strong>
+    <ol style="margin-top: 8px; padding-left: 20px;">
+        <li>Applicant/Operator shall comply with the rules/regulations described by the Board; Failure to comply therefore and any of the conditions herein set forth shall be sufficient cause for the suspension or cancellation of the authority herein granted.</li>
+        <li>The unit/s shall be registered as for hire with the Land Transportation Office; Agency of Palompon, Leyte within THIRTY (30) days from date hereof.</li>
+        <li>This special authority shall be valid for TWO (2) YEARS from date thereof and shall constitute as franchise certificate giving the operator the privilege to operate the unit/s herein prescribed for hire and/or compensation.</li>
+        <li>Without previous authority from the Board, Operator shall not increase/decrease, transfer, drop, and/or substitute unit/s; otherwise, the granted authority shall be declared forfeited or cancelled.</li>
+        <li>Protect this document; its loss or destruction may affect your legal rights to operate the service. In addition, any alteration or deletion not otherwise authorized invalidates this document.</li>
+    </ol>
+</div>
+<!-- SO ORDERED Section -->
+<div style="margin-top: 6px; font-size: 14px; line-height: 1.6;">
+    <div><strong>SO ORDERED.</strong></div>
+    <div style="margin-top: 6px; font-size: 16px;">
+        <div>Palompon, Leyte Philippines __________________________</div>
+        <div style="margin-top: 4px; margin-left: 32%;">November 19, 2025</div>
+    </div>
+</div>
+
+<!-- Recommending Approval Section -->
+<div style="margin-top:10px; font-size: 14px; line-height: 1.6;">
+    <div><strong>Recommending approval:</strong></div>
+    <div style="margin-top: 10px; display: flex; justify-content: space-between;">
+        <div style="text-align: center;">
+             <div><strong>{{ mtop.municipal_treasurer }}</strong></div>
+            <div>ICO-Municipal Treasurer</div>
+        </div>
+        <div style="text-align: center;">
+            <div><strong>{{ mtop.officer_in_charge }}</strong></div>
+            <div>OFFICER-IN-CHARGE</div>
+        </div>
+    </div>
+</div>
+
+<!-- Mayor Section with Logo on Left -->
+<div style=" font-size: 14px; line-height: 1.6; display: flex; align-items: center;">
+    <!-- Left: Logo -->
+    <div style="width: 300px; height: 180px; margin-right: 20px; align-self: flex-start;">
+        <img src="{% static 'assets/img/approved2.png' %}" alt="Approved" style="width: 100%; height: 100%; object-fit: contain;">
+    </div>
+
+    <!-- Left-aligned Mayor signature -->
+    <div style="text-align: center; min-width: 10px;">
+        <div><strong>{{ mtop.mayor }}</strong></div>
+        <div>Municipal Mayor</div>
+    </div>
+</div>
+
+
+</div>
+
+<script>
+    // Auto-open print dialog when page loads
+    window.onload = function() {
+        window.print();
+    };
+
+    // Close the window/tab after the print dialog closes
+    window.onafterprint = function() {
+        window.close();
+    };
+</script>
+
+</body>
+</html>

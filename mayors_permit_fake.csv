@@ -1,0 +1,51 @@
+control_no,name,address,motorized_operation,business_name,expiry_date,amount_paid,or_no,issue_date,issued_at,mayor,quarter,status
+CTRL-1000,Tina Hernandez,"24573 Alexander Freeway Suite 332, Garyton, MS 57692",Tricycle,Jackson PLC,2026-02-27,849,OR-949968,2025-02-27,Larryborough,Mayor Ana,Second Quarter,expired
+CTRL-1001,Christopher Delacruz,"06766 Smith Village, Stephensville, GU 84840",Tricycle,Williams Group,2024-12-25,4858,OR-644088,2023-12-26,New Joseph,Mayor Cruz,First Quarter,expired
+CTRL-1002,Billy Hawkins,"USNV Whitney, FPO AP 73546",Tricycle,Marsh Group,2026-05-04,4091,OR-521410,2025-05-04,Evansside,Mayor Juan,Second Quarter,active
+CTRL-1003,Ashley Wright,"USNS Good, FPO AA 27287",Taxi,"Arnold, Cummings and Smith",2026-02-10,950,OR-757820,2025-02-10,West Russellmouth,Mayor Juan,First Quarter,expired
+CTRL-1004,Michael Lee,"29790 Torres Summit, Wintersborough, AL 15609",Van,"Wright, Smith and Saunders",2026-02-20,4105,OR-91527,2025-02-20,Port Jameston,Mayor Cruz,Fourth Quarter,expired
+CTRL-1005,Amy Adams,"46887 Marquez Light Suite 175, Juarezmouth, MN 42940",Taxi,Garcia Group,2026-10-31,427,OR-225551,2025-10-31,Lake Olivia,Mayor Juan,First Quarter,inactive
+CTRL-1006,Linda Wong,"9975 Powell Mall, Fernandezville, OH 86916",Taxi,Holmes Group,2026-05-27,4773,OR-518669,2025-05-27,Leeville,Mayor Cruz,First Quarter,active
+CTRL-1007,Sarah Hawkins,"62019 Michelle Ridge, Port Tyler, DC 82172",Taxi,Lucas and Sons,2026-03-14,3624,OR-138882,2025-03-14,New Michele,Mayor Ana,Third Quarter,active
+CTRL-1008,Patricia Walker,"023 Aaron Manors, East Andrew, PA 59103",Taxi,Miller and Sons,2026-01-14,1271,OR-776845,2025-01-14,Joneschester,Mayor Cruz,Second Quarter,inactive
+CTRL-1009,Christopher Lewis,"3914 Julia Lake, North Nicole, HI 27336",Van,"Vance, Bradford and Juarez",2026-06-23,3099,OR-956805,2025-06-23,South Justinberg,Mayor Ana,Fourth Quarter,expired
+CTRL-1010,Brent Barry,"924 Ariel Underpass, Calderonborough, UT 59329",Tricycle,Guzman and Sons,2026-02-01,4380,OR-608347,2025-02-01,Judystad,Mayor Juan,Third Quarter,active
+CTRL-1011,Kristen Davis,"USCGC Walsh, FPO AA 71858",Motorcycle,Mcclain-Snyder,2026-09-23,4481,OR-681665,2025-09-23,West Gilbertville,Mayor Juan,First Quarter,expired
+CTRL-1012,Stephanie Mathews,"842 Martinez Centers Apt. 725, South Laura, PR 17535",Taxi,Flowers LLC,2026-11-27,1300,OR-653260,2025-11-27,Petersenbury,Mayor Ana,Third Quarter,inactive
+CTRL-1013,Dr. Shannon Walker MD,"4243 Jennifer Courts Apt. 272, North Troy, NJ 60095",Motorcycle,Tyler Group,2025-11-04,687,OR-485983,2024-11-04,Joseton,Mayor Cruz,First Quarter,expired
+CTRL-1014,Kristin Vazquez,"6005 Kathleen Pines Suite 471, Johnsonborough, NV 22006",Taxi,"Torres, Adams and Carlson",2025-05-29,3244,OR-935938,2024-05-29,Caitlinfort,Mayor Ana,Fourth Quarter,expired
+CTRL-1015,Shannon Aguirre,"USS Ross, FPO AP 48334",Van,Vasquez and Sons,2025-10-30,2225,OR-8678,2024-10-30,Charleston,Mayor Juan,Fourth Quarter,inactive
+CTRL-1016,Karen Harrison,"0463 Brown Extension, Blackburnchester, HI 74089",Motorcycle,Lopez-Johnson,2024-12-08,2938,OR-118124,2023-12-09,Lake Tammieshire,Mayor Cruz,Fourth Quarter,inactive
+CTRL-1017,Brianna Raymond,"9191 Williams Village, Johnfort, ME 53198",Taxi,Vargas and Sons,2025-01-13,4945,OR-135664,2024-01-14,Lake Carrietown,Mayor Cruz,Second Quarter,active
+CTRL-1018,Shannon Olson,"1136 Schmidt Stream Suite 992, Taylorborough, MI 98279",Tricycle,Shaw-Kim,2026-05-10,731,OR-418745,2025-05-10,Amberhaven,Mayor Ana,Second Quarter,expired
+CTRL-1019,Dawn Mitchell,"780 Christopher Union Suite 754, North Kimberly, TX 04088",Taxi,Charles LLC,2026-02-28,3762,OR-447364,2025-02-28,South Kendramouth,Mayor Juan,Third Quarter,active
+CTRL-1020,Adam Wilson,"667 Schmidt Streets, Annemouth, IN 06721",Taxi,Sullivan-Green,2025-08-14,722,OR-784197,2024-08-14,South Laurietown,Mayor Ana,Third Quarter,active
+CTRL-1021,Douglas Smith,"9431 Hernandez Gateway, Johnchester, VA 29777",Motorcycle,Jones-Watkins,2026-02-18,1915,OR-903023,2025-02-18,Castilloton,Mayor Ana,Second Quarter,expired
+CTRL-1022,Michael Meyer,"371 Deborah Mills, South Michael, MA 35267",Tricycle,Jackson LLC,2025-01-19,3217,OR-777955,2024-01-20,Victorfort,Mayor Ana,Second Quarter,expired
+CTRL-1023,Carla Navarro,"2257 Fernandez Freeway Suite 808, North Ronald, FL 45451",Van,Beck-Williams,2026-03-07,1738,OR-487750,2025-03-07,Newtonton,Mayor Cruz,Third Quarter,expired
+CTRL-1024,Laura Garrison,"7309 Jeff Ford Apt. 626, Robertside, NY 19462",Tricycle,"Edwards, Underwood and Stanley",2026-05-03,375,OR-257995,2025-05-03,Jaredchester,Mayor Juan,First Quarter,inactive
+CTRL-1025,Dennis Walters,"9550 Jasmine Causeway Suite 915, New Alexander, FL 79966",Tricycle,"Torres, Peterson and Moore",2026-04-01,4215,OR-262648,2025-04-01,Lake Paulburgh,Mayor Cruz,Fourth Quarter,inactive
+CTRL-1026,Karla Cook,"051 Mason Orchard Apt. 036, Sheamouth, AK 46829",Van,Burgess-Lopez,2025-12-14,2556,OR-442686,2024-12-14,South Ashleyhaven,Mayor Juan,Fourth Quarter,inactive
+CTRL-1027,Karen Patterson,"0860 Fox Highway Apt. 499, Brendaborough, TN 36945",Tricycle,"Martin, Lopez and Arellano",2025-06-16,3434,OR-631524,2024-06-16,Brownside,Mayor Ana,First Quarter,active
+CTRL-1028,Karen Villa,"059 Ricky Hills Apt. 586, Hendersonmouth, DE 43248",Motorcycle,Garcia and Sons,2026-02-06,4952,OR-359895,2025-02-06,West Megan,Mayor Cruz,First Quarter,active
+CTRL-1029,Ricardo Brown,"5063 Scott Plains Suite 674, Goodwintown, VA 06327",Motorcycle,"Clark, Grant and Gibbs",2026-08-17,4690,OR-424498,2025-08-17,Ruthfort,Mayor Juan,First Quarter,expired
+CTRL-1030,Donna Horn MD,"0012 Anderson Summit, North Pamview, GA 17461",Van,Knox LLC,2026-05-03,792,OR-486634,2025-05-03,East Mariamouth,Mayor Ana,Fourth Quarter,inactive
+CTRL-1031,Christopher White,"597 Martinez Parkways Apt. 274, New Elizabethfurt, KS 52572",Van,Collins PLC,2026-06-27,3506,OR-879397,2025-06-27,Port Vanessa,Mayor Juan,First Quarter,expired
+CTRL-1032,Linda Gonzalez,"4492 Huang Wells Apt. 659, Rebeccastad, NM 32406",Van,Miller LLC,2025-09-03,2815,OR-270983,2024-09-03,Lake Timothyville,Mayor Cruz,Third Quarter,active
+CTRL-1033,Darrell Russell,"074 Peck Lodge Apt. 806, East Matthewmouth, NM 99415",Taxi,Hamilton Group,2026-06-18,915,OR-264386,2025-06-18,West Jason,Mayor Ana,Second Quarter,inactive
+CTRL-1034,Ryan Bennett,"15154 Ryan Valleys, South Audrey, MH 08235",Tricycle,"Greene, Acosta and Wheeler",2026-09-25,4466,OR-53534,2025-09-25,Mirandaville,Mayor Ana,Fourth Quarter,inactive
+CTRL-1035,Corey Rollins,"418 Erik Heights, Waltershire, WI 43859",Tricycle,"Jones, Flores and Hudson",2025-04-03,1268,OR-513452,2024-04-03,Port Kevin,Mayor Juan,Second Quarter,inactive
+CTRL-1036,Lawrence Cooley,"752 Christopher Ranch, New Kelly, PA 59386",Tricycle,Jackson Ltd,2025-10-11,1328,OR-699683,2024-10-11,Casebury,Mayor Juan,Third Quarter,expired
+CTRL-1037,Gregory Cortez,"282 Amy Inlet, North Brianside, AS 15032",Tricycle,Brown-Allen,2025-05-01,967,OR-395385,2024-05-01,Adamborough,Mayor Cruz,Second Quarter,expired
+CTRL-1038,Margaret Wood,"577 Lee Way Apt. 631, Lake Michelleshire, MT 10139",Tricycle,Holder Ltd,2025-11-25,3299,OR-909918,2024-11-25,West Stephanieburgh,Mayor Cruz,Fourth Quarter,active
+CTRL-1039,Daniel Morgan,"4868 Russell Turnpike, Lanefort, TN 34176",Taxi,Yu-Knight,2026-08-02,1194,OR-998984,2025-08-02,Matthewsville,Mayor Juan,First Quarter,expired
+CTRL-1040,Dustin Cisneros,"487 Joseph Harbor, New Jennifer, OH 14956",Motorcycle,Vazquez-Rojas,2025-05-02,1595,OR-561032,2024-05-02,Craigfurt,Mayor Juan,First Quarter,inactive
+CTRL-1041,Jamie Garcia,"0504 Vincent Center, Port Douglasfurt, ID 47465",Van,Rich Ltd,2026-02-12,535,OR-13494,2025-02-12,West John,Mayor Juan,Third Quarter,inactive
+CTRL-1042,Amy Wang,"184 Wilson Rapids Suite 601, North Devin, NY 16830",Tricycle,Arellano-Bates,2025-07-20,3085,OR-224921,2024-07-20,Lisastad,Mayor Ana,Second Quarter,inactive
+CTRL-1043,Peter Johnson,"25519 Tonya Haven, Port Graceside, MO 21914",Van,Ramirez Group,2026-05-24,2602,OR-785439,2025-05-24,Port Melissa,Mayor Juan,Third Quarter,expired
+CTRL-1044,Patrick Jones,"437 Bailey Viaduct, Phillipsborough, MS 99204",Van,"Poole, Richardson and Booth",2026-05-09,558,OR-686563,2025-05-09,New Tyler,Mayor Juan,First Quarter,active
+CTRL-1045,Maria Gardner,"1203 Warren Lake, Holtstad, MO 37309",Tricycle,"Moore, Davis and Hammond",2026-05-26,1060,OR-533053,2025-05-26,New Veronicaburgh,Mayor Juan,Second Quarter,expired
+CTRL-1046,Ryan White,"09950 Emily Summit Apt. 627, Port Derrick, LA 48402",Tricycle,Mcdonald-Davis,2026-01-01,3249,OR-717589,2025-01-01,South Mary,Mayor Cruz,First Quarter,active
+CTRL-1047,Justin Hicks,"4695 Jennifer Village, Thomasview, OR 38917",Taxi,"Reed, Rivera and Mendoza",2026-03-19,166,OR-876585,2025-03-19,Marshallland,Mayor Juan,First Quarter,inactive
+CTRL-1048,Sarah Thomas,"609 Leon Inlet, West Robertmouth, ND 74055",Taxi,"Nelson, Sandoval and Snyder",2025-05-22,3853,OR-950752,2024-05-22,South Lindsayview,Mayor Ana,Third Quarter,inactive
+CTRL-1049,Anthony Bradley,"15681 Zavala Wells Suite 461, New Elizabethhaven, MS 42961",Van,"Chang, Cunningham and Washington",2025-09-01,4197,OR-691171,2024-09-01,Aprilfurt,Mayor Juan,Second Quarter,inactive

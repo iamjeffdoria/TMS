@@ -1,0 +1,302 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mayor's Permit - {{ permit.control_no }}</title>
+    <style>
+        @media print {
+            body {
+                margin: 20px;
+                font-family: Arial, sans-serif;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+.print-header {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;  /* align items to top */
+    justify-content: space-between;
+    margin-top: 45px;        /* added top margin */
+    margin-bottom: 20px;
+}
+
+.logo-box {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* align logo to top */
+    font-size: 16px;
+    margin-top: 10px; /* optional fine-tuning */
+}
+
+        .header-title {
+            text-align: center;
+            flex-grow: 1;
+            font-size: 16px;
+        }
+
+       .control-number {
+    text-align: right;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px; /* optional fine-tuning */
+}
+        .permit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+        }
+
+        .permit-table td,
+        .permit-table th {
+            padding: 8px;
+            border: 1px solid #000;
+        }
+        .custom-checkbox {
+            margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    padding-left: 28px;
+    margin-right: 15px;
+    cursor: default;
+    font-size: 16px;
+    user-select: none;
+}
+
+/* Hide the default checkbox */
+.custom-checkbox input {
+    position: absolute;
+    opacity: 0;
+    cursor: default;
+    height: 0;
+    width: 0;
+}
+
+/* Create a custom checkbox */
+.custom-checkbox .checkmark {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 20px;
+    width: 20px;
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 3px;
+}
+
+/* Create the checkmark */
+.custom-checkbox input:checked ~ .checkmark::after {
+    content: "✓";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    color: black;
+}
+    </style>
+</head>
+<script>
+    window.onload = function () {
+        window.print();
+    };
+</script>
+<body>
+
+    <!-- PRINT HEADER -->
+    <div class="print-header">
+        <div class="logo-box">
+            <img src="{% static 'assets/img/lgu.png' %}" alt="Logo" style="max-width:100%; max-height:100%;">
+        </div>
+
+<div class="header-title" style="font-family: 'Times New Roman', serif;">
+    Republic of the Philippines<br>
+    Province of Leyte<br>
+    <strong>Municipality of Palompon</strong><br><br>
+
+     <span style="font-size: 18px; font-weight: bold; text-transform: uppercase;">
+        OFFICE OF THE MUNICIPAL MAYOR
+    </span><br>
+
+    <span style="font-size: 16px; font-weight: bold;">
+        MAYOR'S PERMIT
+    </span><br>
+
+    <span style="font-size: 14px; font-weight: normal;">
+        To operate/Drive Public Utility Pedicab
+    </span><br>
+
+    <span style="font-size: 13px; font-style: italic;">
+        (Pursuant to the Provision of Revised Municipal Tax Ordinance No. 298-041004)
+    </span>
+</div>
+
+<div class="control-number" style="text-align: center;">
+    <label style="font-family: 'Americana BT', serif; font-size: 15px; font-weight: normal;">
+        Control No:
+    </label><br>
+    <div style="
+        border: 1px solid #000;
+        padding: 6px 10px;
+        font-size: 18px;
+        font-weight: bold;
+        width: 80px;
+        text-align: center;
+        margin-top: 3px;
+    ">
+        {{ permit.control_no }}
+    </div>
+</div>
+    </div>
+
+  <div style="text-align: center; margin-top: 40px; font-family: 'Times New Roman', serif;">
+    <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px;"> PERMIT IS HEREBY GRANTED </div>
+    <div style="margin-top: 10px; font-size: 16px;"> to </div>
+
+  <!-- Name in uppercase with subtle underline -->
+<div style="margin-top: 10px; font-size: 20px; display: inline-block; 
+            border-bottom: 1px solid black; padding-bottom: 2px; min-width: 300px; text-transform: uppercase;">
+    <span style="font-weight: bold;">{{ permit.name }}</span>
+</div>
+<div style="font-size: 13px; margin-top: 3px;"> Name of Operator </div>
+
+
+    <!-- Address with subtle underline -->
+  <!-- Address with subtle underline -->
+<div style="margin-top: 15px; font-size: 18px; display: inline-block; 
+            border-bottom: 1px solid black; padding-bottom: 2px; min-width: 300px;">
+    <span style="font-weight: bold;">{{ permit.address }}</span>
+</div>
+<div style="font-size: 13px; margin-top: 3px;"> Home Address </div>
+
+
+    <div style="margin-top: 20px; font-size: 16px;">
+        to engage in 
+        <span style="font-weight: bold; display: inline-block; border-bottom: 1px solid black; padding-bottom: 2px; min-width: 400px;">
+            POTPOT OPERATION AND DRIVING
+        </span> 
+        with
+    </div>
+<div style="margin-top: 20px; font-size: 16px;">
+    business name <sup style="font-style: italic; font-size: 12px;">(if any)</sup>
+    <span style="font-weight: bold; display: inline-block; border-bottom: 1px solid black; padding-bottom: 2px; min-width: 200px;">
+        {{ permit.business_name|default:"None" }}
+    </span>
+</div>  
+
+    <div style="margin-top: 15px; font-size: 16px;">
+        and with business address at 
+        <span style="font-weight: bold; display: inline-block; border-bottom: 1px solid black; padding-bottom: 2px; min-width: 200px;">
+            Palompon, Leyte
+        </span>
+    </div>
+     <!-- Expiry Date Section -->
+    <div style="margin-top: 25px; font-size: 16px;">
+        This permit expires on 
+        <span style="font-weight: bold; display: inline-block; border-bottom: 1px solid black; padding-bottom: 2px; min-width: 200px;">
+            {{ permit.expiry_date|date:"F d, Y" }}
+        </span>
+        and may be earlier revoked for cause.
+    </div>
+
+<!-- Quarter Section with custom checkboxes -->
+<div style="margin-top: 20px; font-size: 16px;">
+    Applicable Quarter: <br>
+    <label class="custom-checkbox"><em>1<sup>st</sup> Quarter</em>
+        <input type="checkbox" {% if permit.quarter == 'First Quarter' %}checked{% endif %} disabled>
+        <span class="checkmark"></span>
+    </label>
+    <label class="custom-checkbox"><em>2<sup>nd</sup> Quarter</em>
+        <input type="checkbox" {% if permit.quarter == 'Second Quarter' %}checked{% endif %} disabled>
+        <span class="checkmark"></span>
+    </label>
+    <label class="custom-checkbox"><em>3<sup>rd</sup> Quarter</em>
+        <input type="checkbox" {% if permit.quarter == 'Third Quarter' %}checked{% endif %} disabled>
+        <span class="checkmark"></span>
+    </label>
+    <label class="custom-checkbox"><em>4<sup>th</sup> Quarter</em>
+        <input type="checkbox" {% if permit.quarter == 'Fourth Quarter' %}checked{% endif %} disabled>
+        <span class="checkmark"></span>
+    </label>
+    <!-- Instruction below the checkboxes -->
+<div style="font-size: 14px; margin-top: 5px; font-style: italic;">
+    (please mark (✓) the appropriate box)
+</div>
+<!-- Issue Date and Issued At with underlines -->
+<div style="margin-top: 20px; font-size: 16px; line-height: 1.6; font-family: 'Times New Roman', serif;">
+    Issued this 
+    <span style="font-weight: bold; display: inline-block; border-bottom: 1px solid black; padding-bottom: 2px; min-width: 50px; text-align: center;">
+        {{ permit.issue_date|date:"jS" }}
+    </span> 
+    day of 
+    <span style="font-weight: bold; display: inline-block; border-bottom: 1px solid black; padding-bottom: 2px; min-width: 100px; text-align: center;">
+        {{ permit.issue_date|date:"F" }}
+    </span>, 
+    20
+    <span style="font-weight: bold; display: inline-block; border-bottom: 1px solid black; padding-bottom: 2px; min-width: 30px; text-align: center;">
+        {{ permit.issue_date|date:"y" }}
+    </span> 
+    at 
+    <span style="font-weight: bold; display: inline-block; border-bottom: 1px solid black; padding-bottom: 2px; min-width: 180px; text-align: center;">
+        {{ permit.issued_at }}
+    </span>, Philippines.
+</div>
+<!-- Mayor Signature at bottom right -->
+<div style="margin-top: 80px; text-align: right; font-family: 'Times New Roman', serif;">
+    <div style="display: inline-block; text-align: center;">
+        <div style="font-weight: bold; border-bottom: 1px solid black; padding-bottom: 2px; min-width: 180px;">
+            {{ permit.mayor|upper }}
+        </div>
+        <div style="font-size: 14px; margin-top: 4px;">
+            MUNICIPAL MAYOR
+        </div>
+    </div>
+</div>
+
+  <!-- Left: Payment details -->
+    <div style="text-align: left; font-size: 16px; margin-top: 70px; font-family: 'Times New Roman', serif;">
+        <div>Amount paid: <span style="font-weight: bold;">{{ permit.amount_paid }}</span></div>
+        <div>O.R No: <span style="font-weight: bold;">{{ permit.or_no }}</span></div>
+        <div>Issue date: <span style="font-weight: bold;">{{ permit.issue_date|date:'F d, Y' }}</span></div>
+        <div>Issued at: <span style="font-weight: bold;">{{ permit.issued_at }}</span></div>
+    </div>
+
+
+
+
+</div>
+
+
+
+</div>
+
+
+         
+    <br><br>
+
+    <button onclick="window.print()" class="no-print" 
+        style="padding:10px 18px; background:#007bff; color:white; border:0; border-radius:5px;">
+        Print Document
+    </button>
+
+</body>
+
+<script>
+    window.onload = function () {
+        // Open the print dialog
+        window.print();
+    };
+
+    // After the print dialog closes, close the window automatically
+    window.onafterprint = function () {
+        window.close();
+    };
+</script>
+
+
+</html>
