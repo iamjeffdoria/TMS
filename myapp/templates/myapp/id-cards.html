@@ -2,26 +2,97 @@
 {% load static %}
 {% block content %}
 <style>
-	.table-responsive { overflow-x: auto; }
-	/* Thumbnail sizing: constrain to column and keep aspect ratio */
-	.id-thumb { display: inline-block; width: 40px; height:40px; max-width: 100%; max-height: 64px; object-fit: cover; }
-	/* Reserve a narrow fixed column for the image so it doesn't expand */
-	#dataTable td:first-child, #dataTable th:first-child { width: 80px; text-align: center; padding: 4px 6px; }
-	/* Reduce image margin so it sits nearer the cell edge */
-	.id-thumb { margin: 0; }
-	/* Prevent most columns from wrapping so long text stays on one line and table can scroll horizontally */
-	.table td, .table th { vertical-align: middle; white-space: nowrap; }
-	/* Allow wrapping only for address column and limit its width */
-	.wrap-col { max-width: 420px; white-space: normal; word-break: break-word; }
-	/* Ensure table has a larger minimum width so columns have room */
-	#dataTable { min-width: 1300px; }
+/* Fixed image column */
+.table td.image-col,
+.table th.image-col {
+    width: 70px;
+    text-align: center;
+    vertical-align: middle;
+    padding: 6px;
+}
+
+/* Thumbnail styling */
+.id-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: contain; /* IMPORTANT: no ugly crop */
+    border-radius: 6px;
+    background-color: #f8f9fc;
+    border: 1px solid #e3e6f0;
+    padding: 2px;
+}
+/* Styling for the Print Template */
+#print-area { display: none; }
+
+@media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area {
+        display: flex !important;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        justify-content: center; align-items: center;
+        background: white;
+    }
+
+    .id-card-wrapper {
+        position: relative;
+        width: 640px; /* ← Changed from 320px */
+        height: 1000px; /* ← Changed from 500px */
+    }
+
+    .template-bg { width: 100%; height: auto; display: block; }
+
+    /* Positioning the Dynamic Data */
+    .dynamic-photo {
+        position: absolute;
+        top:20%; /* Adjust to fit the photo frame */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px; /* ← Changed from 120px */
+        height: 320px; /* ← Changed from 120px */
+        object-fit: cover;
+        border-radius: 35px;
+    }
+
+    .field {
+        position: absolute;
+        font-family: Arial, sans-serif;
+        font-weight: bold;
+        color: white;
+         font-size: 24px;
+    }
+    /* Positioning the Full Name */
+    .full-name {
+        top: 57%; /* Positioned above the ID number */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        text-align: center;
+        font-size: 40px; /* Names are usually larger */
+        text-transform: uppercase;
+        color: white;
+    }
+
+    /* Target specific locations from your image */
+    .id-number { top: 73.2%; left: 35%; }
+    .address   { top: 77.8%; left: 35%; width: 50%; line-height: 1.1; }
+    .dob       { top: 81.8%; left: 35%; }
+    .gender       { top: 85.5%; left: 35%; }
+    .or-number    { top: 89%; left: 35%; }
+    .height       { top: 92.5%; left: 35%; }
+    .weight       { top: 96%; left: 35%; }
+    .date-issued  { top: 99.5%; left: 35%; }
+    .expiry-date  { top: 103%; left: 35%; }
+}
 </style>
+
 
 <div class="card shadow mb-4">
 	<div class="card-header py-3 d-flex justify-content-between align-items-center">
 		<h6 class="m-0 font-weight-bold text-primary">ID Cards</h6>
-	<!-- Button to trigger modal -->
-	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addIdCardModal">
+<!-- Button to trigger modal -->
+<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addIdCardModal">
     <i class="fas fa-plus"></i> Add ID Card
 </button>
 
@@ -32,7 +103,7 @@
 			<table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
 				<thead>
 					<tr>
-						<th>Image</th>
+					  <th class="image-col">Image</th>
 						<th>ID Number</th>
 						<th>Name</th>
 						<th>Gender</th>
@@ -43,12 +114,14 @@
 						<th>Weight (kg)</th>
 						<th>Date Issued</th>
 						<th>Expiry Date</th>
+            <th class="text-center">Action</th>
+            
 					</tr>
           
 				</thead>
 				<tfoot>
 					<tr>
-						<th>Image</th>
+						<th class="image-col">Image</th>
 						<th>ID Number</th>
 						<th>Name</th>
 						<th>Gender</th>
@@ -59,6 +132,7 @@
 						<th>Weight (kg)</th>
 						<th>Date Issued</th>
 						<th>Expiry Date</th>
+            <th class="text-center">Action</th>
 					</tr>
 
           
@@ -66,13 +140,14 @@
 				<tbody>
 					{% for card in cards %}
 					<tr>
-						<td>
-							{% if card.image %}
-								<img src="{{ card.image.url }}" alt="{{ card.name }}" class="id-thumb">
-							{% else %}
-								<span class="text-muted">-</span>
-							{% endif %}
-						</td>
+            <td class="image-col">
+                {% if card.image %}
+                    <img src="{{ card.image.url }}" alt="{{ card.name }}" class="id-thumb">
+                {% else %}
+                    <span class="text-muted">-</span>
+                {% endif %}
+            </td>
+
 						<td>{{ card.id_number }}</td>
 						<td>{{ card.name }}</td>
 						<td>{{ card.get_gender_display }}</td>
@@ -83,6 +158,63 @@
 						<td>{{ card.weight }}</td>
 						<td>{{ card.date_issued }}</td>
 						<td>{{ card.expiration_date }}</td>
+            <td class="text-center">
+            <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-info" title="View"
+                onclick="viewIdCard(
+                    '{{ card.image.url }}',
+                    '{{ card.name|escapejs }}',
+                    '{{ card.id_number }}',
+                    '{{ card.get_gender_display }}',
+                    '{{ card.date_of_birth }}',
+                    '{{ card.address|escapejs }}',
+                    '{{ card.or_number }}',
+                    '{{ card.height }}',
+                    '{{ card.weight }}',
+                    '{{ card.date_issued }}',
+                    '{{ card.expiration_date }}'
+                )">
+            <i class="fas fa-eye"></i>
+        </button>
+             <button type="button" class="btn btn-warning" title="Update"
+                onclick="openUpdateModal(
+                    '{{ card.id }}',
+                    '{{ card.image.url }}',
+                    '{{ card.name|escapejs }}',
+                    '{{ card.id_number }}',
+                    '{{ card.gender }}',
+                    '{{ card.date_of_birth }}',
+                    '{{ card.address|escapejs }}',
+                    '{{ card.or_number }}',
+                    '{{ card.height }}',
+                    '{{ card.weight }}',
+                    '{{ card.date_issued }}',
+                    '{{ card.expiration_date }}'
+                )">
+            <i class="fas fa-edit"></i>
+        </button>
+
+              <button type="button" class="btn btn-danger" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+        <button type="button" class="btn btn-secondary" title="Print" 
+                onclick="preparePrint(
+            '{{ card.image.url }}',
+            '{{ card.name|escapejs }}',
+            '{{ card.id_number }}',
+            '{{ card.address|escapejs }}',
+            '{{ card.date_of_birth }}',
+            '{{ card.get_gender_display }}',
+            '{{ card.or_number }}',
+            '{{ card.height }}',
+            '{{ card.weight }}',
+            '{{ card.date_issued }}',
+            '{{ card.expiration_date }}'
+        )">
+        <i class="fas fa-print"></i>
+        </button>
+            </div>
+          </td>
 					</tr>
 					{% empty %}
 					<tr>
@@ -97,34 +229,27 @@
 
 <!-- Add ID Card Modal -->
 <div class="modal fade" id="addIdCardModal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document"> <!-- WIDER modal -->
+  <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
 
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title">Add ID Card</h5>
-        <button type="button" class="close text-white" data-dismiss="modal">
+        <button type="button" class="close" data-dismiss="modal">
           <span>&times;</span>
         </button>
       </div>
 
       <div class="modal-body">
-
         <form id="idCardForm" enctype="multipart/form-data">
           {% csrf_token %}
 
           <div class="row">
 
-            <!-- LEFT COLUMN -->
-            <div class="col-md-6">
-
+            <!-- COLUMN 1 -->
+            <div class="col-md-4">
               <div class="form-group">
                 <label>Name</label>
                 <input name="name" class="form-control" required>
-              </div>
-
-              <div class="form-group">
-                <label>Address</label>
-                <textarea name="address" class="form-control" required></textarea>
               </div>
 
               <div class="form-group">
@@ -145,11 +270,14 @@
                   <option value="O">Other</option>
                 </select>
               </div>
-
             </div>
 
-            <!-- RIGHT COLUMN -->
-            <div class="col-md-6">
+            <!-- COLUMN 2 -->
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Address</label>
+                <textarea name="address" class="form-control" rows="3" required></textarea>
+              </div>
 
               <div class="form-group">
                 <label>OR Number</label>
@@ -165,7 +293,10 @@
                 <label>Weight (kg)</label>
                 <input name="weight" class="form-control" type="number" step="0.01">
               </div>
+            </div>
 
+            <!-- COLUMN 3 -->
+            <div class="col-md-4">
               <div class="form-group">
                 <label>Date Issued</label>
                 <input type="date" name="date_issued" class="form-control">
@@ -178,21 +309,114 @@
 
               <div class="form-group">
                 <label>Photo</label>
-                <input type="file" name="image" class="form-control" required>
+                <input type="file" name="image" class="form-control-file" required>
               </div>
-
             </div>
 
           </div>
         </form>
-
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="saveIdCardBtn">
-          <i class="fas fa-save"></i> Save
+        <button type="button" class="btn btn-secondary btn-md" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary btn-md" id="saveIdCardBtn">Save</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="print-area">
+    <div class="id-card-wrapper">
+        <img src="{% static 'assets/img/front-id.png' %}" class="template-bg">
+        
+        <div class="data-overlay">
+            <img id="print-photo" src="" class="dynamic-photo">
+            <div id="print-name" class="field full-name"></div>
+            <div id="print-id-number" class="field id-number"></div>
+            <div id="print-address" class="field address"></div>
+            <div id="print-dob" class="field dob"></div>
+            <div id="print-gender" class="field gender"></div>
+            <div id="print-or-number" class="field or-number"></div>
+            <div id="print-height" class="field height"></div>
+            <div id="print-weight" class="field weight"></div>
+            <div id="print-date-issued" class="field date-issued"></div>
+            <div id="print-expiry-date" class="field expiry-date"></div>
+        </div>
+    </div>
+</div>
+<!-- View ID Card Modal -->
+<div class="modal fade" id="viewIdCardModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title text-dark">ID Card Details</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span>&times;</span>
         </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row">
+          
+          <!-- Photo Column -->
+          <div class="col-md-4 text-center mb-3">
+            <img id="view-image" src="" alt="ID Photo" class="img-fluid rounded" style="max-height: 280px; object-fit: cover; border: 1px solid #dee2e6;">
+          </div>
+
+          <!-- Details Column -->
+          <div class="col-md-8">
+            <table class="table table-sm">
+              <tbody>
+                <tr>
+                  <td class="text-muted" style="width: 35%;">Full Name</td>
+                  <td id="view-name"></td>
+                </tr>
+                <tr>
+                  <td class="text-muted">ID Number</td>
+                  <td id="view-id-number"></td>
+                </tr>
+                <tr>
+                  <td class="text-muted">Gender</td>
+                  <td id="view-gender"></td>
+                </tr>
+                <tr>
+                  <td class="text-muted">Date of Birth</td>
+                  <td id="view-dob"></td>
+                </tr>
+                <tr>
+                  <td class="text-muted">Address</td>
+                  <td id="view-address"></td>
+                </tr>
+                <tr>
+                  <td class="text-muted">Height</td>
+                  <td id="view-height"></td>
+                </tr>
+                <tr>
+                  <td class="text-muted">Weight</td>
+                  <td id="view-weight"></td>
+                </tr>
+                <tr>
+                  <td class="text-muted">OR Number</td>
+                  <td id="view-or-number"></td>
+                </tr>
+                <tr>
+                  <td class="text-muted">Date Issued</td>
+                  <td id="view-date-issued"></td>
+                </tr>
+                <tr>
+                  <td class="text-muted">Expiry Date</td>
+                  <td id="view-expiry-date"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
       </div>
 
     </div>
@@ -200,40 +424,261 @@
 </div>
 
 
+<!-- Update ID Card Modal -->
+<div class="modal fade" id="updateIdCardModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
 
-<!-- Optional: JS for handling frontend save (just console log for now) -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Update ID Card</h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form id="updateIdCardForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" id="update-card-id" name="card_id">
+
+          <div class="row">
+
+            <!-- COLUMN 1 -->
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Name</label>
+                <input id="update-name" name="name" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label>ID Number</label>
+                <input id="update-id-number" name="id_number" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <input id="update-dob" type="date" name="date_of_birth" class="form-control">
+              </div>
+
+              <div class="form-group">
+                <label>Gender</label>
+                <select id="update-gender" name="gender" class="form-control">
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                  <option value="O">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- COLUMN 2 -->
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Address</label>
+                <textarea id="update-address" name="address" class="form-control" rows="3" required></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>OR Number</label>
+                <input id="update-or-number" name="or_number" class="form-control">
+              </div>
+
+              <div class="form-group">
+                <label>Height (cm)</label>
+                <input id="update-height" name="height" class="form-control" type="number" step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label>Weight (kg)</label>
+                <input id="update-weight" name="weight" class="form-control" type="number" step="0.01">
+              </div>
+            </div>
+
+            <!-- COLUMN 3 -->
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Date Issued</label>
+                <input id="update-date-issued" type="date" name="date_issued" class="form-control">
+              </div>
+
+              <div class="form-group">
+                <label>Expiration Date</label>
+                <input id="update-expiry-date" type="date" name="expiration_date" class="form-control">
+              </div>
+
+              <div class="form-group">
+                <label>Current Photo</label>
+                <div class="mb-2">
+                  <img id="update-current-photo" src="" alt="Current Photo" class="img-thumbnail" style="max-height: 100px;">
+                </div>
+                <label>Change Photo (optional)</label>
+                <input id="update-image" type="file" name="image" class="form-control-file">
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="updateIdCardBtn">Update</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
-document.getElementById('saveIdCardBtn').addEventListener('click', function() {
-    const name = document.getElementById('idCardName').value;
-    const number = document.getElementById('idCardNumber').value;
-    console.log("ID Card Data:", {name, number});
-    $('#addIdCardModal').modal('hide'); // Bootstrap 4 way
+
+  // Function to open update modal with pre-filled data
+function openUpdateModal(cardId, imageUrl, name, idNumber, gender, dob, address, orNumber, height, weight, dateIssued, expiryDate) {
+    // Fill hidden card ID
+    document.getElementById('update-card-id').value = cardId;
+    
+    // Fill form fields
+    document.getElementById('update-name').value = name || '';
+    document.getElementById('update-id-number').value = idNumber || '';
+    document.getElementById('update-gender').value = gender || 'M';
+    document.getElementById('update-dob').value = dob || '';
+    document.getElementById('update-address').value = address || '';
+    document.getElementById('update-or-number').value = orNumber || '';
+    document.getElementById('update-height').value = height || '';
+    document.getElementById('update-weight').value = weight || '';
+    document.getElementById('update-date-issued').value = dateIssued || '';
+    document.getElementById('update-expiry-date').value = expiryDate || '';
+    
+    // Show current photo
+    document.getElementById('update-current-photo').src = imageUrl || '';
+    
+    // Show the modal
+    $('#updateIdCardModal').modal('show');
+}
+  // Function to view ID card details
+function viewIdCard(imageUrl, name, idNumber, gender, dob, address, orNumber, height, weight, dateIssued, expiryDate) {
+    // Set image
+    document.getElementById('view-image').src = imageUrl || '';
+    
+    // Set personal information
+    document.getElementById('view-name').textContent = name || 'N/A';
+    document.getElementById('view-id-number').textContent = idNumber || 'N/A';
+    document.getElementById('view-gender').textContent = gender || 'N/A';
+    document.getElementById('view-dob').textContent = dob || 'N/A';
+    document.getElementById('view-address').textContent = address || 'N/A';
+    
+    // Set physical information
+    document.getElementById('view-height').textContent = height ? height + ' cm' : 'N/A';
+    document.getElementById('view-weight').textContent = weight ? weight + ' kg' : 'N/A';
+    
+    // Set card information
+    document.getElementById('view-or-number').textContent = orNumber || 'N/A';
+    document.getElementById('view-date-issued').textContent = dateIssued || 'N/A';
+    document.getElementById('view-expiry-date').textContent = expiryDate || 'N/A';
+    
+    // Show the modal
+    $('#viewIdCardModal').modal('show');
+}
+document.addEventListener("DOMContentLoaded", function () {
+    // 1. Initialize DataTable
+    var table = $('#dataTable').DataTable({
+        "pageLength": 10,
+        "lengthChange": false,
+        "ordering": false,
+        "searching": true,
+        "columnDefs": [
+            {
+                "targets": [6, 7, 8, 9, 10],
+                "visible": false,
+                "searchable": true
+            }
+        ]
+    });
+
+    // 2. Save ID Card button - SINGLE listener
+    document.getElementById("saveIdCardBtn").addEventListener("click", function () {
+        let form = document.getElementById("idCardForm");
+        let formData = new FormData(form);
+
+        fetch("{% url 'add-idcard' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                $('#addIdCardModal').modal('hide');
+                setTimeout(() => {
+                    location.reload();
+                }, 300);
+            }
+        })
+        .catch(err => console.error(err));
+    });
+
+
+      // Add this new listener for Update button
+    document.getElementById("updateIdCardBtn").addEventListener("click", function () {
+        let form = document.getElementById("updateIdCardForm");
+        let formData = new FormData(form);
+
+        fetch("{% url 'update-idcard' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                $('#updateIdCardModal').modal('hide');
+                setTimeout(() => {
+                    location.reload();
+                }, 300);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('An error occurred while updating the ID Card');
+        });
+    });
 });
 
-document.getElementById("saveIdCardBtn").addEventListener("click", function () {
-    let form = document.getElementById("idCardForm");
-    let formData = new FormData(form);
+// 3. Global function for print (outside DOMContentLoaded since it's called from inline onclick)
+function preparePrint(photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate) {
+    document.getElementById('print-photo').src = photoUrl;
+    document.getElementById('print-name').innerText = fullName;
+    document.getElementById('print-id-number').innerText = idNum;
+    document.getElementById('print-address').innerText = address;
+    document.getElementById('print-dob').innerText = dob;
+    document.getElementById('print-gender').innerText = gender || '';
+    document.getElementById('print-or-number').innerText = orNumber || '';
+    document.getElementById('print-height').innerText = height ? height + ' cm' : '';
+    document.getElementById('print-weight').innerText = weight ? weight + ' kg' : '';
+    document.getElementById('print-date-issued').innerText = dateIssued || '';
+    document.getElementById('print-expiry-date').innerText = expiryDate || '';
 
-    fetch("{% url 'add-idcard' %}", {
-        method: "POST",
-        body: formData,
-        headers: {
-            "X-CSRFToken": "{{ csrf_token }}",
-        }
-    })
-    .then(response => {
-        if (response.ok) {
-            // Close modal
-            $('#addIdCardModal').modal('hide');
+    const photo = document.getElementById('print-photo');
+    let printed = false;
 
-            // Reload the page to show Django messages
+    const triggerPrint = () => {
+        if (!printed) {
+            printed = true;
             setTimeout(() => {
-                location.reload();
+                window.print();
             }, 300);
         }
-    })
-    .catch(err => console.error(err));
-});
+    };
+
+    if (photo.complete && photo.naturalHeight !== 0) {
+        triggerPrint();
+    } else {
+        photo.onload = triggerPrint;
+    }
+}
 </script>
 
 

@@ -11,20 +11,27 @@
         padding: 0.75rem;
         vertical-align: middle;
     }
-    #dataTable {
-        min-width: 1800px;
-    }
 </style>
 
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-primary">MTOP Records</h6>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#importModal">
+                <i class="fas fa-file-import"></i> Import CSV
+            </button>
+            <a href="#" class="btn btn-sm btn-danger">
+                <i class="fas fa-file-export"></i> Export CSV
+            </a>
+            <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addRecordModal">
+                <i class="fas fa-plus"></i> Add New Record
+            </button>
+        </div>
     </div>
 
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
-                
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -42,8 +49,23 @@
                         <th>Mayor</th>
                         <th>Action</th>
                     </tr>
+                    <tr>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th></th>
+                    </tr>
                 </thead>
-
                 <tfoot>
                     <tr>
                         <th>Name</th>
@@ -62,7 +84,6 @@
                         <th>Action</th>
                     </tr>
                 </tfoot>
-
                 <tbody>
                     {% for m in mtops %}
                     <tr>
@@ -79,29 +100,18 @@
                         <td>{{ m.municipal_treasurer }}</td>
                         <td>{{ m.officer_in_charge }}</td>
                         <td>{{ m.mayor }}</td>
-
                         <td class="text-center">
                             <div class="btn-group" role="group" aria-label="actions">
-                                
-                          <!-- PRINT BUTTON -->
-                                        <a href="{% url 'mtop_print' m.id %}" 
-                                        class="btn btn-sm btn-primary" 
-                                        title="Print"
-                                        target="_blank">
-                                            <i class="fas fa-print"></i>
-                                        </a>
-                                        
-
-                        <!-- UPDATE BUTTON -->
-                                <a href="#" 
-                                   class="btn btn-sm btn-warning" 
-                                   title="Update">
-                                    <i class="fas fa-edit"></i>
+                                <!-- PRINT BUTTON -->
+                                <a href="{% url 'mtop_print' m.id %}" class="btn btn-sm btn-primary" title="Print" target="_blank">
+                                    <i class="fas fa-print"></i>
                                 </a>
-
+                                <!-- EDIT BUTTON - FIXED: Changed from {{ mtop.id }} to {{ m.id }} -->
+                                <button class="btn btn-sm btn-warning edit-btn" data-id="{{ m.id }}" data-toggle="modal" data-target="#editRecordModal">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                             </div>
                         </td>
-
                     </tr>
                     {% empty %}
                     <tr>
@@ -109,21 +119,306 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-
             </table>
         </div>
     </div>
 </div>
 
+<!-- Add New Record Modal -->
+<div class="modal fade" id="addRecordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title font-weight-bold">
+                    <i class="fas fa-plus-circle mr-2"></i> Add MTOP Record
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addRecordForm">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Name</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Case No</label>
+                            <input type="text" class="form-control" name="case_no" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Address</label>
+                            <input type="text" class="form-control" name="address" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">No. of Units</label>
+                            <input type="number" class="form-control" name="no_of_units" min="1" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Route Operation</label>
+                            <input type="text" class="form-control" name="route_operation" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Make</label>
+                            <input type="text" class="form-control" name="make" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Motor No</label>
+                            <input type="text" class="form-control" name="motor_no" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Chassis No</label>
+                            <input type="text" class="form-control" name="chasses_no" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Plate No</label>
+                            <input type="text" class="form-control" name="plate_no" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Date</label>
+                            <input type="date" class="form-control" name="date" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Municipal Treasurer</label>
+                            <input type="text" class="form-control" name="municipal_treasurer" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Officer in Charge</label>
+                            <input type="text" class="form-control" name="officer_in_charge" required>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <label class="font-weight-bold">Mayor</label>
+                            <input type="text" class="form-control" name="mayor" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light">
+                <button class="btn btn-primary" id="saveRecordBtn">
+                    <i class="fas fa-save"></i> Save Record
+                </button>
+                <button class="btn btn-danger" data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update MTOP Modal -->
+<div class="modal fade" id="editRecordModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content ">
+            <div class="modal-header py-2 bg-primary text-white">
+                <h5 class="modal-title mb-0">
+                    <i class="fas fa-edit"></i> Update MTOP Record
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body py-3">
+                <form id="editRecordForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="edit_id" name="id">
+                    
+                    <!-- ROW 1 -->
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Name *</label>
+                            <input type="text" class="form-control" id="edit_name" name="name" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Case No *</label>
+                            <input type="text" class="form-control" id="edit_case_no" name="case_no" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Address *</label>
+                            <input type="text" class="form-control" id="edit_address" name="address" required>
+                        </div>
+                    </div>
+
+                    <!-- ROW 2 -->
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">No. of Units *</label>
+                            <input type="number" class="form-control" id="edit_no_of_units" name="no_of_units" min="1" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Route Operation *</label>
+                            <input type="text" class="form-control" id="edit_route_operation" name="route_operation" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Make *</label>
+                            <input type="text" class="form-control" id="edit_make" name="make" required>
+                        </div>
+                    </div>
+
+                    <!-- ROW 3 -->
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Motor No *</label>
+                            <input type="text" class="form-control" id="edit_motor_no" name="motor_no" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Chassis No *</label>
+                            <input type="text" class="form-control" id="edit_chasses_no" name="chasses_no" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Plate No *</label>
+                            <input type="text" class="form-control" id="edit_plate_no" name="plate_no" required>
+                        </div>
+                    </div>
+
+                    <!-- ROW 4 -->
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Date *</label>
+                            <input type="date" class="form-control" id="edit_date" name="date" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Municipal Treasurer *</label>
+                            <input type="text" class="form-control" id="edit_municipal_treasurer" name="municipal_treasurer" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Officer in Charge *</label>
+                            <input type="text" class="form-control" id="edit_officer_in_charge" name="officer_in_charge" required>
+                        </div>
+                    </div>
+
+                    <!-- ROW 5 -->
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <label class="mb-1 font-weight-bold">Mayor *</label>
+                            <input type="text" class="form-control" id="edit_mayor" name="mayor" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer py-2">
+                <button class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn btn-success" id="updateRecordBtn">
+                    <i class="fas fa-save"></i> Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script>
-$(document).ready(function() {
-    $('#dataTable').DataTable({
+document.addEventListener("DOMContentLoaded", function () {
+    // Initialize DataTable
+    var table = $('#dataTable').DataTable({
         "pageLength": 10,
         "lengthMenu": [5, 10, 25, 50, 100],
-        "ordering": true,
-        "searching": true
+        "lengthChange": false,
+        "ordering": false,
+        "searching": true,
+        "columnDefs": [
+            {
+                "targets": [5, 6, 7, 8, 10, 11, 12],
+                "visible": false,
+                "searchable": true
+            }
+        ]
+    });
+
+    // Apply column search from header inputs
+    table.columns().every(function(index) {
+        var that = this;
+        if (index === 13) {
+            return;
+        }
+        $('input', this.header()).on('keyup change clear', function() {
+            if (that.search() !== this.value) {
+                that.search(this.value).draw();
+            }
+        });
+    });
+
+    // SAVE NEW RECORD
+    document.getElementById("saveRecordBtn").addEventListener("click", function () {
+        let form = document.getElementById("addRecordForm");
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        let csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let formData = new FormData(form);
+
+        fetch("{% url 'add-mtop' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": csrftoken
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                $("#addRecordModal").modal("hide");
+                location.reload();
+            } else {
+                location.reload();
+            }
+        });
+    });
+
+    // EDIT BUTTON CLICK - MOVED OUTSIDE
+    $(document).on("click", ".edit-btn", function () {
+        const id = $(this).data("id");
+        
+        $.ajax({
+            url: `/mtop/get/${id}/`,
+            type: "GET",
+            success: function (data) {
+                $("#edit_id").val(data.id);
+                $("#edit_name").val(data.name);
+                $("#edit_case_no").val(data.case_no);
+                $("#edit_address").val(data.address);
+                $("#edit_no_of_units").val(data.no_of_units);
+                $("#edit_route_operation").val(data.route_operation);
+                $("#edit_make").val(data.make);
+                $("#edit_motor_no").val(data.motor_no);
+                $("#edit_chasses_no").val(data.chasses_no);
+                $("#edit_plate_no").val(data.plate_no);
+                $("#edit_date").val(data.date);
+                $("#edit_municipal_treasurer").val(data.municipal_treasurer);
+                $("#edit_officer_in_charge").val(data.officer_in_charge);
+                $("#edit_mayor").val(data.mayor);
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching MTOP data:", error);
+                alert("Failed to load record data. Please try again.");
+            }
+        });
+    });
+
+    // UPDATE BUTTON CLICK
+    $("#updateRecordBtn").click(function () {
+        $.ajax({
+            url: "/mtop/update/",
+            type: "POST",
+            data: $("#editRecordForm").serialize(),
+            success: function (res) {
+                if (res.success) {
+                    $("#editRecordModal").modal("hide");
+                    location.reload();
+                } else {
+                    location.reload();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error updating MTOP:", error);
+                alert("Failed to update record. Please try again.");
+            }
+        });
     });
 });
 </script>
 
-{% endblock %}
+{% endblock%}

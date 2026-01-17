@@ -18,15 +18,15 @@
    <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-primary">Mayor's Permit Tricycle Records</h6>
        <div class="btn-group">
-        <!-- IMPORT (Front-end only, no URL yet) -->
-        <button type="button" class="btn btn-success btn-sm">
+        <!-- IMPORT -->
+        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#importTriModal">
             <i class="fas fa-file-import"></i> Import CSV
         </button>
 
-        <!-- EXPORT (Front-end only, no URL yet) -->
-        <button type="button" class="btn btn-danger btn-sm">
+        <!-- EXPORT -->
+        <a href="{% url 'export-mayors-permit-tri' %}" class="btn btn-danger btn-sm">
             <i class="fas fa-file-export"></i> Export CSV
-        </button>
+        </a>
 
         <!-- ADD PERMIT -->
         <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addPermitModal">
@@ -107,9 +107,22 @@
                         <div class="btn-group" role="group" aria-label="actions">
 
                                   <!-- View Button -->
-                        <a href="#" class="btn btn-sm btn-info" title="View">
+                        <button type="button" class="btn btn-sm btn-info btn-view" title="View"
+                            data-control-no="{{ permit.control_no }}"
+                            data-status="{{ permit.status }}"
+                            data-name="{{ permit.name }}"
+                            data-address="{{ permit.address }}"
+                            data-motorized="{{ permit.motorized_operation }}"
+                            data-business="{{ permit.business_name }}"
+                            data-expiry="{{ permit.expiry_date }}"
+                            data-quarter="{{ permit.quarter }}"
+                            data-amount="{{ permit.amount_paid }}"
+                            data-or="{{ permit.or_no }}"
+                            data-issue="{{ permit.issue_date }}"
+                            data-issued-at="{{ permit.issued_at }}"
+                            data-mayor="{{ permit.mayor }}">
                             <i class="fas fa-eye"></i>
-                        </a>
+                        </button>
                             <!-- Print Button -->
                         <button class="btn btn-sm btn-primary print-btn" title="Print" 
                                 data-permit-id="{{ permit.id }}"
@@ -148,13 +161,9 @@
                                     data-quarter="{{ permit.quarter }}">
                                 <i class="fas fa-edit"></i>
                             </button>
-
-
-                                        <!-- History Button -->
-                    <button class="btn btn-sm btn-secondary" title="History">
+                   <a href="{% url 'mayors-permit-tri-history' permit.id %}" class="btn btn-sm btn-secondary" title="History">
                         <i class="fas fa-history"></i>
-                    </button>
-                     
+                    </a>
                     </div>
                     </td>
                 </tr>
@@ -170,9 +179,29 @@
     </div>
 </div>
 
+<!-- View Permit Modal -->
+<div class="modal fade" id="viewPermitModal" tabindex="-1" role="dialog" aria-labelledby="viewPermitModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content shadow-sm">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="viewPermitModalLabel"><i class="fas fa-eye mr-2"></i> Permit Details</h5>
+        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body py-3">
+        <div class="container-fluid">
+          <div class="row" id="viewPermitContent"></div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Add Permit Modal -->
 <div class="modal fade" id="addPermitModal" tabindex="-1" role="dialog" aria-labelledby="addPermitModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="addPermitModalLabel">
@@ -185,115 +214,88 @@
 
             <form method="post" action="{% url 'add-mayors-permit-tri' %}" id="addPermitForm">
                 {% csrf_token %}
-                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div class="modal-body py-4">
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="control_no">Control No <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="control_no" name="control_no" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="name">Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="name" name="name" required>
-                            </div>
-                        </div>
-                    </div>
+                  <div class="container-fluid">
+                    <div class="form-row">
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="motorized_operation">Motorized Operation <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="motorized_operation" name="motorized_operation" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="business_name">Business Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="business_name" name="business_name" required>
-                            </div>
-                        </div>
-                    </div>
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="control_no">Control No <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="control_no" name="control_no" required>
+                      </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="issue_date">Issue Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="issue_date" name="issue_date" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="expiry_date">Expiry Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="expiry_date" name="expiry_date" required>
-                            </div>
-                        </div>
-                    </div>
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="name">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                      </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="amount_paid">Amount Paid <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="amount_paid" name="amount_paid" min="0" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="or_no">OR No <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="or_no" name="or_no" required>
-                            </div>
-                        </div>
-                    </div>
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="motorized_operation">Motorized Operation <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="motorized_operation" name="motorized_operation" required>
+                      </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="issued_at">Issued At <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="issued_at" name="issued_at" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="mayor">Mayor <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="mayor" name="mayor" required>
-                            </div>
-                        </div>
-                    </div>
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="business_name">Business Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="business_name" name="business_name" required>
+                      </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="quarter">Quarter <span class="text-danger">*</span></label>
-                                <select class="form-control" id="quarter" name="quarter" required>
-                                    <option value="First Quarter">First Quarter</option>
-                                    <option value="Second Quarter">Second Quarter</option>
-                                    <option value="Third Quarter">Third Quarter</option>
-                                    <option value="Fourth Quarter">Fourth Quarter</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="status">Status <span class="text-danger">*</span></label>
-                                <select class="form-control" id="status" name="status" required>
-                                    <option value="active" selected>Active</option>
-                                    <option value="inactive">Inactive</option>
-                                    <option value="expired">Expired</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="issue_date">Issue Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="issue_date" name="issue_date" required>
+                      </div>
 
-                <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="address">Address <span class="text-danger">*</span></label>
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="expiry_date">Expiry Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="expiry_date" name="expiry_date" required>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="amount_paid">Amount Paid <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="amount_paid" name="amount_paid" min="0" required>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="or_no">OR No <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="or_no" name="or_no" required>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="issued_at">Issued At <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="issued_at" name="issued_at" required>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="mayor">Mayor <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="mayor" name="mayor" required>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="quarter">Quarter <span class="text-danger">*</span></label>
+                        <select class="form-control" id="quarter" name="quarter" required>
+                          <option value="First Quarter">First Quarter</option>
+                          <option value="Second Quarter">Second Quarter</option>
+                          <option value="Third Quarter">Third Quarter</option>
+                          <option value="Fourth Quarter">Fourth Quarter</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="status">Status <span class="text-danger">*</span></label>
+                        <select class="form-control" id="status" name="status" required>
+                          <option value="active" selected>Active</option>
+                          <option value="inactive">Inactive</option>
+                          <option value="expired">Expired</option>
+                        </select>
+                      </div>
+
+                      <div class="col-lg-4 col-md-6 mb-3">
+                        <label class="font-weight-bold" for="address">Address <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="address" name="address" required>
+                      </div>
+
                     </div>
-                </div>
-            </div>
+                  </div>
+
                 </div>
 
                 <div class="modal-footer">
@@ -310,11 +312,43 @@
     </div>
 </div>
 
+<!-- Import Tricycle Permits Modal -->
+<div class="modal fade" id="importTriModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="fas fa-file-import"></i> Import CSV</h5>
+        <button class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" action="{% url 'import-mayors-permit-tri' %}">
+        {% csrf_token %}
+
+        <div class="modal-body">
+          <label><strong>Select CSV File</strong></label>
+          <input type="file" name="csv_file" accept=".csv" class="form-control" required>
+        
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-upload"></i> Upload
+          </button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
 <!-- Update Permit Modal -->
 <div class="modal fade" id="updatePermitModal" tabindex="-1" role="dialog" aria-labelledby="updatePermitModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-warning text-white">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="updatePermitModalLabel">
                     <i class="fas fa-edit"></i> Update Permit
                 </h5>
@@ -324,115 +358,87 @@
             </div>
 
             <form id="updatePermitForm">
-                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div class="modal-body py-4">
                     <input type="hidden" id="update_permit_id">
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_control_no">Control No</label>
-                                <input type="text" class="form-control" id="update_control_no" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_name">Name</label>
-                                <input type="text" class="form-control" id="update_name" required>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="container-fluid">
+                      <div class="form-row">
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_motorized_operation">Motorized Operation</label>
-                                <input type="text" class="form-control" id="update_motorized_operation" required>
-                            </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_control_no">Control No</label>
+                          <input type="text" class="form-control" id="update_control_no" required>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_business_name">Business Name</label>
-                                <input type="text" class="form-control" id="update_business_name" required>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_issue_date">Issue Date</label>
-                                <input type="date" class="form-control" id="update_issue_date" required>
-                            </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_name">Name</label>
+                          <input type="text" class="form-control" id="update_name" required>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_expiry_date">Expiry Date</label>
-                                <input type="date" class="form-control" id="update_expiry_date" required>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_amount_paid">Amount Paid</label>
-                                <input type="number" class="form-control" id="update_amount_paid" min="0" required>
-                            </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_motorized_operation">Motorized Operation</label>
+                          <input type="text" class="form-control" id="update_motorized_operation" required>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_or_no">OR No</label>
-                                <input type="text" class="form-control" id="update_or_no" required>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_issued_at">Issued At</label>
-                                <input type="text" class="form-control" id="update_issued_at" required>
-                            </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_business_name">Business Name</label>
+                          <input type="text" class="form-control" id="update_business_name" required>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_mayor">Mayor</label>
-                                <input type="text" class="form-control" id="update_mayor" required>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_quarter">Quarter</label>
-                                <select class="form-control" id="update_quarter" required>
-                                    <option>First Quarter</option>
-                                    <option>Second Quarter</option>
-                                    <option>Third Quarter</option>
-                                    <option>Fourth Quarter</option>
-                                </select>
-                            </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_issue_date">Issue Date</label>
+                          <input type="date" class="form-control" id="update_issue_date" required>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="update_status">Status</label>
-                                <select class="form-control" id="update_status" required>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                    <option value="expired">Expired</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="update_address">Address</label>
-                                <input type="text" class="form-control" id="update_address" required>
-                            </div>
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_expiry_date">Expiry Date</label>
+                          <input type="date" class="form-control" id="update_expiry_date" required>
                         </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_amount_paid">Amount Paid</label>
+                          <input type="number" class="form-control" id="update_amount_paid" min="0" required>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_or_no">OR No</label>
+                          <input type="text" class="form-control" id="update_or_no" required>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_issued_at">Issued At</label>
+                          <input type="text" class="form-control" id="update_issued_at" required>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_mayor">Mayor</label>
+                          <input type="text" class="form-control" id="update_mayor" required>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_quarter">Quarter</label>
+                          <select class="form-control" id="update_quarter" required>
+                            <option>First Quarter</option>
+                            <option>Second Quarter</option>
+                            <option>Third Quarter</option>
+                            <option>Fourth Quarter</option>
+                          </select>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_status">Status</label>
+                          <select class="form-control" id="update_status" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="expired">Expired</option>
+                          </select>
+                        </div>
+
+                        <div class="col-md-6 col-lg-4 mt-1">
+                          <label class="font-weight-bold" for="update_address">Address</label>
+                          <input type="text" class="form-control" id="update_address" required>
+                        </div>
+
+                      </div>
                     </div>
 
                 </div>
@@ -441,7 +447,7 @@
                     <button type="button" class="btn btn-danger" data-dismiss="modal">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="submit" class="btn btn-warning">
+                    <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Update Permit
                     </button>
                 </div>
@@ -449,7 +455,6 @@
         </div>
     </div>
 </div>
-
 
 
 <script>
@@ -590,9 +595,6 @@ document.getElementById('updatePermitForm').addEventListener('submit', function 
             // Close modal
             $('#updatePermitModal').modal('hide');
             
-            // Show success message
-            alert('Permit updated successfully!');
-            
             // Reload page to show updated data
             location.reload();
         } else {
@@ -611,6 +613,58 @@ document.getElementById('updatePermitForm').addEventListener('submit', function 
 </script>
 <script>
 
+// View button handler — inject minimal 3-column content into the modal
+const viewButtons = document.querySelectorAll('.btn-view');
+viewButtons.forEach(btn => {
+    btn.addEventListener('click', function () {
+        const row = this.closest('tr');
+        const fallback = (index) => {
+            const tds = row ? row.querySelectorAll('td') : [];
+            return tds[index] ? tds[index].textContent.trim() : '';
+        };
+
+        const fields = [
+            ['Control No','control-no',0],
+            ['Status','status',1],
+            ['Name','name',2],
+            ['Address','address',3],
+            ['Motorized Operation','motorized',4],
+            ['Business Name','business',5],
+            ['OR No','or',8],
+            ['Amount Paid','amount',7],
+            ['Issue Date','issue',9],
+            ['Expiry Date','expiry',6],
+            ['Issued At','issued-at',10],
+            ['Mayor','mayor',11],
+            ['Quarter','quarter',12]
+        ];
+
+        let html = '';
+        fields.forEach(f => {
+            const label = f[0]; const attr = f[1]; const idx = f[2];
+            let value = this.getAttribute('data-' + attr) || fallback(idx) || '';
+            if (attr === 'status' && value) {
+                    const raw = value.toLowerCase();
+
+                    let badgeClass = 'badge-secondary';
+                    if (raw === 'active') badgeClass = 'badge-success';
+                    else if (raw === 'inactive') badgeClass = 'badge-warning';
+                    else if (raw === 'expired') badgeClass = 'badge-danger';
+
+                    value = `
+                        <span class="badge ${badgeClass}">
+                            ${raw.charAt(0).toUpperCase() + raw.slice(1)}
+                        </span>
+                    `;
+                }
+            if (!value) value = '&mdash;';
+            html += `\n  <div class="col-md-4 col-sm-6 mb-3">\n    <div class="small text-muted">${label}</div>\n    <div class="font-weight-bold">${value}</div>\n  </div>`;
+        });
+
+        document.getElementById('viewPermitContent').innerHTML = html;
+        $('#viewPermitModal').modal('show');
+    });
+});
 
 
 function printPermit(permitId) {

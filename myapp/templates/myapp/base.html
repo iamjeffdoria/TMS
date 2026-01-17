@@ -4,6 +4,8 @@
 
 <head>
 	<meta charset="utf-8">
+
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard - My Application</title>
 
@@ -21,10 +23,136 @@
     <!-- print-js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/print-js/1.6.0/print.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/print-js/1.6.0/print.min.css"/>
+    
+    <!-- Enhanced Messages Styling -->
+    <style>
+        /* Enhanced Django Messages */
+        .messages-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+            width: calc(100% - 40px);
+        }
 
+        .messages-container .alert {
+            margin-bottom: 12px;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideInRight 0.4s ease-out;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .messages-container .alert-success {
+            background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+            color: white;
+        }
+
+        .messages-container .alert-error,
+        .messages-container .alert-danger {
+            background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);
+            color: white;
+        }
+
+        .messages-container .alert-warning {
+            background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+            color: #1a1a1a;
+        }
+
+        .messages-container .alert-info {
+            background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+            color: white;
+        }
+
+        .messages-container .alert .message-content {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .messages-container .alert .message-content i {
+            font-size: 20px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .messages-container .alert .close {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 22px;
+            font-weight: 300;
+            line-height: 1;
+            opacity: 0.8;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 15px;
+            transition: opacity 0.2s;
+        }
+
+        .messages-container .alert .close:hover {
+            opacity: 1;
+        }
+
+        .messages-container .alert.fade-out {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .messages-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+                max-width: none;
+            }
+
+            .messages-container .alert {
+                padding: 14px 16px;
+                font-size: 13px;
+            }
+
+            .messages-container .alert .message-content i {
+                font-size: 18px;
+                margin-right: 10px;
+            }
+        }
+    </style>
 
 	{% block head_extra %}{% endblock %}
 </head>
+
+
 
 <body id="page-top">
    
@@ -43,7 +171,7 @@
                         class="rounded-circle"
                         style="width: 40px; height: 40px; object-fit: cover;">
                 </div>
-                <div class="sidebar-brand-text mx-3">Traffic Management System</div>
+                <div class="sidebar-brand-text mx-3">TMS</div>
             </a>
 
 
@@ -65,7 +193,9 @@
                 Interface
             </div>
 
+           
             <!-- Nav Item - Pages Collapse Menu -->
+            {% if can_access_potpot_registration %}
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
                     aria-expanded="true" aria-controls="collapseTwo">
@@ -81,8 +211,10 @@
                     </div>
                 </div>
             </li>
-
+            {% endif %}
+         
             <!-- Nav Item - Utilities Collapse Menu -->
+            {% if can_access_motorcycle_registration %}
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
                     aria-expanded="true" aria-controls="collapseUtilities">
@@ -101,6 +233,8 @@
                     </div>
                 </div>
             </li>
+            {% endif %}
+ 
 
             <!-- Divider -->
             <hr class="sidebar-divider">
@@ -203,19 +337,19 @@
                         </li>
 
                         <!-- Nav Item - Alerts -->
-                        <li class="nav-item dropdown no-arrow mx-1">
+                        <!-- <li class="nav-item dropdown no-arrow mx-1">
                             <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-bell fa-fw"></i>
+                                <i class="fas fa-bell fa-fw"></i> -->
                                 <!-- Counter - Alerts -->
-                                <span class="badge badge-danger badge-counter">3+</span>
-                            </a>
+                                <!-- <span class="badge badge-danger badge-counter">3+</span>
+                            </a> -->
                             <!-- Dropdown - Alerts -->
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                            <!-- <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="alertsDropdown">
-                                <h6 class="dropdown-header">
-                                    Alerts Center
-                                </h6>
+                                <h6 class="dropdown-header"> -->
+                                    <!-- Alerts Center -->
+                                <!-- </h6>
                                 <a class="dropdown-item d-flex align-items-center" href="#">
                                     <div class="mr-3">
                                         <div class="icon-circle bg-primary">
@@ -251,18 +385,18 @@
                                 </a>
                                 <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
                             </div>
-                        </li>
+                        </li> -->
 
                         <!-- Nav Item - Messages -->
-                        <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
+                        <!-- <li class="nav-item dropdown no-arrow mx-1"> -->
+                            <!-- <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-envelope fa-fw"></i>
+                                <i class="fas fa-envelope fa-fw"></i> -->
                                 <!-- Counter - Messages -->
-                                <span class="badge badge-danger badge-counter">7</span>
-                            </a>
+                                <!-- <span class="badge badge-danger badge-counter">7</span>
+                            </a> -->
                             <!-- Dropdown - Messages -->
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                            <!-- <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="messagesDropdown">
                                 <h6 class="dropdown-header">
                                     Message Center
@@ -316,8 +450,8 @@
                                     </div>
                                 </a>
                                 <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
-                            </div>
-                        </li>
+                            </div> -->
+                        <!-- </li> -->
 
                         <div class="topbar-divider d-none d-sm-block"></div>
 
@@ -325,7 +459,7 @@
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"> {{ request.session.admin_full_name }}</span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"> {{ request.session.full_name}}</span>
                                 <img class="img-profile rounded-circle"
                                     src="{% static 'assets/img/undraw_profile.svg' %}">
                             </a>
@@ -357,17 +491,30 @@
                 </nav>
                 {% endif %}
 
-                    <!-- Messages -->
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+            <!-- Enhanced Django Messages -->
+                {% if messages %}
+                <div class="messages-container">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" role="alert">
+                        <div class="message-content">
+                            {% if message.tags == 'success' %}
+                                <i class="fas fa-check-circle"></i>
+                            {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                <i class="fas fa-exclamation-circle"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="fas fa-exclamation-triangle"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="close" onclick="this.parentElement.classList.add('fade-out'); setTimeout(() => this.parentElement.remove(), 300)">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
@@ -411,7 +558,7 @@
     </div>
     {% endif %}
 
-
+    
 	<!-- Bootstrap core JavaScript-->
     <script src="{% static 'assets/vendor/jquery/jquery.min.js' %}"></script>
     <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
@@ -433,31 +580,34 @@
     <script src="{% static 'assets/js/demo/chart-bar-demo.js' %}"></script>
     <script src="{% static 'assets/js/demo/datatables-demo.js' %}"></script>
 
-    <!-- Auto-dismiss alerts after 3 seconds -->
+
+   <!-- Enhanced auto-dismiss alerts with smooth animation -->
     <script>
         $(document).ready(function() {
-            $('.alert').each(function() {
+            // Auto-dismiss messages after 6 seconds with fade-out animation
+            $('.messages-container .alert').each(function() {
                 var $alert = $(this);
                 setTimeout(function() {
-                    $alert.fadeOut('slow', function() {
-                        $(this).remove();
-                    });
+                    $alert.addClass('fade-out');
+                    setTimeout(function() {
+                        $alert.remove();
+                    }, 300); // Wait for animation to complete
                 }, 6000);
             });
 
+            // Real-time clock
             function updateClock() {
-    const now = new Date(); // Get laptop's local time
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const seconds = now.getSeconds().toString().padStart(2, '0');
-    const day = now.toLocaleDateString(); // e.g., 11/28/2025
-    const timeString = `${day} ${hours}:${minutes}:${seconds}`;
-    document.getElementById('real-time-clock').textContent = timeString;
-}
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                const day = now.toLocaleDateString();
+                const timeString = `${day} ${hours}:${minutes}:${seconds}`;
+                document.getElementById('real-time-clock').textContent = timeString;
+            }
 
-// Update clock every second
-setInterval(updateClock, 1000);
-updateClock(); // initial call
+            setInterval(updateClock, 1000);
+            updateClock();
         });
     </script>
 

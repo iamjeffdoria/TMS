@@ -17,7 +17,7 @@
                         <div class="card shadow mb-4">
                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
 
-                              <h6 class="m-0 font-weight-bold text-primary">Mayor's Permit / Printing Permit</h6>
+                              <h6 class="m-0 font-weight-bold text-primary">Mayor's Permit Pedicab Records</h6>
 
                               <div class="btn-group">
 
@@ -144,7 +144,7 @@
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                         <!-- History Button -->
-                                                      <a href="{% url 'mayors-permit-history' %}" class="btn btn-sm btn-warning btn-history" data-id="{{ permit.id }}" title="History">
+                                                     <a href="{% url 'mayors-permit-history' permit.id %}" class="btn btn-sm btn-warning btn-history" data-id="{{ permit.id }}" title="History">
                                                           <i class="fas fa-history"></i>
                                                       </a>
                                                     </div>
@@ -162,7 +162,7 @@
                         </div>
     <!-- View Modal -->
     <div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content shadow-lg border-0">
 
           <!-- Header -->
@@ -176,12 +176,12 @@
           </div>
 
           <!-- Body -->
-          <div class="modal-body p-0">
-            <table class="table table-hover mb-0">
-              <tbody id="modalContent">
+          <div class="modal-body py-4">
+            <div class="container-fluid">
+              <div class="row" id="modalContent">
                 <!-- Injected by JS -->
-              </tbody>
-            </table>
+              </div>
+            </div>
           </div>
 
           <!-- Footer -->
@@ -197,7 +197,7 @@
 
     <!-- Update Modal -->
     <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content shadow-lg border-0">
 
           <div class="modal-header bg-primary text-white">
@@ -218,12 +218,12 @@
               <input type="hidden" id="u_id">
 
               <div class="form-row">
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Control No</label>
                   <input type="text" id="u_control_no" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Status</label>
                   <select id="u_status" class="form-control">
                     <option value="active">Active</option>
@@ -232,57 +232,57 @@
                   </select>
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Name</label>
                   <input type="text" id="u_name" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Address</label>
                   <input type="text" id="u_address" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Business Name</label>
                   <input type="text" id="u_business_name" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Motorized Operation</label>
                   <input type="text" id="u_motorized" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">OR No</label>
                   <input type="text" id="u_or_no" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Amount Paid</label>
                   <input type="number" id="u_amount_paid" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Issue Date</label>
                   <input type="date" id="u_issue_date" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Expiry Date</label>
                   <input type="date" id="u_expiry_date" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Issued At</label>
                   <input type="text" id="u_issued_at" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Mayor</label>
                   <input type="text" id="u_mayor" class="form-control">
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Quarter</label>
                   <select id="u_quarter" class="form-control">
                     <option value="First Quarter">Q1</option>
@@ -318,7 +318,8 @@
       document.querySelectorAll(".btn-view").forEach(button => {
       button.addEventListener("click", function () {
 
-          let row = table.row($(this).closest("tr"));   // DataTables row
+          let $tr = $(this).closest("tr");
+          let row = table.row($tr);   // DataTables row
           let data = row.data();                        // get ALL columns including hidden
 
           let fields = [
@@ -330,11 +331,33 @@
           let html = "";
 
           for (let i = 0; i < fields.length; i++) {
+              let value;
+
+              // Status: prefer data-search or cell text, show capitalized
+          if (i === 1) {
+              let rawStatus = $tr.find("td:eq(1)").data("search");
+
+                  let badgeClass = "badge-secondary";
+                  if (rawStatus === "active") badgeClass = "badge-success";
+                  else if (rawStatus === "inactive") badgeClass = "badge-warning";
+                  else if (rawStatus === "expired") badgeClass = "badge-danger";
+
+                  value = `<span class="badge ${badgeClass}">${rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1)}</span>`;
+              }
+          else {
+                  value = (data[i] === undefined || data[i] === null) ? '' : data[i];
+                  if (typeof value === 'object') {
+                      value = $tr.find(`td:eq(${i})`).text().trim();
+                  }
+              }
+
+              if (!value) value = '&mdash;';
+
               html += `
-                  <tr>
-                      <th>${fields[i]}</th>
-                      <td>${data[i]}</td>
-                  </tr>
+                <div class="col-md-4 col-sm-6 mb-4">
+                  <div class="small text-muted">${fields[i]}</div>
+                  <div class="font-weight-bold">${value}</div>
+                </div>
               `;
           }
 

@@ -1,0 +1,89 @@
+{% extends 'myapp/base.html' %}
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-semibold mb-0">Mayor’s Permit Tricycle History</h4>
+            <small class="text-muted">Status change log (front-end preview)</small>
+        </div>
+    </div>
+
+    <!-- History Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+<ul class="list-group list-group-flush">
+
+    {% for h in history %}
+    <li class="list-group-item py-3
+        {% if h.new_status == 'active' %}
+            border-start border-4 border-success
+        {% elif h.new_status == 'inactive' %}
+            border-start border-4 border-warning
+        {% else %}
+            border-start border-4 border-danger
+        {% endif %}
+    ">
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+                <div class="fw-semibold">
+                    Tricycle Permit #{{ h.permit.control_no }}
+                </div>
+
+                <div class="small text-muted">
+                    {{ h.previous_status|capfirst }}
+                    →
+                    <span class="
+                        {% if h.new_status == 'active' %}
+                            text-success
+                        {% elif h.new_status == 'inactive' %}
+                            text-warning
+                        {% else %}
+                            text-danger
+                        {% endif %}
+                        fw-semibold
+                    ">
+                        {{ h.new_status|capfirst }}
+                    </span>
+                </div>
+
+                {% load tz %}
+                <div class="small text-muted">
+                    {{ h.activated_at|localtime|date:"M d, Y" }}
+                    • {{ h.activated_at|localtime|time:"h:i A" }}
+                </div>
+            </div>
+
+            <span class="badge rounded-pill px-3
+                {% if h.new_status == 'active' %}
+                    bg-success-subtle text-success
+                {% elif h.new_status == 'inactive' %}
+                    bg-warning-subtle text-warning
+                {% else %}
+                    bg-danger-subtle text-danger
+                {% endif %}
+            ">
+                {{ h.new_status|capfirst }}
+            </span>
+
+        </div>
+    </li>
+
+    {% empty %}
+    <li class="list-group-item py-4 text-center text-muted">
+        No history available
+    </li>
+    {% endfor %}
+
+</ul>
+
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

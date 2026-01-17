@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.timezone import now
 
 
+
 quarter_choices = [
     ('First Quarter', 'First Quarter'),
     ('Second Quarter', 'Second Quarter'),
@@ -28,12 +29,42 @@ class Admin(models.Model):
     full_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)  # ADD THIS if missing
     created_by = models.ForeignKey(SuperAdmin, on_delete=models.SET_NULL, null=True, blank=True, related_name='admins')
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
         return self.full_name
 
+
+class AdminPermission(models.Model):
+    admin = models.OneToOneField(
+        Admin,
+        on_delete=models.CASCADE,
+        related_name="permissions"
+    )
+
+    # Permissions
+    can_access_potpot_registration = models.BooleanField(default=False)
+    can_access_motorcycle_registration = models.BooleanField(default=False)
+
+    # Who last edited this permission
+    updated_by = models.ForeignKey(
+        SuperAdmin,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_admin_permissions"
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Permissions for {self.admin.full_name}"
+
+    class Meta:
+        verbose_name = "Admin Permission"
+        verbose_name_plural = "Admin Permissions"
 
 
 
@@ -168,7 +199,33 @@ class MayorsPermitTricycle(models.Model):
         verbose_name_plural = "Mayor's Permits - Tricycles"
 
 
+class MayorsPermitHistory(models.Model):
+    permit = models.ForeignKey(
+        MayorsPermit,
+        on_delete=models.CASCADE,
+        related_name="histories"
+    )
+    previous_status = models.CharField(max_length=8)
+    new_status = models.CharField(max_length=8)
+    activated_at = models.DateTimeField(default=now)
+    remarks = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return f"{self.permit.control_no}: {self.previous_status} → {self.new_status}"
+
+class MayorsPermitTricycleHistory(models.Model):
+    permit = models.ForeignKey(
+        MayorsPermitTricycle,
+        on_delete=models.CASCADE,
+        related_name="histories"
+    )
+    previous_status = models.CharField(max_length=8)
+    new_status = models.CharField(max_length=8)
+    activated_at = models.DateTimeField(default=now)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.permit.control_no}: {self.previous_status} → {self.new_status}"
 
 
 

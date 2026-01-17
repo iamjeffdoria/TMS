@@ -8,10 +8,11 @@
         <h6 class="m-0 font-weight-bold text-primary">Admin Records</h6>
 
          <!-- ADD ADMIN BUTTON -->
-    <a href="#" 
-       class="btn btn-sm btn-primary">
-        <i class="fas fa-user-plus mr-1"></i> Add Admin
-    </a>
+  <!-- ADD ADMIN BUTTON -->
+<button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addAdminModal">
+    <i class="fas fa-user-plus mr-1"></i> Add Admin
+</button>
+
     </div>
 
     <div class="card-body">
@@ -67,21 +68,29 @@
                         <td class="text-center">
                             <div class="btn-group" role="group" aria-label="actions">
 
-                                <!-- VIEW -->
-                                <a href="#" 
-                                   class="btn btn-sm btn-info" 
-                                   title="View">
-                                    <i class="fas fa-eye"></i>
-                                </a>
+                           <a href="#" class="btn btn-sm btn-info btn-admin-view" data-perm-potpot="{% if admin.permissions and admin.permissions.can_access_potpot_registration %}1{% else %}0{% endif %}" data-perm-moto="{% if admin.permissions and admin.permissions.can_access_motorcycle_registration %}1{% else %}0{% endif %}">
+    <i class="fas fa-eye"></i>
+</a>
+
 
                                 <!-- UPDATE -->
                                 <a href="#" 
-                                   class="btn btn-sm btn-warning" 
-                                   title="Update">
+                                   class="btn btn-sm btn-warning btn-admin-edit" 
+                                   title="Update"
+                                   data-admin-id="{{ admin.id }}"
+                                   data-username="{{ admin.username }}"
+                                   data-full-name="{{ admin.full_name }}"
+                                   data-email="{{ admin.email }}"
+                                   data-created-by="{% if admin.created_by %}{{ admin.created_by.username }}{% else %}{% endif %}"
+                                   data-created-at="{{ admin.created_at|date:'M d, Y' }}"
+                                   data-status="{% if admin.is_active %}1{% else %}0{% endif %}"
+                                   data-perm-potpot="{% if admin.permissions and admin.permissions.can_access_potpot_registration %}1{% else %}0{% endif %}"
+                                   data-perm-moto="{% if admin.permissions and admin.permissions.can_access_motorcycle_registration %}1{% else %}0{% endif %}">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                
 
-                                <!-- DELETE -->
+                                                            <!-- DELETE -->
                                 <a href="#" 
                                    class="btn btn-sm btn-danger" 
                                    title="Delete"
@@ -106,15 +115,371 @@
     </div>
 </div>
 
+<!-- ADD ADMIN MODAL -->
+<div class="modal fade" id="addAdminModal" tabindex="-1" role="dialog" aria-labelledby="addAdminModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <form method="POST" action="{% url 'add_admin' %}">
+            {% csrf_token %}
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addAdminModalLabel">Add New Admin</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        </div>
+                                        <input type="text" name="username" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        </div>
+                                        <input type="email" name="email" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Potpot Registration Access</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-clipboard-check"></i></span>
+                                        </div>
+                                        <select name="can_access_potpot_registration" class="form-control" required>
+                                            <option value="0">No</option>
+                                            <option value="1">Yes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                        </div>
+                                        <input type="text" name="full_name" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Password</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        </div>
+                                        <input type="password" name="password" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Motorcycle Registration Access</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-motorcycle"></i></span>
+                                        </div>
+                                        <select name="can_access_motorcycle_registration" class="form-control" required>
+                                            <option value="0">No</option>
+                                            <option value="1">Yes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Admin</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT ADMIN MODAL -->
+<div class="modal fade" id="editAdminModal" tabindex="-1" role="dialog" aria-labelledby="editAdminModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <form method="POST" action="{% url 'update_admin' %}">
+            {% csrf_token %}
+            <input type="hidden" name="admin_id" value="">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editAdminModalLabel">Edit Admin</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        </div>
+                                        <input type="text" name="username" class="form-control" required>
+                                        <input type="hidden" name="username_original" class="form-control">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        </div>
+                                        <input type="email" name="email" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Potpot Registration Access</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-clipboard-check"></i></span>
+                                        </div>
+                                        <select name="can_access_potpot_registration" class="form-control">
+                                            <option value="0">No</option>
+                                            <option value="1">Yes</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-toggle-on"></i></span>
+                                        </div>
+                                        <select name="status" class="form-control">
+                                            <option value="1">Active</option>
+                                            <option value="0">Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                        </div>
+                                        <input type="text" name="full_name" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Password (leave blank to keep current)</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        </div>
+                                        <input type="password" name="password" class="form-control">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Motorcycle Registration Access</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-motorcycle"></i></span>
+                                        </div>
+                                        <select name="can_access_motorcycle_registration" class="form-control">
+                                            <option value="0">No</option>
+                                            <option value="1">Yes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <p><strong>Created By:</strong> <span id="edit-admin-created-by"></span></p>
+                        <p><strong>Date Created:</strong> <span id="edit-admin-created-at"></span></p>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- VIEW ADMIN MODAL -->
+<div class="modal fade" id="viewAdminModal" tabindex="-1" role="dialog" aria-labelledby="viewAdminModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="viewAdminModalLabel">Admin Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <style>
+          .admin-avatar { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:18px; }
+        </style>
+
+        <div class="d-flex align-items-center mb-3">
+          <div id="admin-avatar" class="admin-avatar bg-primary text-white mr-3">A</div>
+          <div>
+            <h5 id="view-admin-full-name" class="mb-0">Full Name</h5>
+            <small class="text-muted" id="view-admin-username">@username</small>
+            <div id="view-admin-status" class="mt-2"></div>
+          </div>
+        </div>
+
+        <div class="row mb-3 small">
+          <div class="col-12 col-md-6 mb-2">
+            <div class="text-muted">Email</div>
+            <div id="view-admin-email" class="text-dark"></div>
+          </div>
+          <div class="col-12 col-md-6 mb-2">
+            <div class="text-muted">Created</div>
+            <div class="text-dark"><span id="view-admin-created-by"></span> • <span id="view-admin-created-at"></span></div>
+          </div>
+        </div>
+
+        <hr>
+
+        <h6 class="small text-uppercase text-muted">Permissions</h6>
+        <div>
+          <span id="view-admin-perm-potpot" class="badge badge-pill mr-2"></span>
+          <span id="view-admin-perm-moto" class="badge badge-pill"></span>
+        </div>
+      </div>
+
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
 <script>
-$(document).ready(function() {
-    $('#dataTable').DataTable({
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Initialize DataTable FIRST (same as working template)
+    var table = $('#dataTable').DataTable({
         pageLength: 10,
-        lengthMenu: [5, 10, 25, 50, 100],
         ordering: true,
         searching: true
     });
+
+    // VIEW ADMIN (same pattern as permit template)
+    document.querySelectorAll(".btn-admin-view").forEach(button => {
+        button.addEventListener("click", function () {
+
+            let row = table.row($(this).closest("tr"));
+            let data = row.data();
+
+            // Map table columns (minimal, badge-based display)
+            var usernameText = data[0] || "";
+            var fullNameText = data[1] || usernameText;
+            var emailText = data[2] || "—";
+            var createdByText = data[3] || "—";
+            var createdAtText = data[4] || "—";
+            var statusActive = (data[5] || "").includes("Active");
+
+            // Populate header / avatar
+            document.getElementById("view-admin-username").innerText = usernameText ? "@" + usernameText : "";
+            document.getElementById("view-admin-full-name").innerText = fullNameText;
+            document.getElementById("view-admin-email").innerText = emailText;
+            document.getElementById("view-admin-created-by").innerText = createdByText;
+            document.getElementById("view-admin-created-at").innerText = createdAtText;
+
+            // Status badge
+            document.getElementById("view-admin-status").innerHTML = statusActive ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>';
+
+            // Avatar initials
+            var initials = (fullNameText.split(/\s+/).map(function(n){ return n ? n[0] : ''; }).join('').slice(0,2) || usernameText.slice(0,2)).toUpperCase();
+            var avatarEl = document.getElementById("admin-avatar");
+            if (avatarEl) { avatarEl.innerText = initials; }
+
+            // Permissions: show as small badges
+            var permPotpot = this.dataset.permPotpot;
+            var permMoto = this.dataset.permMoto;
+            function permBadge(val) { return (val === '1' || val === 'True' || val === 'true') ? '<span class="badge badge-pill badge-success">Yes</span>' : '<span class="badge badge-pill badge-secondary">No</span>'; }
+            document.getElementById("view-admin-perm-potpot").innerHTML = permBadge(permPotpot) + ' <small class="text-muted ml-1">Potpot</small>';
+            document.getElementById("view-admin-perm-moto").innerHTML = permBadge(permMoto) + ' <small class="text-muted ml-1">Motorcycle</small>';
+
+            // Show modal
+            $("#viewAdminModal").modal("show");
+        });
+    }); // close view buttons loop
+
+    // EDIT ADMIN (populate edit modal from data attributes)
+    document.querySelectorAll(".btn-admin-edit").forEach(button => {
+        button.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            var username = this.dataset.username || "";
+            var fullName = this.dataset.fullName || "";
+            var email = this.dataset.email || "";
+            var createdBy = this.dataset.createdBy || "";
+            var createdAt = this.dataset.createdAt || "";
+            var status = this.dataset.status || "0";
+            var permPotpot = this.dataset.permPotpot || "0";
+            var permMoto = this.dataset.permMoto || "0";
+
+            var modal = document.getElementById("editAdminModal");
+
+            modal.querySelector('input[name="username"]').value = username;
+            modal.querySelector('input[name="username_original"]').value = username;
+            modal.querySelector('input[name="full_name"]').value = fullName;
+            modal.querySelector('input[name="email"]').value = email;
+
+            // set the internal admin id
+            modal.querySelector('input[name="admin_id"]').value = this.dataset.adminId || '';
+
+            modal.querySelector('#edit-admin-created-by').innerText = createdBy || "—";
+            modal.querySelector('#edit-admin-created-at').innerText = createdAt || "—";
+
+            modal.querySelector('select[name="can_access_potpot_registration"]').value = (permPotpot === '1') ? '1' : '0';
+            modal.querySelector('select[name="can_access_motorcycle_registration"]').value = (permMoto === '1') ? '1' : '0';
+
+            // set status
+            modal.querySelector('select[name="status"]').value = (status === '1') ? '1' : '0';
+
+            $("#editAdminModal").modal("show");
+        });
+    });
+
 });
 </script>
+
 
 {% endblock %}
