@@ -29,6 +29,15 @@
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
+                     <tr>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th></th>
+                    </tr>
                 </thead>
 
                 <tfoot>
@@ -393,12 +402,27 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     // Initialize DataTable FIRST (same as working template)
-    var table = $('#dataTable').DataTable({
-        pageLength: 10,
-        ordering: true,
-        searching: true
-    });
+            var table = $('#dataTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [5, 10, 25, 50, 100],
+                lengthChange: false,
+                ordering: false,
+                searching: true
+            });
 
+            // Apply column search from header inputs
+                table.columns().every(function(index) {
+                    var that = this;
+                    // Skip the Action column (index 6)
+                    if (index === 6) {
+                        return;
+                    }
+                    $('input', this.header()).on('keyup change clear', function() {
+                        if (that.search() !== this.value) {
+                            that.search(this.value).draw();
+                        }
+                    });
+                });
     // VIEW ADMIN (same pattern as permit template)
     document.querySelectorAll(".btn-admin-view").forEach(button => {
         button.addEventListener("click", function () {

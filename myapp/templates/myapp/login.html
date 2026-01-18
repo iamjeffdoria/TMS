@@ -8,15 +8,14 @@
     box-sizing: border-box;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
 
 body {
-    font-family: 'Poppins', sans-serif;
-    background: #f8f9fc;
+    font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .login-wrapper {
-    background: #f8f9fc;
+    background: #f5f7fa;
     min-height: 100vh;
     width: 100%;
     position: fixed;
@@ -36,8 +35,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.4);
     z-index: 9999;
     justify-content: center;
     align-items: center;
@@ -48,12 +46,12 @@ body {
 }
 
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top: 3px solid white;
+    width: 32px;
+    height: 32px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spin 0.6s linear infinite;
 }
 
 @keyframes spin {
@@ -62,86 +60,64 @@ body {
 
 .loading-text {
     color: white;
-    margin-top: 16px;
-    font-size: 14px;
+    margin-top: 12px;
+    font-size: 13px;
     font-weight: 500;
 }
 
 .login-card {
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
     width: 100%;
-    max-width: 900px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    max-width: 800px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     display: flex;
     overflow: hidden;
-    border: 1px solid #e2e8f0;
 }
 
 .brand-section {
     background: #4e73df;
     color: white;
-    padding: 60px 40px;
-    width: 45%;
+    padding: 50px 35px;
+    width: 42%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.brand-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url("{% static 'assets/img/lgu.png' %}");
-    background-size: cover;
-    background-position: center;
-    opacity: 0.1;
-    z-index: 0;
-}
-
-.brand-section > * {
-    position: relative;
-    z-index: 1;
 }
 
 .brand-logo {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     object-fit: contain;
     margin-bottom: 24px;
 }
 
 .brand-title {
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 700;
-    letter-spacing: 2px;
     margin-bottom: 8px;
+    line-height: 1.3;
 }
 
 .brand-subtitle {
-    font-size: 14px;
+    font-size: 13px;
     opacity: 0.9;
     font-weight: 400;
 }
 
 .form-section {
-    padding: 60px 50px;
-    width: 55%;
+    padding: 50px 45px;
+    width: 58%;
     background: white;
 }
 
-.welcome-title {
-    font-size: 24px;
+.system-title {
+    font-size: 20px;
     font-weight: 600;
-    color: #1a202c;
-    margin-bottom: 32px;
+    color: #2d3748;
+    margin-bottom: 28px;
 }
 
 .form-group {
@@ -153,26 +129,61 @@ body {
     font-size: 13px;
     font-weight: 500;
     color: #4a5568;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+}
+
+.password-input-wrapper {
+    position: relative;
 }
 
 .form-input {
     width: 100%;
-    padding: 12px 16px;
+    padding: 11px 14px;
     font-size: 14px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
-    transition: all 0.2s;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    transition: border-color 0.2s;
+    outline: none;
+    background: white;
+    font-weight: 400;
+}
+
+.password-input-wrapper .form-input {
+    padding-right: 45px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 15px;
+    padding: 6px;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:hover {
+    color: #4e73df;
+}
+
+.toggle-password:focus {
     outline: none;
 }
 
 .form-input::placeholder {
-    color: #a0aec0;
+    color: #9ca3af;
 }
 
 .form-input:focus {
     border-color: #4e73df;
-    box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.1);
+    box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.08);
 }
 
 .form-footer {
@@ -192,6 +203,7 @@ body {
     height: 16px;
     margin-right: 8px;
     cursor: pointer;
+    accent-color: #4e73df;
 }
 
 .checkbox-container label {
@@ -205,87 +217,72 @@ body {
     font-size: 13px;
     color: #4e73df;
     text-decoration: none;
-    transition: color 0.2s;
+    font-weight: 500;
 }
 
 .forgot-link:hover {
-    color: #2e59d9;
+    text-decoration: underline;
 }
 
 .btn-login {
     width: 100%;
-    padding: 12px;
+    padding: 11px;
     font-size: 14px;
     font-weight: 600;
     color: white;
     background: #4e73df;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.2s;
 }
 
 .btn-login:hover {
-    background: #2e59d9;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(78, 115, 223, 0.4);
+    background: #3d5fc4;
 }
 
 .btn-login:active {
-    transform: translateY(0);
+    background: #2e4db0;
 }
 
 .register-text {
     text-align: center;
-    margin-top: 24px;
+    margin-top: 20px;
     font-size: 13px;
-    color: #718096;
+    color: #6b7280;
 }
 
 .register-text a {
     color: #4e73df;
     text-decoration: none;
-    font-weight: 600;
-    transition: color 0.2s;
+    font-weight: 500;
 }
 
 .register-text a:hover {
-    color: #2e59d9;
+    text-decoration: underline;
 }
 
 /* Django Messages Styles */
 .messages-container {
     position: fixed;
-    top: 20px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10000;
     width: 90%;
-    max-width: 500px;
+    max-width: 450px;
 }
 
 .alert {
-    padding: 14px 20px;
-    border-radius: 8px;
-    margin-bottom: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .alert-success {
@@ -314,18 +311,19 @@ body {
 }
 
 .alert i {
-    margin-right: 10px;
+    margin-right: 8px;
+    font-size: 14px;
 }
 
 .alert .close {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
     color: inherit;
-    opacity: 0.7;
+    opacity: 0.6;
     padding: 0;
-    margin-left: 15px;
+    margin-left: 12px;
     line-height: 1;
 }
 
@@ -342,58 +340,23 @@ body {
     .brand-section,
     .form-section {
         width: 100%;
-        padding: 40px 30px;
+        padding: 35px 30px;
     }
     
     .brand-logo {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
     }
     
     .brand-title {
-        font-size: 24px;
+        font-size: 20px;
     }
     
     .messages-container {
         width: 95%;
-        top: 10px;
     }
 }
-
-.system-title {
-    font-size: 22px;
-    font-weight: 700;
-    color: #1a202c;
-    margin-bottom: 24px;
-    text-align: left;
-}
-
 </style>
-
-<!-- Django Messages Display -->
-{% if messages %}
-<div class="messages-container">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}" role="alert">
-        <span>
-            {% if message.tags == 'success' %}
-                <i class="fas fa-check-circle"></i>
-            {% elif message.tags == 'error' or message.tags == 'danger' %}
-                <i class="fas fa-exclamation-circle"></i>
-            {% elif message.tags == 'warning' %}
-                <i class="fas fa-exclamation-triangle"></i>
-            {% else %}
-                <i class="fas fa-info-circle"></i>
-            {% endif %}
-            {{ message }}
-        </span>
-        <button type="button" class="close" onclick="this.parentElement.remove()">
-            <span>&times;</span>
-        </button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
 
 <div class="loading-overlay" id="loadingOverlay">
     <div style="text-align: center;">
@@ -406,27 +369,36 @@ body {
     <div class="login-card">
         <div class="brand-section">
             <img src="{% static 'assets/img/lgu2.png' %}" alt="Logo" class="brand-logo">
+            <h1 class="brand-title">Traffic Management</h1>
+            <p class="brand-subtitle">Local Government Unit</p>
         </div>
 
         <div class="form-section">
-            <h2 class="system-title">Traffic Management System</h2>
+            <h2 class="system-title">Sign In</h2>
             <form method="POST" id="loginForm">
                 {% csrf_token %}
                 
                 <div class="form-group">
-                    <input type="text" class="form-input" name="username" placeholder="Username" required>
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" name="username" placeholder="Enter username" required>
                 </div>
-
+                
                 <div class="form-group">
-                    <input type="password" class="form-input" name="password" placeholder="Password" required>
+                    <label class="form-label">Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" class="form-input" name="password" id="passwordInput" placeholder="Enter password" required>
+                        <button type="button" class="toggle-password" id="togglePassword" title="Show password">
+                            <i class="fas fa-eye" id="toggleIcon"></i>
+                        </button>
+                    </div>
                 </div>
-
+                
                 <div class="form-footer">
                     <div class="checkbox-container">
                         <input type="checkbox" id="customCheck">
                         <label for="customCheck">Remember me</label>
                     </div>
-                    <a href="forgot-password.html" class="forgot-link">Forgot?</a>
+                    <a href="forgot-password.html" class="forgot-link">Forgot Password?</a>
                 </div>
 
                 <button type="submit" class="btn-login">Log In</button>
@@ -441,6 +413,23 @@ body {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('passwordInput');
+    const toggleIcon = document.getElementById('toggleIcon');
+
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        if (type === 'text') {
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    });
+    
     const loginForm = document.getElementById('loginForm');
     const loadingOverlay = document.getElementById('loadingOverlay');
     
@@ -448,13 +437,11 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingOverlay.classList.add('active');
     });
     
-    // Auto-dismiss messages after 5 seconds
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {
         setTimeout(() => {
             alert.style.opacity = '0';
-            alert.style.transform = 'translateY(-20px)';
-            alert.style.transition = 'all 0.3s ease-out';
+            alert.style.transition = 'opacity 0.3s';
             setTimeout(() => alert.remove(), 300);
         }, 5000);
     });
