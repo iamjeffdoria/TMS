@@ -46,44 +46,44 @@
     /* Positioning the Dynamic Data */
     .dynamic-photo {
         position: absolute;
-        top:20%; /* Adjust to fit the photo frame */
-        left: 50%;
+        top:28.5%; /* Adjust to fit the photo frame */
+        left: 21.5%;
         transform: translateX(-50%);
-        width: 300px; /* ← Changed from 120px */
-        height: 320px; /* ← Changed from 120px */
+        width: 240px; /* ← Changed from 120px */
+        height: 225px; /* ← Changed from 120px */
         object-fit: cover;
-        border-radius: 35px;
+       
     }
 
     .field {
         position: absolute;
         font-family: Arial, sans-serif;
         font-weight: bold;
-        color: white;
+        color: rgb(37, 35, 35);
          font-size: 24px;
     }
     /* Positioning the Full Name */
     .full-name {
-        top: 57%; /* Positioned above the ID number */
-        left: 50%;
+        top: 31%; /* Positioned above the ID number */
+        left: 70%;
         transform: translateX(-50%);
         width: 100%;
         text-align: center;
-        font-size: 40px; /* Names are usually larger */
+        font-size: 24px; /* Names are usually larger */
         text-transform: uppercase;
-        color: white;
+        color: rgb(37, 35, 35);
     }
 
     /* Target specific locations from your image */
-    .id-number { top: 73.2%; left: 35%; }
-    .address   { top: 77.8%; left: 35%; width: 50%; line-height: 1.1; }
-    .dob       { top: 81.8%; left: 35%; }
-    .gender       { top: 85.5%; left: 35%; }
-    .or-number    { top: 89%; left: 35%; }
-    .height       { top: 92.5%; left: 35%; }
-    .weight       { top: 96%; left: 35%; }
-    .date-issued  { top: 99.5%; left: 35%; }
-    .expiry-date  { top: 103%; left: 35%; }
+    .id-number { top: 52.3%; left: 15%; }
+    .address   { top: 61.8%; left: 21%; width: 50%; line-height: 1.1; }
+    .dob       { top: 76.8%; left: 2%; }
+    .gender       { top: 76.8%; left: 38%; }
+    .or-number    { top: 89%; left: 2%; }
+    .height       { top: 76.8%; left: 55%; }
+    .weight       { top:76.8%; left: 83%; }
+    .date-issued  { top: 89%; left: 32.5%; }
+    .expiry-date  { top: 89%; left: 73%; }
 }
 </style>
 
@@ -328,7 +328,7 @@
 
 <div id="print-area">
     <div class="id-card-wrapper">
-        <img src="{% static 'assets/img/front-id.png' %}" class="template-bg">
+        <img src="{% static 'assets/img/potpotid-2.png' %}" class="template-bg">
         
         <div class="data-overlay">
             <img id="print-photo" src="" class="dynamic-photo">
@@ -648,6 +648,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // 3. Global function for print (outside DOMContentLoaded since it's called from inline onclick)
+
 function preparePrint(photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate) {
     document.getElementById('print-photo').src = photoUrl;
     document.getElementById('print-name').innerText = fullName;
