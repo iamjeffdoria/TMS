@@ -117,7 +117,22 @@
             <th class="text-center">Action</th>
             
 					</tr>
-          
+
+          <tr>
+            <th class="image-col"></th>
+            <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+            <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+            <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+            <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+            <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+            <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+            <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+            <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+            <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+            <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+            <th></th>
+        </tr>
+                  
 				</thead>
 				<tfoot>
 					<tr>
@@ -591,6 +606,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 "searchable": true
             }
         ]
+    });
+
+    // Apply column search from header inputs
+    table.columns().every(function(index) {
+        var that = this;
+        // Skip Image column (0) and Action column (11)
+        if (index === 0 || index === 11) {
+            return;
+        }
+        $('input', this.header()).on('keyup change clear', function() {
+            if (that.search() !== this.value) {
+                that.search(this.value).draw();
+            }
+        });
     });
 
     // 2. Save ID Card button - SINGLE listener

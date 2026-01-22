@@ -197,8 +197,6 @@ class MayorsPermitTricycle(models.Model):
     class Meta:
         verbose_name = "Mayor's Permit - Tricycle"
         verbose_name_plural = "Mayor's Permits - Tricycles"
-
-
 class MayorsPermitHistory(models.Model):
     permit = models.ForeignKey(
         MayorsPermit,
@@ -209,10 +207,24 @@ class MayorsPermitHistory(models.Model):
     new_status = models.CharField(max_length=8)
     activated_at = models.DateTimeField(default=now)
     remarks = models.TextField(blank=True, null=True)
+    
+    # Track who made the change
+    updated_by_type = models.CharField(max_length=20, null=True, blank=True)  # 'admin' or 'superadmin'
+    updated_by_id = models.IntegerField(null=True, blank=True)
+    updated_by_name = models.CharField(max_length=255, null=True, blank=True)  # Store name for display
+    
+    # Alternative: Using GenericForeignKey (more flexible but complex)
+    # updated_by_content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
+    # updated_by_object_id = models.PositiveIntegerField(null=True, blank=True)
+    # updated_by = GenericForeignKey('updated_by_content_type', 'updated_by_object_id')
 
     def __str__(self):
         return f"{self.permit.control_no}: {self.previous_status} → {self.new_status}"
-
+    
+    class Meta:
+        ordering = ['-activated_at']
+        verbose_name = "Mayor's Permit History"
+        verbose_name_plural = "Mayor's Permit Histories"
 class MayorsPermitTricycleHistory(models.Model):
     permit = models.ForeignKey(
         MayorsPermitTricycle,
@@ -223,10 +235,19 @@ class MayorsPermitTricycleHistory(models.Model):
     new_status = models.CharField(max_length=8)
     activated_at = models.DateTimeField(default=now)
     remarks = models.TextField(blank=True, null=True)
+    
+    # ✅ Track who made the change
+    updated_by_type = models.CharField(max_length=20, null=True, blank=True)  # 'admin' or 'superadmin'
+    updated_by_id = models.IntegerField(null=True, blank=True)
+    updated_by_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f"{self.permit.control_no}: {self.previous_status} → {self.new_status}"
-
+    
+    class Meta:
+        ordering = ['-activated_at']
+        verbose_name = "Tricycle Permit History"
+        verbose_name_plural = "Tricycle Permit Histories"
 
 
 

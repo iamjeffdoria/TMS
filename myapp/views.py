@@ -31,9 +31,14 @@ def superadmin_required(view_func):
 @require_http_methods(["POST"])
 
 
-
-
 def update_permit_tri(request, permit_id):
+    # Only allow POST requests
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid request method'
+        }, status=405)
+    
     try:
         permit = get_object_or_404(MayorsPermitTricycle, id=permit_id)
 
@@ -69,13 +74,21 @@ def update_permit_tri(request, permit_id):
 
         permit.save()
 
-        # -------- ✅ CREATE HISTORY IF STATUS CHANGED --------
+        # -------- ✅ CREATE HISTORY WITH USER INFO IF STATUS CHANGED --------
         if previous_status != new_status:
+            # Get user info from session
+            user_type = request.session.get('user_type')
+            user_id = request.session.get('superadmin_id') if user_type == 'superadmin' else request.session.get('admin_id')
+            user_name = request.session.get('full_name')
+            
             MayorsPermitTricycleHistory.objects.create(
                 permit=permit,
                 previous_status=previous_status,
                 new_status=new_status,
-                remarks=f"Status changed from {previous_status} to {new_status}"
+                remarks=f"Status changed from {previous_status} to {new_status}",
+                updated_by_type=user_type,
+                updated_by_id=user_id,
+                updated_by_name=user_name
             )
 
         messages.success(request, f'Permit for {permit.name} updated successfully!')
@@ -85,6 +98,11 @@ def update_permit_tri(request, permit_id):
             'message': 'Permit updated successfully'
         })
 
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON data'
+        }, status=400)
     except Exception as e:
         return JsonResponse({
             'success': False,
@@ -255,9 +273,28 @@ def admin_login(request):
 def dashboard(request):
     permit_count = MayorsPermit.objects.count()  # total number of permits
     tricycle_count = MayorsPermitTricycle.objects.count() 
+     
+    # Mayor's Permit (Pedicab) - Status counts
+    pedicab_active = MayorsPermit.objects.filter(status='active').count()
+    pedicab_inactive = MayorsPermit.objects.filter(status='inactive').count()
+    pedicab_expired = MayorsPermit.objects.filter(status='expired').count()
+
+     # Mayor's Permit (Tricycle/Motorcycle) - Status counts
+    tricycle_active = MayorsPermitTricycle.objects.filter(status='active').count()
+    tricycle_inactive = MayorsPermitTricycle.objects.filter(status='inactive').count()
+    tricycle_expired = MayorsPermitTricycle.objects.filter(status='expired').count()
+
+
+
     return render(request, 'myapp/dashboard.html', {
         'permit_count': permit_count,
         'tricycle_count': tricycle_count,
+        'pedicab_active': pedicab_active,
+        'pedicab_inactive': pedicab_inactive,
+        'pedicab_expired': pedicab_expired,
+        'tricycle_active': tricycle_active,
+        'tricycle_inactive': tricycle_inactive,
+        'tricycle_expired': tricycle_expired,
     })
 
 
@@ -537,6 +574,7 @@ def update_idcard(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
 @csrf_exempt
+
 def add_idcard(request):
     if request.method == "POST":
         name = request.POST.get("name")
@@ -605,15 +643,22 @@ def update_mayors_permit(request, permit_id):
     permit.status = status
 
     permit.save()
- # ✅ RECORD ALL STATUS CHANGES
+  # ✅ RECORD STATUS CHANGES WITH USER INFO
     if old_status != permit.status:
+        # Get user info from session
+        user_type = request.session.get('user_type')
+        user_id = request.session.get('superadmin_id') if user_type == 'superadmin' else request.session.get('admin_id')
+        user_name = request.session.get('full_name')
+        
         MayorsPermitHistory.objects.create(
             permit=permit,
             previous_status=old_status,
             new_status=permit.status,
-            remarks=f"Status changed from {old_status} to {permit.status}"
+            remarks=f"Status changed from {old_status} to {permit.status}",
+            updated_by_type=user_type,
+            updated_by_id=user_id,
+            updated_by_name=user_name
         )
-
     messages.success(request, f"Permit for **{permit.name}** updated successfully!")
 
     # Return JSON for AJAX success

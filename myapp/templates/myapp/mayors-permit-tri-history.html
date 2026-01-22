@@ -6,80 +6,101 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-semibold mb-0">Mayor’s Permit Tricycle History</h4>
-            <small class="text-muted">Status change log (front-end preview)</small>
+            <h4 class="fw-semibold mb-0">Mayor's Permit Tricycle History</h4>
+            <small class="text-muted">Status change log</small>
         </div>
     </div>
 
     <!-- History Card -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
-<ul class="list-group list-group-flush">
+            
+            <ul class="list-group list-group-flush">
 
-    {% for h in history %}
-    <li class="list-group-item py-3
-        {% if h.new_status == 'active' %}
-            border-start border-4 border-success
-        {% elif h.new_status == 'inactive' %}
-            border-start border-4 border-warning
-        {% else %}
-            border-start border-4 border-danger
-        {% endif %}
-    ">
-        <div class="d-flex justify-content-between align-items-center">
+                {% for h in history %}
+                <li class="list-group-item py-3
+                    {% if h.new_status == 'active' %}
+                        border-start border-4 border-success
+                    {% elif h.new_status == 'inactive' %}
+                        border-start border-4 border-warning
+                    {% else %}
+                        border-start border-4 border-danger
+                    {% endif %}
+                ">
+                    <div class="d-flex justify-content-between align-items-start">
 
-            <div>
-                <div class="fw-semibold">
-                    Tricycle Permit #{{ h.permit.control_no }}
-                </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">
+                                Tricycle Permit #{{ h.permit.control_no }}
+                            </div>
 
-                <div class="small text-muted">
-                    {{ h.previous_status|capfirst }}
-                    →
-                    <span class="
-                        {% if h.new_status == 'active' %}
-                            text-success
-                        {% elif h.new_status == 'inactive' %}
-                            text-warning
-                        {% else %}
-                            text-danger
-                        {% endif %}
-                        fw-semibold
-                    ">
-                        {{ h.new_status|capfirst }}
-                    </span>
-                </div>
+                            <div class="small text-muted">
+                                {{ h.previous_status|capfirst }}
+                                →
+                                <span class="
+                                    {% if h.new_status == 'active' %}
+                                        text-success
+                                    {% elif h.new_status == 'inactive' %}
+                                        text-warning
+                                    {% else %}
+                                        text-danger
+                                    {% endif %}
+                                    fw-semibold
+                                ">
+                                    {{ h.new_status|capfirst }}
+                                </span>
+                            </div>
 
-                {% load tz %}
-                <div class="small text-muted">
-                    {{ h.activated_at|localtime|date:"M d, Y" }}
-                    • {{ h.activated_at|localtime|time:"h:i A" }}
-                </div>
-            </div>
+                            {% load tz %}
+                            <div class="small text-muted mt-1">
+                                {{ h.activated_at|localtime|date:"M d, Y" }}
+                                • {{ h.activated_at|localtime|time:"h:i A" }}
+                            </div>
 
-            <span class="badge rounded-pill px-3
-                {% if h.new_status == 'active' %}
-                    bg-success-subtle text-success
-                {% elif h.new_status == 'inactive' %}
-                    bg-warning-subtle text-warning
-                {% else %}
-                    bg-danger-subtle text-danger
-                {% endif %}
-            ">
-                {{ h.new_status|capfirst }}
-            </span>
+                            <!-- ✅ UPDATED BY INFO -->
+                            {% if h.updated_by_name %}
+                            <div class="small mt-2">
+                                <i class="bi bi-person-fill me-1"></i>
+                                <span class="text-muted">Updated by:</span>
+                                <span class="fw-semibold text-dark">{{ h.updated_by_name }}</span>
+                                <span class="badge bg-primary-subtle text-primary ms-1">
+                                    {{ h.updated_by_type|upper }}
+                                </span>
+                            </div>
+                            {% endif %}
 
-        </div>
-    </li>
+                            <!-- REMARKS (if any) -->
+                            {% if h.remarks %}
+                            <div class="small text-muted mt-2 fst-italic">
+                                <i class="bi bi-chat-left-text me-1"></i>
+                                {{ h.remarks }}
+                            </div>
+                            {% endif %}
+                        </div>
 
-    {% empty %}
-    <li class="list-group-item py-4 text-center text-muted">
-        No history available
-    </li>
-    {% endfor %}
+                        <span class="badge rounded-pill px-3 ms-3
+                            {% if h.new_status == 'active' %}
+                                bg-success-subtle text-success
+                            {% elif h.new_status == 'inactive' %}
+                                bg-warning-subtle text-warning
+                            {% else %}
+                                bg-danger-subtle text-danger
+                            {% endif %}
+                        ">
+                            {{ h.new_status|capfirst }}
+                        </span>
 
-</ul>
+                    </div>
+                </li>
 
+                {% empty %}
+                <li class="list-group-item py-4 text-center text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    No history available
+                </li>
+                {% endfor %}
+
+            </ul>
 
         </div>
     </div>
