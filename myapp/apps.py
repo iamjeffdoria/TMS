@@ -18,7 +18,11 @@ class MyappConfig(AppConfig):
         - only when the autoreloader's child process is running (RUN_MAIN=="true")
         """
         try:
-            # Only start when managing the dev server (manage.py runserver)
+            # Import signals (this needs to happen every time, not just for runserver)
+            import myapp.signals
+            logger.info("Activity logging signals registered successfully")
+            
+            # Only start scheduler when managing the dev server (manage.py runserver)
             if 'runserver' in sys.argv and os.environ.get('RUN_MAIN') == 'true':
                 # Import and start the scheduler
                 from . import run_scheduler
@@ -26,5 +30,4 @@ class MyappConfig(AppConfig):
                 logger.info("Starting myapp scheduler from AppConfig.ready()")
                 run_scheduler.start()
         except Exception:
-            logger.exception("Failed to start scheduler in AppConfig.ready()")
-
+            logger.exception("Failed to start scheduler or register signals in AppConfig.ready()")

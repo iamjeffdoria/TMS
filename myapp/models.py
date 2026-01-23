@@ -225,6 +225,9 @@ class MayorsPermitHistory(models.Model):
         ordering = ['-activated_at']
         verbose_name = "Mayor's Permit History"
         verbose_name_plural = "Mayor's Permit Histories"
+
+
+
 class MayorsPermitTricycleHistory(models.Model):
     permit = models.ForeignKey(
         MayorsPermitTricycle,
@@ -252,3 +255,51 @@ class MayorsPermitTricycleHistory(models.Model):
 
 
 
+class ActivityLog(models.Model):
+    ACTION_CHOICES = [
+        ('create', 'Created'),
+        ('update', 'Updated'),
+        ('delete', 'Deleted'),
+        ('status_change', 'Status Changed'),
+    ]
+    
+    MODEL_CHOICES = [
+        ('potpot', 'Potpot Permit'),
+        ('motorcycle', 'Motorcycle Permit'),
+        ('admin', 'Admin'),
+        ('idcard', 'ID Card'),
+        ('mtop', 'MTOP'),
+        ('franchise', 'Franchise'),
+    ]
+    
+    # What happened
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    model_type = models.CharField(max_length=20, choices=MODEL_CHOICES)
+    
+    # Details of the change
+    object_id = models.CharField(max_length=100)  # The ID or control_no of the changed object
+    object_name = models.CharField(max_length=255)  # Name of the person/entity
+    
+    # What changed
+    field_name = models.CharField(max_length=100, blank=True, null=True)  # e.g., 'address', 'amount_paid'
+    old_value = models.TextField(blank=True, null=True)
+    new_value = models.TextField(blank=True, null=True)
+    
+    # Additional context
+    description = models.TextField()  # Human-readable description
+    
+    # Who made the change
+    user_type = models.CharField(max_length=20, blank=True, null=True)  # 'admin' or 'superadmin'
+    user_id = models.IntegerField(blank=True, null=True)
+    user_name = models.CharField(max_length=255, blank=True, null=True)
+    
+    # When it happened
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'Activity Log'
+        verbose_name_plural = 'Activity Logs'
+    
+    def __str__(self):
+        return f"{self.model_type} - {self.action} - {self.object_name}"

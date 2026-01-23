@@ -1,11 +1,15 @@
 import csv
+from datetime import timedelta
+from itertools import chain
+from operator import attrgetter
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse
 from django.contrib import messages
 from django.db import IntegrityError
 from django.contrib.auth.hashers import make_password, check_password
-from .models import Admin, MayorsPermit, IDCard, Mtop, Franchise, MayorsPermitTricycle, SuperAdmin, AdminPermission,MayorsPermitHistory, MayorsPermitTricycleHistory
+from .models import Admin, MayorsPermit, IDCard, Mtop, Franchise, MayorsPermitTricycle, SuperAdmin, AdminPermission,MayorsPermitHistory, MayorsPermitTricycleHistory,ActivityLog
 from django.http import JsonResponse
 from django.utils.dateparse import parse_date
 from django.http import HttpResponse
@@ -271,7 +275,7 @@ def admin_login(request):
     return render(request, 'myapp/login.html', content)
 
 def dashboard(request):
-    permit_count = MayorsPermit.objects.count()  # total number of permits
+    permit_count = MayorsPermit.objects.count()
     tricycle_count = MayorsPermitTricycle.objects.count() 
      
     # Mayor's Permit (Pedicab) - Status counts
@@ -279,14 +283,92 @@ def dashboard(request):
     pedicab_inactive = MayorsPermit.objects.filter(status='inactive').count()
     pedicab_expired = MayorsPermit.objects.filter(status='expired').count()
 
-     # Mayor's Permit (Tricycle/Motorcycle) - Status counts
+    # Mayor's Permit (Tricycle/Motorcycle) - Status counts
     tricycle_active = MayorsPermitTricycle.objects.filter(status='active').count()
     tricycle_inactive = MayorsPermitTricycle.objects.filter(status='inactive').count()
     tricycle_expired = MayorsPermitTricycle.objects.filter(status='expired').count()
 
+    # ============ RECENT ACTIVITIES - Get from ActivityLog ============
+    recent_activities_raw = (
+    ActivityLog.objects
+    .order_by('-timestamp')[:20]
+)
 
+    
+    recent_activities = []
+    for log in recent_activities_raw:
+        # Determine icon and color based on action and model
+        if log.action == 'create':
+            icon = 'fa-plus-circle'
+            color = 'success'
+        elif log.action == 'update':
+            icon = 'fa-edit'
+            color = 'info'
+        elif log.action == 'delete':
+            icon = 'fa-trash'
+            color = 'danger'
+        elif log.action == 'status_change':
+            icon = 'fa-sync'
+            color = 'warning'
+        else:
+            icon = 'fa-info-circle'
+            color = 'secondary'
+        
+        # Format the title based on model type
+        model_display = dict(ActivityLog.MODEL_CHOICES).get(log.model_type, log.model_type)
+        action_display = dict(ActivityLog.ACTION_CHOICES).get(log.action, log.action)
+        
+        activity = {
+            'type': log.action,
+            'model_type': log.model_type,
+            'title': f'{model_display} {action_display}',
+            'description': log.description,
+            'timestamp': log.timestamp,
+            'icon': icon,
+            'color': color,
+            'object_id': log.object_id,
+            'updated_by': log.user_name or 'System'
+        }
+        recent_activities.append(activity)
+    
+    # Add expiring soon warnings
+    expiring_soon_date = timezone.now().date() + timedelta(days=30)
+    
+    expiring_pedicab = MayorsPermit.objects.filter(
+        expiry_date__lte=expiring_soon_date,
+        expiry_date__gte=timezone.now().date(),
+        status='active'
+    ).count()
+    
+    expiring_tricycle = MayorsPermitTricycle.objects.filter(
+        expiry_date__lte=expiring_soon_date,
+        expiry_date__gte=timezone.now().date(),
+        status='active'
+    ).count()
+    
+    if expiring_pedicab > 0:
+        recent_activities.insert(0, {
+            'type': 'expiring_soon',
+            'model_type': 'potpot',
+            'title': 'Potpot Permits Expiring Soon',
+            'description': f'{expiring_pedicab} permits expiring in the next 30 days',
+            'timestamp': timezone.now(),
+            'icon': 'fa-exclamation-triangle',
+            'color': 'warning'
+        })
+    
+    if expiring_tricycle > 0:
+        recent_activities.insert(0, {
+            'type': 'expiring_soon',
+            'model_type': 'motorcycle',
+            'title': 'Motorcycle Permits Expiring Soon',
+            'description': f'{expiring_tricycle} permits expiring in the next 30 days',
+            'timestamp': timezone.now(),
+            'icon': 'fa-exclamation-triangle',
+            'color': 'warning'
+        })
 
-    return render(request, 'myapp/dashboard.html', {
+    context = {
         'permit_count': permit_count,
         'tricycle_count': tricycle_count,
         'pedicab_active': pedicab_active,
@@ -295,10 +377,10 @@ def dashboard(request):
         'tricycle_active': tricycle_active,
         'tricycle_inactive': tricycle_inactive,
         'tricycle_expired': tricycle_expired,
-    })
-
-
-
+        'recent_activities': recent_activities,
+    }
+    
+    return render(request, 'myapp/dashboard.html', context)
 @superadmin_required
 def admin_management(request):
     # REMOVED .prefetch_related('permissions')

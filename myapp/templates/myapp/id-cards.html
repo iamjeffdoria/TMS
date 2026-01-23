@@ -22,12 +22,17 @@
     padding: 2px;
 }
 /* Styling for the Print Template */
-#print-area { display: none; }
-
+#print-area, #print-area-2 { display: none; }
 @media print {
     body * { visibility: hidden; }
-    #print-area, #print-area * { visibility: visible; }
-    #print-area {
+    
+    /* Only show the active print area */
+    #print-area.active, #print-area.active *,
+    #print-area-2.active, #print-area-2.active * { 
+        visibility: visible; 
+    }
+    
+    #print-area.active, #print-area-2.active {
         display: flex !important;
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -37,8 +42,8 @@
 
     .id-card-wrapper {
         position: relative;
-        width: 640px; /* ← Changed from 320px */
-        height: 1000px; /* ← Changed from 500px */
+        width: 640px;
+        height: 1000px;
     }
 
     .template-bg { width: 100%; height: auto; display: block; }
@@ -46,13 +51,12 @@
     /* Positioning the Dynamic Data */
     .dynamic-photo {
         position: absolute;
-        top:28.5%; /* Adjust to fit the photo frame */
+        top:28.5%;
         left: 21.5%;
         transform: translateX(-50%);
-        width: 240px; /* ← Changed from 120px */
-        height: 225px; /* ← Changed from 120px */
+        width: 240px;
+        height: 225px;
         object-fit: cover;
-       
     }
 
     .field {
@@ -60,28 +64,27 @@
         font-family: Arial, sans-serif;
         font-weight: bold;
         color: rgb(37, 35, 35);
-         font-size: 24px;
+        font-size: 24px;
     }
-    /* Positioning the Full Name */
+    
     .full-name {
-        top: 31%; /* Positioned above the ID number */
+        top: 31%;
         left: 70%;
         transform: translateX(-50%);
         width: 100%;
         text-align: center;
-        font-size: 24px; /* Names are usually larger */
+        font-size: 24px;
         text-transform: uppercase;
         color: rgb(37, 35, 35);
     }
 
-    /* Target specific locations from your image */
     .id-number { top: 52.3%; left: 15%; }
     .address   { top: 61.8%; left: 21%; width: 50%; line-height: 1.1; }
     .dob       { top: 76.8%; left: 2%; }
-    .gender       { top: 76.8%; left: 38%; }
-    .or-number    { top: 89%; left: 2%; }
-    .height       { top: 76.8%; left: 55%; }
-    .weight       { top:76.8%; left: 83%; }
+    .gender    { top: 76.8%; left: 38%; }
+    .or-number { top: 89%; left: 2%; }
+    .height    { top: 76.8%; left: 55%; }
+    .weight    { top:76.8%; left: 83%; }
     .date-issued  { top: 89%; left: 32.5%; }
     .expiry-date  { top: 89%; left: 73%; }
 }
@@ -360,6 +363,26 @@
         </div>
     </div>
 </div>
+
+<div id="print-area-2">
+    <div class="id-card-wrapper">
+        <img src="{% static 'assets/img/potpotid-2.png' %}" class="template-bg">
+        
+        <div class="data-overlay">
+            <img id="print-photo-2" src="" class="dynamic-photo">
+            <div id="print-name-2" class="field full-name"></div>
+            <div id="print-id-number-2" class="field id-number"></div>
+            <div id="print-address-2" class="field address"></div>
+            <div id="print-dob-2" class="field dob"></div>
+            <div id="print-gender-2" class="field gender"></div>
+            <div id="print-or-number-2" class="field or-number"></div>
+            <div id="print-height-2" class="field height"></div>
+            <div id="print-weight-2" class="field weight"></div>
+            <div id="print-date-issued-2" class="field date-issued"></div>
+            <div id="print-expiry-date-2" class="field expiry-date"></div>
+        </div>
+    </div>
+</div>
 <!-- View ID Card Modal -->
 <div class="modal fade" id="viewIdCardModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
@@ -543,6 +566,43 @@
   </div>
 </div>
 
+<!-- Print Confirmation Modal -->
+<div class="modal fade" id="printConfirmModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">Print ID Card</h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body text-center">
+
+<button type="button" class="btn btn-primary btn-sm btn-block mb-3" id="printId1Btn">
+  <i class="fas fa-id-card"></i><br>
+  <strong>Print ID 1</strong><br>
+  <small class="text-white">With Real Data</small>
+</button>
+
+<button type="button" class="btn btn-secondary btn-sm btn-block" id="printId2Btn">
+  <i class="fas fa-id-card-alt"></i><br>
+  <strong>Print ID 2</strong><br>
+  <small class="text-white">Sample Template</small>
+</button>
+
+</div>
+
+
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
 
   // Function to open update modal with pre-filled data
@@ -551,7 +611,7 @@ function openUpdateModal(cardId, imageUrl, name, idNumber, gender, dob, address,
     document.getElementById('update-card-id').value = cardId;
     
     // Fill form fields
-    document.getElementById('update-name').value = name || '';
+    document.getElementById('update-name').value = name || '';  
     document.getElementById('update-id-number').value = idNumber || '';
     document.getElementById('update-gender').value = gender || 'M';
     document.getElementById('update-dob').value = dob || '';
@@ -561,7 +621,6 @@ function openUpdateModal(cardId, imageUrl, name, idNumber, gender, dob, address,
     document.getElementById('update-weight').value = weight || '';
     document.getElementById('update-date-issued').value = dateIssued || '';
     document.getElementById('update-expiry-date').value = expiryDate || '';
-    
     // Show current photo
     document.getElementById('update-current-photo').src = imageUrl || '';
     
@@ -674,41 +733,119 @@ document.addEventListener("DOMContentLoaded", function () {
             alert('An error occurred while updating the ID Card');
         });
     });
+
+    // Print ID 1 button listener// Print ID 1 button (with real data)
+document.getElementById("printId1Btn").addEventListener("click", function () {
+    executePrint(1);
+});
+
+// Print ID 2 button (sample template)
+document.getElementById("printId2Btn").addEventListener("click", function () {
+    executePrint(2);
+});
+
+    
 });
 
 // 3. Global function for print (outside DOMContentLoaded since it's called from inline onclick)
 
-function preparePrint(photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate) {
-    document.getElementById('print-photo').src = photoUrl;
-    document.getElementById('print-name').innerText = fullName;
-    document.getElementById('print-id-number').innerText = idNum;
-    document.getElementById('print-address').innerText = address;
-    document.getElementById('print-dob').innerText = dob;
-    document.getElementById('print-gender').innerText = gender || '';
-    document.getElementById('print-or-number').innerText = orNumber || '';
-    document.getElementById('print-height').innerText = height ? height + ' cm' : '';
-    document.getElementById('print-weight').innerText = weight ? weight + ' kg' : '';
-    document.getElementById('print-date-issued').innerText = dateIssued || '';
-    document.getElementById('print-expiry-date').innerText = expiryDate || '';
+// Global variables to store print data temporarily
+let pendingPrintData = null;
 
-    const photo = document.getElementById('print-photo');
+function preparePrint(photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate) {
+    // Store the print data
+    pendingPrintData = {
+        photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate
+    };
+    
+    // Update modal message with ID number
+    // document.getElementById('print-confirm-message').innerText = `Print ID ${idNum}?`;
+    
+    // Show confirmation modal
+    $('#printConfirmModal').modal('show');
+}
+
+function executePrint(idType) {
+    if (!pendingPrintData) return;
+    
+    const data = pendingPrintData;
+    
+    // Remove active class from both print areas first
+    document.getElementById('print-area').classList.remove('active');
+    document.getElementById('print-area-2').classList.remove('active');
+    
+    if (idType === 1) {
+        // Print ID 1 - With Real Data
+        document.getElementById('print-photo').src = data.photoUrl;
+        document.getElementById('print-name').innerText = data.fullName;
+        document.getElementById('print-id-number').innerText = data.idNum;
+        document.getElementById('print-address').innerText = data.address;
+        document.getElementById('print-dob').innerText = data.dob;
+        document.getElementById('print-gender').innerText = data.gender || '';
+        document.getElementById('print-or-number').innerText = data.orNumber || '';
+        document.getElementById('print-height').innerText = data.height ? data.height + ' cm' : '';
+        document.getElementById('print-weight').innerText = data.weight ? data.weight + ' kg' : '';
+        document.getElementById('print-date-issued').innerText = data.dateIssued || '';
+        document.getElementById('print-expiry-date').innerText = data.expiryDate || '';
+        
+        // Mark ID 1 as active for printing
+        document.getElementById('print-area').classList.add('active');
+        
+        const photo = document.getElementById('print-photo');
+        triggerPrintAfterImageLoad(photo);
+        
+    } else if (idType === 2) {
+        // Print ID 2 - Sample Template (no real data to avoid conflicts)
+        document.getElementById('print-photo-2').src = data.photoUrl; // Or use a placeholder
+        document.getElementById('print-name-2').innerText = 'SAMPLE NAME';
+        document.getElementById('print-id-number-2').innerText = '0000-0000';
+        document.getElementById('print-address-2').innerText = 'Sample Address Here';
+        document.getElementById('print-dob-2').innerText = '01/01/2000';
+        document.getElementById('print-gender-2').innerText = 'M/F';
+        document.getElementById('print-or-number-2').innerText = 'OR-000000';
+        document.getElementById('print-height-2').innerText = '170 cm';
+        document.getElementById('print-weight-2').innerText = '65 kg';
+        document.getElementById('print-date-issued-2').innerText = '01/01/2025';
+        document.getElementById('print-expiry-date-2').innerText = '01/01/2030';
+        
+        // Mark ID 2 as active for printing
+        document.getElementById('print-area-2').classList.add('active');
+        
+        const photo = document.getElementById('print-photo-2');
+        triggerPrintAfterImageLoad(photo);
+    }
+}
+
+function triggerPrintAfterImageLoad(photoElement) {
     let printed = false;
 
     const triggerPrint = () => {
         if (!printed) {
             printed = true;
+            // Hide modal before printing
+            $('#printConfirmModal').modal('hide');
             setTimeout(() => {
                 window.print();
+                // Clean up after printing
+                document.getElementById('print-area').classList.remove('active');
+                document.getElementById('print-area-2').classList.remove('active');
+                pendingPrintData = null;
             }, 300);
         }
     };
 
-    if (photo.complete && photo.naturalHeight !== 0) {
+    if (photoElement.complete && photoElement.naturalHeight !== 0) {
         triggerPrint();
     } else {
-        photo.onload = triggerPrint;
+        photoElement.onload = triggerPrint;
+        // Add error handler in case image fails to load
+        photoElement.onerror = () => {
+            console.error('Image failed to load');
+            triggerPrint(); // Still trigger print even if image fails
+        };
     }
 }
+
 </script>
 
 
