@@ -21,8 +21,9 @@
     border: 1px solid #e3e6f0;
     padding: 2px;
 }
-/* Styling for the Print Template */
+/* Styling for the Print Templates */
 #print-area, #print-area-2 { display: none; }
+
 @media print {
     body * { visibility: hidden; }
     
@@ -40,18 +41,25 @@
         background: white;
     }
 
-    .id-card-wrapper {
+    /* ============================
+       PRINT AREA 1 STYLING
+    ============================ */
+    #print-area .id-card-wrapper {
         position: relative;
         width: 640px;
         height: 1000px;
     }
 
-    .template-bg { width: 100%; height: auto; display: block; }
+    #print-area .template-bg { 
+        width: 100%; 
+        height: auto; 
+        display: block; 
+    }
 
-    /* Positioning the Dynamic Data */
-    .dynamic-photo {
+    /* Print Area 1 - Dynamic Photo */
+    #print-area .dynamic-photo {
         position: absolute;
-        top:28.5%;
+        top: 28.5%;
         left: 21.5%;
         transform: translateX(-50%);
         width: 240px;
@@ -59,7 +67,8 @@
         object-fit: cover;
     }
 
-    .field {
+    /* Print Area 1 - Text Fields */
+    #print-area .field {
         position: absolute;
         font-family: Arial, sans-serif;
         font-weight: bold;
@@ -67,7 +76,7 @@
         font-size: 24px;
     }
     
-    .full-name {
+    #print-area .full-name {
         top: 31%;
         left: 70%;
         transform: translateX(-50%);
@@ -78,15 +87,98 @@
         color: rgb(37, 35, 35);
     }
 
-    .id-number { top: 52.3%; left: 15%; }
-    .address   { top: 61.8%; left: 21%; width: 50%; line-height: 1.1; }
-    .dob       { top: 76.8%; left: 2%; }
-    .gender    { top: 76.8%; left: 38%; }
-    .or-number { top: 89%; left: 2%; }
-    .height    { top: 76.8%; left: 55%; }
-    .weight    { top:76.8%; left: 83%; }
-    .date-issued  { top: 89%; left: 32.5%; }
-    .expiry-date  { top: 89%; left: 73%; }
+    #print-area .id-number { top: 52.3%; left: 15%; }
+    #print-area .address   { top: 61.8%; left: 21%; width: 50%; line-height: 1.1; }
+    #print-area .dob       { top: 76.8%; left: 2%; }
+    #print-area .gender    { top: 76.8%; left: 38%; }
+    #print-area .or-number { top: 89%; left: 2%; }
+    #print-area .height    { top: 76.8%; left: 55%; }
+    #print-area .weight    { top: 76.8%; left: 83%; }
+    #print-area .date-issued  { top: 89%; left: 32.5%; }
+    #print-area .expiry-date  { top: 89%; left: 73%; }
+
+    /* ============================
+       PRINT AREA 2 STYLING
+    ============================ */
+    #print-area-2 .id-card-wrapper {
+        position: relative;
+        width: 640px;
+        height: 1000px;
+    }
+
+    #print-area-2 .template-bg { 
+        width: 100%; 
+        height: auto; 
+        display: block; 
+    }
+
+    /* Print Area 2 - Dynamic Photo */
+    #print-area-2 .dynamic-photo {
+        position: absolute;
+        top: 16%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 257px;
+        height: 257px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    /* Print Area 2 - Text Fields */
+    #print-area-2 .field {
+        position: absolute;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 600;
+        color: rgb(20, 20, 20);
+        font-size: 26px;
+    }
+    
+    #print-area-2 .full-name {
+        top: 58%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        text-align: center;
+        font-size: 50px;
+        text-transform: uppercase;
+        color: rgb(20, 20, 20);
+        font-weight: bold;
+    }
+
+   #print-area-2 .id-number { 
+        top: 42%; 
+        left: 50%; 
+        transform: translateX(-50%);
+        text-align: center;
+        font-size: 30px;
+        color: #FFFFFF !important;
+        -webkit-font-smoothing: antialiased;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+       
+    }
+    #print-area-2 .address { 
+        top: 75%; 
+        left: 50%; 
+        transform: translateX(-50%);
+        width: 85%; 
+        text-align: center;
+        line-height: 1.3; 
+        font-size: 20px;
+        color: rgb(80, 80, 80);
+        font-weight: normal;
+    }
+
+    /* Hide unused fields in Print Area 2 */
+    #print-area-2 .dob,
+    #print-area-2 .gender,
+    #print-area-2 .or-number,
+    #print-area-2 .height,
+    #print-area-2 .weight,
+    #print-area-2 .date-issued,
+    #print-area-2 .expiry-date {
+        display: none;
+    }
 }
 </style>
 
@@ -366,7 +458,7 @@
 
 <div id="print-area-2">
     <div class="id-card-wrapper">
-        <img src="{% static 'assets/img/potpotid-2.png' %}" class="template-bg">
+        <img src="{% static 'assets/img/idcardred.png' %}" class="template-bg">
         
         <div class="data-overlay">
             <img id="print-photo-2" src="" class="dynamic-photo">
@@ -658,6 +750,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "lengthChange": false,
         "ordering": false,
         "searching": true,
+        "dom": 'lrtip',
         "columnDefs": [
             {
                 "targets": [6, 7, 8, 9, 10],
@@ -793,20 +886,21 @@ function executePrint(idType) {
         
         const photo = document.getElementById('print-photo');
         triggerPrintAfterImageLoad(photo);
+      } else if (idType === 2) {
+        // Print ID 2 - ONLY Image, Name, ID Number, and Address (Real Data)
+        document.getElementById('print-photo-2').src = data.photoUrl;
+        document.getElementById('print-name-2').innerText = data.fullName;
+        document.getElementById('print-id-number-2').innerText = data.idNum;
+        document.getElementById('print-address-2').innerText = data.address;
         
-    } else if (idType === 2) {
-        // Print ID 2 - Sample Template (no real data to avoid conflicts)
-        document.getElementById('print-photo-2').src = data.photoUrl; // Or use a placeholder
-        document.getElementById('print-name-2').innerText = 'SAMPLE NAME';
-        document.getElementById('print-id-number-2').innerText = '0000-0000';
-        document.getElementById('print-address-2').innerText = 'Sample Address Here';
-        document.getElementById('print-dob-2').innerText = '01/01/2000';
-        document.getElementById('print-gender-2').innerText = 'M/F';
-        document.getElementById('print-or-number-2').innerText = 'OR-000000';
-        document.getElementById('print-height-2').innerText = '170 cm';
-        document.getElementById('print-weight-2').innerText = '65 kg';
-        document.getElementById('print-date-issued-2').innerText = '01/01/2025';
-        document.getElementById('print-expiry-date-2').innerText = '01/01/2030';
+        // Clear all other fields (leave them empty)
+        document.getElementById('print-dob-2').innerText = '';
+        document.getElementById('print-gender-2').innerText = '';
+        document.getElementById('print-or-number-2').innerText = '';
+        document.getElementById('print-height-2').innerText = '';
+        document.getElementById('print-weight-2').innerText = '';
+        document.getElementById('print-date-issued-2').innerText = '';
+        document.getElementById('print-expiry-date-2').innerText = '';
         
         // Mark ID 2 as active for printing
         document.getElementById('print-area-2').classList.add('active');
