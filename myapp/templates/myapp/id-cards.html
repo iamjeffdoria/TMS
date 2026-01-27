@@ -132,32 +132,33 @@
         color: rgb(20, 20, 20);
         font-size: 26px;
     }
-    
-    #print-area-2 .full-name {
-        top: 58%;
+   #print-area-2 .full-name {
+        top: 59.1%;
         left: 50%;
         transform: translateX(-50%);
         width: 90%;
         text-align: center;
-        font-size: 50px;
+        font-size: 35px;
         text-transform: uppercase;
         color: rgb(20, 20, 20);
         font-weight: bold;
+        
+        /* Border and background */
+        background-color: rgba(217, 207, 207, 0.9);
+        border: 2px solid rgb(20, 20, 20);
+        border-radius: 8px;
+        padding: 8px 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        
+        /* Keep on one line and adjust size */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: auto;
+        max-width: 90%;
+        display: inline-block;
     }
-
-   #print-area-2 .id-number { 
-        top: 42%; 
-        left: 50%; 
-        transform: translateX(-50%);
-        text-align: center;
-        font-size: 30px;
-        color: #FFFFFF !important;
-        -webkit-font-smoothing: antialiased;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-       
-    }
-    #print-area-2 .address { 
+#print-area-2 .address { 
         top: 75%; 
         left: 50%; 
         transform: translateX(-50%);
@@ -166,9 +167,39 @@
         line-height: 1.3; 
         font-size: 20px;
         color: rgb(80, 80, 80);
-        font-weight: normal;
+        font-weight: bold;
+        
+        /* Border and background */
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgb(80, 80, 80);
+        border-radius: 8px;
+        padding: 12px 16px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-
+#print-area-2 .id-number { 
+        top: 43%; 
+        left: 50%; 
+        transform: translateX(-50%);
+        text-align: center;
+        font-size: 30px;
+        color: #FFFFFF !important;
+        -webkit-font-smoothing: antialiased;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        
+        /* Border and background */
+        background-color: #e83f3f;
+        border: 2px solid #FFFFFF;
+        border-radius: 5px;
+        padding: 6px 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        
+        /* Fixed width */
+        width: 270px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     /* Hide unused fields in Print Area 2 */
     #print-area-2 .dob,
     #print-area-2 .gender,
@@ -458,13 +489,13 @@
 
 <div id="print-area-2">
     <div class="id-card-wrapper">
-        <img src="{% static 'assets/img/idcardred.png' %}" class="template-bg">
+        <img src="{% static 'assets/img/modernid.png' %}" class="template-bg">
         
         <div class="data-overlay">
             <img id="print-photo-2" src="" class="dynamic-photo">
             <div id="print-name-2" class="field full-name"></div>
-            <div id="print-id-number-2" class="field id-number"></div>
-            <div id="print-address-2" class="field address"></div>
+            <div id="print-id-number-2" class="field id-number">ID No: </div>
+            <div id="print-address-2" class="field address">Address: </div>
             <div id="print-dob-2" class="field dob"></div>
             <div id="print-gender-2" class="field gender"></div>
             <div id="print-or-number-2" class="field or-number"></div>
@@ -886,12 +917,12 @@ function executePrint(idType) {
         
         const photo = document.getElementById('print-photo');
         triggerPrintAfterImageLoad(photo);
-      } else if (idType === 2) {
+       }else if (idType === 2) {
         // Print ID 2 - ONLY Image, Name, ID Number, and Address (Real Data)
         document.getElementById('print-photo-2').src = data.photoUrl;
         document.getElementById('print-name-2').innerText = data.fullName;
-        document.getElementById('print-id-number-2').innerText = data.idNum;
-        document.getElementById('print-address-2').innerText = data.address;
+        document.getElementById('print-id-number-2').innerText = 'ID No: ' + data.idNum;
+        document.getElementById('print-address-2').innerText = 'Address: ' + data.address;
         
         // Clear all other fields (leave them empty)
         document.getElementById('print-dob-2').innerText = '';
