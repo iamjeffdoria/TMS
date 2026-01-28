@@ -5,11 +5,24 @@
 
 
 <div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Franchise Records</h6>
-    </div>
+
 
     <div class="card-body">
+         <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Franchise Records</h6>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#importModal">
+                <i class="fas fa-file-import"></i> Import CSV
+            </button>
+            <a href="#" class="btn btn-sm btn-danger">
+                <i class="fas fa-file-export"></i> Export CSV
+            </a>
+            <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addRecordModal">
+                <i class="fas fa-plus"></i> Add New Record
+            </button>
+        </div>
+    </div>
+
         <div class="table-responsive">
             <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
                 
@@ -30,7 +43,23 @@
                         <th>Municipal Treasurer</th>
                         <th>Action</th>
                     </tr>
-                </thead>
+                     <tr>  <!-- ← ADDED THIS ENTIRE ROW -->
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th></th>  <!-- Empty for Action column -->
+                    </tr>  <!-- ← END OF ADDED ROW -->
+                                </thead>
 
                 <tfoot>
                     <tr>
@@ -77,13 +106,10 @@
                                     <i class="fas fa-print"></i>
                                 </a>
 
-
-                                <!-- UPDATE BUTTON -->
-                                <a href="#" 
-                                   class="btn btn-sm btn-warning" 
-                                   title="Update">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+<!-- UPDATE BUTTON -->
+<a href="#" class="btn btn-sm btn-warning btn-franchise-update" data-id="{{ f.id }}" title="Update">
+    <i class="fas fa-edit"></i>
+</a>
                             </div>
                         </td>
                     </tr>
@@ -98,14 +124,353 @@
         </div>
     </div>
 </div>
+<!-- Add New Franchise Record Modal -->
+<div class="modal fade" id="addRecordModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content shadow-lg border-0">
+      
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title font-weight-bold">
+          <i class="fas fa-plus-circle mr-2"></i> Add Franchise Record
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
 
+      <div class="modal-body">
+        <form id="addFranchiseForm">
+          {% csrf_token %}
+          
+          <div class="form-row">
+            <!-- Column 1 -->
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Name *</label>
+              <input type="text" class="form-control" name="name" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Denomination</label>
+              <input type="text" class="form-control" name="denomination">
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Plate No *</label>
+              <input type="text" class="form-control" name="plate_no" required>
+            </div>
+
+            <!-- Column 2 -->
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Valid Until *</label>
+              <input type="date" class="form-control" name="valid_until" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Motor No *</label>
+              <input type="text" class="form-control" name="motor_no" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Authorized No *</label>
+              <input type="text" class="form-control" name="authorized_no" required>
+            </div>
+
+            <!-- Column 3 -->
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Chassis No *</label>
+              <input type="text" class="form-control" name="chassis_no" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Authorized Route *</label>
+              <textarea class="form-control" name="authorized_route" rows="2" required></textarea>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Purpose</label>
+              <textarea class="form-control" name="purpose" rows="2"></textarea>
+            </div>
+
+            <!-- Column 4 -->
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Official Receipt No *</label>
+              <input type="text" class="form-control" name="official_receipt_no" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Date *</label>
+              <input type="date" class="form-control" name="date" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Amount Paid *</label>
+              <input type="number" class="form-control" name="amount_paid" step="0.01" min="0" required>
+            </div>
+
+            <!-- Column 5 -->
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Municipal Treasurer *</label>
+              <input type="text" class="form-control" name="municipal_treasurer" required>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="saveFranchiseBtn">
+          <i class="fas fa-save"></i> Save Record
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Update Franchise Record Modal -->
+<div class="modal fade" id="updateRecordModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content shadow-lg border-0">
+      
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title font-weight-bold">
+          <i class="fas fa-edit mr-2"></i> Update Franchise Record
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form id="updateFranchiseForm">
+          {% csrf_token %}
+          <input type="hidden" id="update-id" name="id">
+          
+          <div class="form-row">
+            <!-- Column 1 -->
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Name *</label>
+              <input type="text" class="form-control" id="update-name" name="name" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Denomination</label>
+              <input type="text" class="form-control" id="update-denomination" name="denomination">
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Plate No *</label>
+              <input type="text" class="form-control" id="update-plate-no" name="plate_no" required>
+            </div>
+
+            <!-- Column 2 -->
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Valid Until *</label>
+              <input type="date" class="form-control" id="update-valid-until" name="valid_until" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Motor No *</label>
+              <input type="text" class="form-control" id="update-motor-no" name="motor_no" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Authorized No *</label>
+              <input type="text" class="form-control" id="update-authorized-no" name="authorized_no" required>
+            </div>
+
+            <!-- Column 3 -->
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Chassis No *</label>
+              <input type="text" class="form-control" id="update-chassis-no" name="chassis_no" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Authorized Route *</label>
+              <textarea class="form-control" id="update-authorized-route" name="authorized_route" rows="2" required></textarea>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Purpose</label>
+              <textarea class="form-control" id="update-purpose" name="purpose" rows="2"></textarea>
+            </div>
+
+            <!-- Column 4 -->
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Official Receipt No *</label>
+              <input type="text" class="form-control" id="update-official-receipt-no" name="official_receipt_no" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Date *</label>
+              <input type="date" class="form-control" id="update-date" name="date" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Amount Paid *</label>
+              <input type="number" class="form-control" id="update-amount-paid" name="amount_paid" step="0.01" min="0" required>
+            </div>
+
+            <!-- Column 5 -->
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Municipal Treasurer *</label>
+              <input type="text" class="form-control" id="update-municipal-treasurer" name="municipal_treasurer" required>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary text-white" id="updateFranchiseBtn">
+          <i class="fas fa-save"></i> Update Record
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
 <script>
-$(document).ready(function() {
-    $('#dataTable').DataTable({
-        "pageLength": 10,
+document.addEventListener("DOMContentLoaded", function () {
+    
+    // Helper function to convert date to input format
+    function toInputDate(dateStr) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+        let d = new Date(dateStr);
+        if (isNaN(d.getTime())) return "";
+        let m = ("0" + (d.getMonth() + 1)).slice(-2);
+        let day = ("0" + d.getDate()).slice(-2);
+        return `${d.getFullYear()}-${m}-${day}`;
+    }
+
+    // Initialize DataTable
+    var table = $('#dataTable').DataTable({
+        "pageLength": 5,
         "lengthMenu": [5, 10, 25, 50, 100],
-        "ordering": true,
-        "searching": true
+        "lengthChange": false,
+        "ordering": false,
+        "searching": true,
+        "dom": 'lrtip',
+        "columnDefs": [
+            {
+                "targets": [4, 5, 6, 9, 10, 11, 12],
+                "visible": false,
+                "searchable": true
+            }
+        ]
+    });
+
+    // Apply column search from header inputs
+    table.columns().every(function(index) {
+        var that = this;
+        if (index === 13) {  // Skip the Action column
+            return;
+        }
+        $('input', this.header()).on('keyup change clear', function() {
+            if (that.search() !== this.value) {
+                that.search(this.value).draw();
+            }
+        });
+    });
+
+    // Save Franchise Record button
+    document.getElementById("saveFranchiseBtn").addEventListener("click", function () {
+        let form = document.getElementById("addFranchiseForm");
+        
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        let formData = new FormData(form);
+
+        fetch("{% url 'add-franchise' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#addRecordModal').modal('hide');
+                form.reset();
+                location.reload();
+            } else {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            location.reload();
+        });
+    });
+
+    // UPDATE BUTTON - Get data from DataTables row
+    document.querySelectorAll(".btn-franchise-update").forEach(button => {
+        button.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            let $tr = $(this).closest("tr");
+            let row = table.row($tr);
+            let data = row.data();
+
+            // Fill the update form with data from the table
+            document.getElementById("update-id").value = this.dataset.id;
+            document.getElementById("update-name").value = data[0] || '';
+            document.getElementById("update-denomination").value = data[1] || '';
+            document.getElementById("update-plate-no").value = data[2] || '';
+            document.getElementById("update-valid-until").value = toInputDate(data[3]);
+            document.getElementById("update-motor-no").value = data[4] || '';
+            document.getElementById("update-authorized-no").value = data[5] || '';
+            document.getElementById("update-chassis-no").value = data[6] || '';
+            document.getElementById("update-authorized-route").value = data[7] || '';
+            document.getElementById("update-purpose").value = data[8] || '';
+            document.getElementById("update-official-receipt-no").value = data[9] || '';
+            document.getElementById("update-date").value = toInputDate(data[10]);
+            document.getElementById("update-amount-paid").value = data[11] || '';
+            document.getElementById("update-municipal-treasurer").value = data[12] || '';
+
+            $("#updateRecordModal").modal("show");
+        });
+    });
+
+    // Update Franchise Record button
+    document.getElementById("updateFranchiseBtn").addEventListener("click", function () {
+        let form = document.getElementById("updateFranchiseForm");
+        
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        let formData = new FormData(form);
+
+        fetch("{% url 'update-franchise' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#updateRecordModal').modal('hide');
+                location.reload();
+            } else {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            location.reload();
+        });
     });
 });
 </script>

@@ -159,6 +159,151 @@ def add_mtop(request):
         return JsonResponse({"success": False})
 
 
+
+# New view to add franchise
+@require_http_methods(["POST"])
+def add_franchise(request):
+    try:
+        # Get data from POST request
+        name = request.POST.get('name')
+        denomination = request.POST.get('denomination')
+        plate_no = request.POST.get('plate_no')
+        valid_until = request.POST.get('valid_until')
+        motor_no = request.POST.get('motor_no')
+        authorized_no = request.POST.get('authorized_no')
+        chassis_no = request.POST.get('chassis_no')
+        authorized_route = request.POST.get('authorized_route')
+        purpose = request.POST.get('purpose')
+        official_receipt_no = request.POST.get('official_receipt_no')
+        date = request.POST.get('date')
+        amount_paid = request.POST.get('amount_paid')
+        municipal_treasurer = request.POST.get('municipal_treasurer')
+
+
+        # Check for duplicate Plate Number
+        if Franchise.objects.filter(plate_no=plate_no).exists():
+            messages.error(request, f'Plate Number "{plate_no}" already exists!')
+            return JsonResponse({
+                'success': False,
+                'message': f'Plate Number "{plate_no}" already exists!'
+            }, status=400)
+
+        # Check for duplicate Authorized Number
+        if Franchise.objects.filter(authorized_no=authorized_no).exists():
+            messages.error(request, f'Authorized Number "{authorized_no}" already exists!')
+            return JsonResponse({
+                'success': False,
+                'message': f'Authorized Number "{authorized_no}" already exists!'
+            }, status=400)
+
+
+        # Create new Franchise record
+        franchise = Franchise.objects.create(
+            name=name,
+            denomination=denomination,
+            plate_no=plate_no,
+            valid_until=valid_until,
+            motor_no=motor_no,
+            authorized_no=authorized_no,
+            chassis_no=chassis_no,
+            authorized_route=authorized_route,
+            purpose=purpose,
+            official_receipt_no=official_receipt_no,
+            date=date,
+            amount_paid=amount_paid,
+            municipal_treasurer=municipal_treasurer
+        )
+
+        # Add success message
+        messages.success(request, f'Franchise record for {name} added successfully!')
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Franchise record added successfully!',
+            'id': franchise.id
+        })
+
+    except Exception as e:
+        # Add error message
+        messages.error(request, f'Error adding franchise record: {str(e)}')
+        
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+
+
+@require_http_methods(["POST"])
+def update_franchise(request):
+    try:
+        # Get the franchise ID
+        franchise_id = request.POST.get('id')
+        
+        # Get the franchise object
+        franchise = Franchise.objects.get(id=franchise_id)
+        
+        # Get data from POST request
+        plate_no = request.POST.get('plate_no')
+        authorized_no = request.POST.get('authorized_no')
+        
+        # Check for duplicate Plate Number (excluding current record)
+        if Franchise.objects.filter(plate_no=plate_no).exclude(id=franchise_id).exists():
+            messages.error(request, f'Plate Number "{plate_no}" already exists!')
+            return JsonResponse({
+                'success': False,
+                'message': f'Plate Number "{plate_no}" already exists!'
+            }, status=400)
+
+        # Check for duplicate Authorized Number (excluding current record)
+        if Franchise.objects.filter(authorized_no=authorized_no).exclude(id=franchise_id).exists():
+            messages.error(request, f'Authorized Number "{authorized_no}" already exists!')
+            return JsonResponse({
+                'success': False,
+                'message': f'Authorized Number "{authorized_no}" already exists!'
+            }, status=400)
+
+        # Update franchise record
+        franchise.name = request.POST.get('name')
+        franchise.denomination = request.POST.get('denomination')
+        franchise.plate_no = plate_no
+        franchise.valid_until = request.POST.get('valid_until')
+        franchise.motor_no = request.POST.get('motor_no')
+        franchise.authorized_no = authorized_no
+        franchise.chassis_no = request.POST.get('chassis_no')
+        franchise.authorized_route = request.POST.get('authorized_route')
+        franchise.purpose = request.POST.get('purpose')
+        franchise.official_receipt_no = request.POST.get('official_receipt_no')
+        franchise.date = request.POST.get('date')
+        franchise.amount_paid = request.POST.get('amount_paid')
+        franchise.municipal_treasurer = request.POST.get('municipal_treasurer')
+        
+        franchise.save()
+
+        # Add success message
+        messages.success(request, f'Franchise record for {franchise.name} updated successfully!')
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Franchise record updated successfully!',
+            'id': franchise.id
+        })
+
+    except Franchise.DoesNotExist:
+        messages.error(request, 'Franchise record not found!')
+        return JsonResponse({
+            'success': False,
+            'message': 'Franchise record not found!'
+        }, status=404)
+
+    except Exception as e:
+        # Add error message
+        messages.error(request, f'Error updating franchise record: {str(e)}')
+        
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
     
 def get_mtop(request, id):
     mtop = get_object_or_404(Mtop, id=id)

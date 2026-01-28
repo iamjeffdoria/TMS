@@ -45,10 +45,9 @@ urlpatterns = [
     name='mayors-permit-history'
     ),
     path('mayors-permit-tri-history/<int:permit_id>/', views.mayors_permit_tri_history, name='mayors-permit-tri-history'),
-
+    path('franchise/add/', views.add_franchise, name='add-franchise'),
+    path('franchise/update/', views.update_franchise, name='update-franchise'),
     # path('api/admin/<int:admin_id>/', views.get_admin_details, name='get_admin_details'),
-
-   
 ]
 
 if settings.DEBUG:
