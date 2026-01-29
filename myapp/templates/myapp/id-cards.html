@@ -376,8 +376,10 @@
     <div class="modal-content">
 
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title">Add ID Card</h5>
-        <button type="button" class="close" data-dismiss="modal">
+        <h5 class="modal-title">
+          <i class="fas fa-id-card mr-2"></i> Add ID Card
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
           <span>&times;</span>
         </button>
       </div>
@@ -391,67 +393,117 @@
             <!-- COLUMN 1 -->
             <div class="col-md-4">
               <div class="form-group">
-                <label>Name</label>
-                <input name="name" class="form-control" required>
+                <label class="font-weight-bold">Name</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                  </div>
+                  <input name="name" class="form-control" required>
+                </div>
               </div>
 
               <div class="form-group">
-                <label>ID Number</label>
-                <input name="id_number" class="form-control" required>
+                <label class="font-weight-bold">ID Number</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                  </div>
+                  <input name="id_number" class="form-control" required>
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Date of Birth</label>
-                <input type="date" name="date_of_birth" class="form-control">
+                <label class="font-weight-bold">Date of Birth</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-birthday-cake"></i></span>
+                  </div>
+                  <input type="date" name="date_of_birth" class="form-control">
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Gender</label>
-                <select name="gender" class="form-control">
-                  <option value="M">Male</option>
-                  <option value="F">Female</option>
-                  <option value="O">Other</option>
-                </select>
+                <label class="font-weight-bold">Gender</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-venus-mars"></i></span>
+                  </div>
+                  <select name="gender" class="form-control">
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                    <option value="O">Other</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             <!-- COLUMN 2 -->
             <div class="col-md-4">
               <div class="form-group">
-                <label>Address</label>
-                <textarea name="address" class="form-control" rows="3" required></textarea>
+                <label class="font-weight-bold">Address</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                  </div>
+                  <textarea name="address" class="form-control" rows="3" required></textarea>
+                </div>
               </div>
 
               <div class="form-group">
-                <label>OR Number</label>
-                <input name="or_number" class="form-control">
+                <label class="font-weight-bold">OR Number</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-receipt"></i></span>
+                  </div>
+                  <input name="or_number" class="form-control">
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Height (cm)</label>
-                <input name="height" class="form-control" type="number" step="0.01">
+                <label class="font-weight-bold">Height (cm)</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-ruler-vertical"></i></span>
+                  </div>
+                  <input name="height" class="form-control" type="number" step="0.01">
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Weight (kg)</label>
-                <input name="weight" class="form-control" type="number" step="0.01">
+                <label class="font-weight-bold">Weight (kg)</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-weight"></i></span>
+                  </div>
+                  <input name="weight" class="form-control" type="number" step="0.01">
+                </div>
               </div>
             </div>
 
             <!-- COLUMN 3 -->
             <div class="col-md-4">
               <div class="form-group">
-                <label>Date Issued</label>
-                <input type="date" name="date_issued" class="form-control">
+                <label class="font-weight-bold">Date Issued</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
+                  </div>
+                  <input type="date" name="date_issued" class="form-control">
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Expiration Date</label>
-                <input type="date" name="expiration_date" class="form-control">
+                <label class="font-weight-bold">Expiration Date</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+                  </div>
+                  <input type="date" name="expiration_date" class="form-control">
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Photo</label>
+                <label class="font-weight-bold">Photo</label>
                 <input type="file" name="image" class="form-control-file" required>
               </div>
             </div>
@@ -460,9 +512,13 @@
         </form>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-md" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary btn-md" id="saveIdCardBtn">Save</button>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary btn-md" data-dismiss="modal">
+          <i class="fas fa-times"></i> Close
+        </button>
+        <button type="button" class="btn btn-primary btn-md" id="saveIdCardBtn">
+          <i class="fas fa-save"></i> Save
+        </button>
       </div>
 
     </div>
@@ -586,14 +642,15 @@
   </div>
 </div>
 
-
 <!-- Update ID Card Modal -->
 <div class="modal fade" id="updateIdCardModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
 
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title">Update ID Card</h5>
+        <h5 class="modal-title">
+          <i class="fas fa-edit mr-2"></i> Update ID Card
+        </h5>
         <button type="button" class="close text-white" data-dismiss="modal">
           <span>&times;</span>
         </button>
@@ -609,71 +666,121 @@
             <!-- COLUMN 1 -->
             <div class="col-md-4">
               <div class="form-group">
-                <label>Name</label>
-                <input id="update-name" name="name" class="form-control" required>
+                <label class="font-weight-bold">Name</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                  </div>
+                  <input id="update-name" name="name" class="form-control" required>
+                </div>
               </div>
 
               <div class="form-group">
-                <label>ID Number</label>
-                <input id="update-id-number" name="id_number" class="form-control" required>
+                <label class="font-weight-bold">ID Number</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                  </div>
+                  <input id="update-id-number" name="id_number" class="form-control" required>
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Date of Birth</label>
-                <input id="update-dob" type="date" name="date_of_birth" class="form-control">
+                <label class="font-weight-bold">Date of Birth</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-birthday-cake"></i></span>
+                  </div>
+                  <input id="update-dob" type="date" name="date_of_birth" class="form-control">
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Gender</label>
-                <select id="update-gender" name="gender" class="form-control">
-                  <option value="M">Male</option>
-                  <option value="F">Female</option>
-                  <option value="O">Other</option>
-                </select>
+                <label class="font-weight-bold">Gender</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-venus-mars"></i></span>
+                  </div>
+                  <select id="update-gender" name="gender" class="form-control">
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                    <option value="O">Other</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             <!-- COLUMN 2 -->
             <div class="col-md-4">
               <div class="form-group">
-                <label>Address</label>
-                <textarea id="update-address" name="address" class="form-control" rows="3" required></textarea>
+                <label class="font-weight-bold">Address</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                  </div>
+                  <textarea id="update-address" name="address" class="form-control" rows="3" required></textarea>
+                </div>
               </div>
 
               <div class="form-group">
-                <label>OR Number</label>
-                <input id="update-or-number" name="or_number" class="form-control">
+                <label class="font-weight-bold">OR Number</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-receipt"></i></span>
+                  </div>
+                  <input id="update-or-number" name="or_number" class="form-control">
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Height (cm)</label>
-                <input id="update-height" name="height" class="form-control" type="number" step="0.01">
+                <label class="font-weight-bold">Height (cm)</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-ruler-vertical"></i></span>
+                  </div>
+                  <input id="update-height" name="height" class="form-control" type="number" step="0.01">
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Weight (kg)</label>
-                <input id="update-weight" name="weight" class="form-control" type="number" step="0.01">
+                <label class="font-weight-bold">Weight (kg)</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-weight"></i></span>
+                  </div>
+                  <input id="update-weight" name="weight" class="form-control" type="number" step="0.01">
+                </div>
               </div>
             </div>
 
             <!-- COLUMN 3 -->
             <div class="col-md-4">
               <div class="form-group">
-                <label>Date Issued</label>
-                <input id="update-date-issued" type="date" name="date_issued" class="form-control">
+                <label class="font-weight-bold">Date Issued</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
+                  </div>
+                  <input id="update-date-issued" type="date" name="date_issued" class="form-control">
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Expiration Date</label>
-                <input id="update-expiry-date" type="date" name="expiration_date" class="form-control">
+                <label class="font-weight-bold">Expiration Date</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+                  </div>
+                  <input id="update-expiry-date" type="date" name="expiration_date" class="form-control">
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Current Photo</label>
+                <label class="font-weight-bold">Current Photo</label>
                 <div class="mb-2">
                   <img id="update-current-photo" src="" alt="Current Photo" class="img-thumbnail" style="max-height: 100px;">
                 </div>
-                <label>Change Photo (optional)</label>
+                <label class="font-weight-bold">Change Photo (optional)</label>
                 <input id="update-image" type="file" name="image" class="form-control-file">
               </div>
             </div>
@@ -682,9 +789,13 @@
         </form>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="updateIdCardBtn">Update</button>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="updateIdCardBtn">
+          <i class="fas fa-check"></i> Update
+        </button>
       </div>
 
     </div>
@@ -757,7 +868,6 @@ function showImagePreview(imageUrl) {
     $('#imagePreviewModal').modal('show');
 }
 
-  // Function to open update modal with pre-filled data
 function openUpdateModal(cardId, imageUrl, name, idNumber, gender, dob, address, orNumber, height, weight, dateIssued, expiryDate) {
     // Fill hidden card ID
     document.getElementById('update-card-id').value = cardId;
@@ -766,18 +876,40 @@ function openUpdateModal(cardId, imageUrl, name, idNumber, gender, dob, address,
     document.getElementById('update-name').value = name || '';  
     document.getElementById('update-id-number').value = idNumber || '';
     document.getElementById('update-gender').value = gender || 'M';
-    document.getElementById('update-dob').value = dob || '';
+    document.getElementById('update-dob').value = formatDateForInput(dob);
     document.getElementById('update-address').value = address || '';
     document.getElementById('update-or-number').value = orNumber || '';
     document.getElementById('update-height').value = height || '';
     document.getElementById('update-weight').value = weight || '';
-    document.getElementById('update-date-issued').value = dateIssued || '';
-    document.getElementById('update-expiry-date').value = expiryDate || '';
+    document.getElementById('update-date-issued').value = formatDateForInput(dateIssued);
+    document.getElementById('update-expiry-date').value = formatDateForInput(expiryDate);
+    
     // Show current photo
     document.getElementById('update-current-photo').src = imageUrl || '';
     
     // Show the modal
     $('#updateIdCardModal').modal('show');
+}
+
+// Helper function to format dates for input fields
+function formatDateForInput(dateStr) {
+    if (!dateStr || dateStr === 'None' || dateStr === 'null') return '';
+    
+    // If date is already in YYYY-MM-DD format, return it
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return dateStr;
+    }
+    
+    // If date is in other formats (e.g., "Jan. 30, 2025"), convert it
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    return '';
 }
   // Function to view ID card details
 function viewIdCard(imageUrl, name, idNumber, gender, dob, address, orNumber, height, weight, dateIssued, expiryDate) {

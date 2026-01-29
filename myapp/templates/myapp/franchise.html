@@ -128,7 +128,7 @@
 <div class="modal fade" id="addRecordModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
     <div class="modal-content shadow-lg border-0">
-      
+
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title font-weight-bold">
           <i class="fas fa-plus-circle mr-2"></i> Add Franchise Record
@@ -141,77 +141,152 @@
       <div class="modal-body">
         <form id="addFranchiseForm">
           {% csrf_token %}
-          
+
           <div class="form-row">
-            <!-- Column 1 -->
+
+            <!-- Name -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Name *</label>
-              <input type="text" class="form-control" name="name" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-user"></i></span>
+                </div>
+                <input type="text" class="form-control" name="name" required>
+              </div>
             </div>
 
+            <!-- Denomination -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Denomination</label>
-              <input type="text" class="form-control" name="denomination">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                </div>
+                <input type="text" class="form-control" name="denomination">
+              </div>
             </div>
 
+            <!-- Plate No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Plate No *</label>
-              <input type="text" class="form-control" name="plate_no" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-car"></i></span>
+                </div>
+                <input type="text" class="form-control" name="plate_no" required>
+              </div>
             </div>
 
-            <!-- Column 2 -->
+            <!-- Valid Until -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Valid Until *</label>
-              <input type="date" class="form-control" name="valid_until" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-calendar-check"></i></span>
+                </div>
+                <input type="date" class="form-control" name="valid_until" required>
+              </div>
             </div>
 
+            <!-- Motor No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Motor No *</label>
-              <input type="text" class="form-control" name="motor_no" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-cogs"></i></span>
+                </div>
+                <input type="text" class="form-control" name="motor_no" required>
+              </div>
             </div>
 
+            <!-- Authorized No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Authorized No *</label>
-              <input type="text" class="form-control" name="authorized_no" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-file-contract"></i></span>
+                </div>
+                <input type="text" class="form-control" name="authorized_no" required>
+              </div>
             </div>
 
-            <!-- Column 3 -->
+            <!-- Chassis No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Chassis No *</label>
-              <input type="text" class="form-control" name="chassis_no" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                </div>
+                <input type="text" class="form-control" name="chassis_no" required>
+              </div>
             </div>
 
+            <!-- Authorized Route -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Authorized Route *</label>
-              <textarea class="form-control" name="authorized_route" rows="2" required></textarea>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-route"></i></span>
+                </div>
+                <textarea class="form-control" name="authorized_route" rows="2" required></textarea>
+              </div>
             </div>
 
+            <!-- Purpose -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Purpose</label>
-              <textarea class="form-control" name="purpose" rows="2"></textarea>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-bullseye"></i></span>
+                </div>
+                <textarea class="form-control" name="purpose" rows="2"></textarea>
+              </div>
             </div>
 
-            <!-- Column 4 -->
+            <!-- Official Receipt No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Official Receipt No *</label>
-              <input type="text" class="form-control" name="official_receipt_no" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-receipt"></i></span>
+                </div>
+                <input type="text" class="form-control" name="official_receipt_no" required>
+              </div>
             </div>
 
+            <!-- Date -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Date *</label>
-              <input type="date" class="form-control" name="date" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                </div>
+                <input type="date" class="form-control" name="date" required>
+              </div>
             </div>
 
+            <!-- Amount Paid -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Amount Paid *</label>
-              <input type="number" class="form-control" name="amount_paid" step="0.01" min="0" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
+                </div>
+                <input type="number" class="form-control" name="amount_paid" step="0.01" min="0" required>
+              </div>
             </div>
 
-            <!-- Column 5 -->
+            <!-- Municipal Treasurer -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Municipal Treasurer *</label>
-              <input type="text" class="form-control" name="municipal_treasurer" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                </div>
+                <input type="text" class="form-control" name="municipal_treasurer" required>
+              </div>
             </div>
+
           </div>
         </form>
       </div>
@@ -229,11 +304,12 @@
   </div>
 </div>
 
+
 <!-- Update Franchise Record Modal -->
 <div class="modal fade" id="updateRecordModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
     <div class="modal-content shadow-lg border-0">
-      
+
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title font-weight-bold">
           <i class="fas fa-edit mr-2"></i> Update Franchise Record
@@ -247,77 +323,152 @@
         <form id="updateFranchiseForm">
           {% csrf_token %}
           <input type="hidden" id="update-id" name="id">
-          
+
           <div class="form-row">
-            <!-- Column 1 -->
+
+            <!-- Name -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Name *</label>
-              <input type="text" class="form-control" id="update-name" name="name" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-user"></i></span>
+                </div>
+                <input type="text" class="form-control" id="update-name" name="name" required>
+              </div>
             </div>
 
+            <!-- Denomination -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Denomination</label>
-              <input type="text" class="form-control" id="update-denomination" name="denomination">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                </div>
+                <input type="text" class="form-control" id="update-denomination" name="denomination">
+              </div>
             </div>
 
+            <!-- Plate No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Plate No *</label>
-              <input type="text" class="form-control" id="update-plate-no" name="plate_no" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-car"></i></span>
+                </div>
+                <input type="text" class="form-control" id="update-plate-no" name="plate_no" required>
+              </div>
             </div>
 
-            <!-- Column 2 -->
+            <!-- Valid Until -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Valid Until *</label>
-              <input type="date" class="form-control" id="update-valid-until" name="valid_until" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-calendar-check"></i></span>
+                </div>
+                <input type="date" class="form-control" id="update-valid-until" name="valid_until" required>
+              </div>
             </div>
 
+            <!-- Motor No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Motor No *</label>
-              <input type="text" class="form-control" id="update-motor-no" name="motor_no" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-cogs"></i></span>
+                </div>
+                <input type="text" class="form-control" id="update-motor-no" name="motor_no" required>
+              </div>
             </div>
 
+            <!-- Authorized No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Authorized No *</label>
-              <input type="text" class="form-control" id="update-authorized-no" name="authorized_no" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-file-contract"></i></span>
+                </div>
+                <input type="text" class="form-control" id="update-authorized-no" name="authorized_no" required>
+              </div>
             </div>
 
-            <!-- Column 3 -->
+            <!-- Chassis No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Chassis No *</label>
-              <input type="text" class="form-control" id="update-chassis-no" name="chassis_no" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                </div>
+                <input type="text" class="form-control" id="update-chassis-no" name="chassis_no" required>
+              </div>
             </div>
 
+            <!-- Authorized Route -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Authorized Route *</label>
-              <textarea class="form-control" id="update-authorized-route" name="authorized_route" rows="2" required></textarea>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-route"></i></span>
+                </div>
+                <textarea class="form-control" id="update-authorized-route" name="authorized_route" rows="2" required></textarea>
+              </div>
             </div>
 
+            <!-- Purpose -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Purpose</label>
-              <textarea class="form-control" id="update-purpose" name="purpose" rows="2"></textarea>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-bullseye"></i></span>
+                </div>
+                <textarea class="form-control" id="update-purpose" name="purpose" rows="2"></textarea>
+              </div>
             </div>
 
-            <!-- Column 4 -->
+            <!-- Official Receipt No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Official Receipt No *</label>
-              <input type="text" class="form-control" id="update-official-receipt-no" name="official_receipt_no" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-receipt"></i></span>
+                </div>
+                <input type="text" class="form-control" id="update-official-receipt-no" name="official_receipt_no" required>
+              </div>
             </div>
 
+            <!-- Date -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Date *</label>
-              <input type="date" class="form-control" id="update-date" name="date" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                </div>
+                <input type="date" class="form-control" id="update-date" name="date" required>
+              </div>
             </div>
 
+            <!-- Amount Paid -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Amount Paid *</label>
-              <input type="number" class="form-control" id="update-amount-paid" name="amount_paid" step="0.01" min="0" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
+                </div>
+                <input type="number" class="form-control" id="update-amount-paid" name="amount_paid" step="0.01" min="0" required>
+              </div>
             </div>
 
-            <!-- Column 5 -->
+            <!-- Municipal Treasurer -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Municipal Treasurer *</label>
-              <input type="text" class="form-control" id="update-municipal-treasurer" name="municipal_treasurer" required>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                </div>
+                <input type="text" class="form-control" id="update-municipal-treasurer" name="municipal_treasurer" required>
+              </div>
             </div>
+
           </div>
         </form>
       </div>
@@ -334,6 +485,8 @@
     </div>
   </div>
 </div>
+
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     

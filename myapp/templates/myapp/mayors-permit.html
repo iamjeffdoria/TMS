@@ -144,7 +144,7 @@
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                         <!-- History Button -->
-                                                     <a href="{% url 'mayors-permit-history' permit.id %}" class="btn btn-sm btn-warning btn-history" data-id="{{ permit.id }}" title="History">
+                                                     <a href="{% url 'mayors-permit-history' permit.id %}" class="btn btn-sm btn-warning btn-history" data-id="{{ permit.id }}" title="Status history">
                                                           <i class="fas fa-history"></i>
                                                       </a>
                                                     </div>
@@ -195,7 +195,7 @@
       </div>
     </div>
 
-    <!-- Update Modal -->
+<!-- Update Modal -->
     <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content shadow-lg border-0">
@@ -220,76 +220,141 @@
               <div class="form-row">
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Control No</label>
-                  <input type="text" id="u_control_no" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                    </div>
+                    <input type="text" id="u_control_no" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Status</label>
-                  <select id="u_status" class="form-control">
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="expired">Expired</option>
-                  </select>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+                    </div>
+                    <select id="u_status" class="form-control">
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="expired">Expired</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Name</label>
-                  <input type="text" id="u_name" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    </div>
+                    <input type="text" id="u_name" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Address</label>
-                  <input type="text" id="u_address" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                    </div>
+                    <input type="text" id="u_address" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Business Name</label>
-                  <input type="text" id="u_business_name" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-building"></i></span>
+                    </div>
+                    <input type="text" id="u_business_name" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Motorized Operation</label>
-                  <input type="text" id="u_motorized" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-bicycle"></i></span>
+                    </div>
+                    <input type="text" id="u_motorized" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">OR No</label>
-                  <input type="text" id="u_or_no" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-receipt"></i></span>
+                    </div>
+                    <input type="text" id="u_or_no" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Amount Paid</label>
-                  <input type="number" id="u_amount_paid" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-peso-sign"></i></span>
+                    </div>
+                    <input type="number" id="u_amount_paid" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Issue Date</label>
-                  <input type="date" id="u_issue_date" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
+                    </div>
+                    <input type="date" id="u_issue_date" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Expiry Date</label>
-                  <input type="date" id="u_expiry_date" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+                    </div>
+                    <input type="date" id="u_expiry_date" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Issued At</label>
-                  <input type="text" id="u_issued_at" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
+                    </div>
+                    <input type="text" id="u_issued_at" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Mayor</label>
-                  <input type="text" id="u_mayor" class="form-control">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                    </div>
+                    <input type="text" id="u_mayor" class="form-control">
+                  </div>
                 </div>
 
                 <div class="col-lg-4 col-md-6 mb-3">
                   <label class="font-weight-bold">Quarter</label>
-                  <select id="u_quarter" class="form-control">
-                    <option value="First Quarter">Q1</option>
-                    <option value="Second Quarter">Q2</option>
-                    <option value="Third Quarter">Q3</option>
-                    <option value="Fourth Quarter">Q4</option>
-                  </select>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><i class="fas fa-chart-line"></i></span>
+                    </div>
+                    <select id="u_quarter" class="form-control">
+                      <option value="First Quarter">Q1</option>
+                      <option value="Second Quarter">Q2</option>
+                      <option value="Third Quarter">Q3</option>
+                      <option value="Fourth Quarter">Q4</option>
+                    </select>
+                  </div>
                 </div>
 
               </div>
@@ -310,7 +375,6 @@
         </div>
       </div>
     </div>
-
     <script>
     document.addEventListener("DOMContentLoaded", function () {
 
