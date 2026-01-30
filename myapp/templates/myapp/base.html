@@ -196,7 +196,175 @@
         }
     </style>
 
-	{% block head_extra %}{% endblock %}
+{% block head_extra %}
+<style>
+/* ========================================
+   LIGHTER RED THEME (#ff4444) - COMPLETE OVERRIDE
+   ======================================== */
+
+/* Primary Background Gradient (Sidebar) */
+.bg-gradient-primary {
+    background: linear-gradient(180deg, #ff4444 10%, #e63939 100%) !important;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #ff4444 !important;
+    border-color: #ff4444 !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #e63939 !important;
+    border-color: #e63939 !important;
+}
+
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active {
+    background-color: #e63939 !important;
+    border-color: #e63939 !important;
+}
+
+/* Modal Header */
+.modal-header {
+    background-color: #ff4444 !important;
+    color: white !important;
+}
+
+.modal-header .modal-title {
+    color: white !important;
+}
+
+.modal-header .close {
+    color: white !important;
+    opacity: 0.8;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+    color: white !important;
+}
+
+/* Text Colors */
+.text-primary {
+    color: #ff4444 !important;
+}
+
+/* Borders */
+.border-left-primary {
+    border-left: 0.25rem solid #ff4444 !important;
+}
+
+.border-primary {
+    border-color: #ff4444 !important;
+}
+
+/* Links */
+a.text-primary:hover,
+a.text-primary:focus {
+    color: #e63939 !important;
+}
+
+/* Sidebar Active State */
+.sidebar .nav-item.active .nav-link {
+    background-color: #e63939 !important;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255, 68, 68, 0.1) !important;
+}
+
+/* Badges */
+.badge-primary {
+    background-color: #ff4444 !important;
+}
+
+/* Progress Bars */
+.progress-bar,
+.bg-primary {
+    background-color: #ff4444 !important;
+}
+
+/* Dropdown Active Items */
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: #ff4444 !important;
+}
+
+/* Alerts */
+.alert-primary {
+    background-color: #ff4444 !important;
+    border-color: #ff4444 !important;
+    color: white !important;
+}
+
+/* Form Controls Focus */
+.form-control:focus {
+    border-color: #ff4444 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 68, 68, 0.25) !important;
+}
+
+/* Custom Checkbox/Radio */
+.custom-control-input:checked ~ .custom-control-label::before {
+    background-color: #ff4444 !important;
+    border-color: #ff4444 !important;
+}
+
+/* Pagination */
+.page-item.active .page-link {
+    background-color: #ff4444 !important;
+    border-color: #ff4444 !important;
+}
+
+/* .page-link {
+    color: #ff4444 !important;
+}
+
+.page-link:hover {
+    color: #e63939 !important;
+    background-color: #f8f9fc !important;
+} */
+
+/* DataTables (if you're using them) */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #ff4444 !important;
+    border-color: #ff4444 !important;
+    color: white !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #e63939 !important;
+    border-color: #e63939 !important;
+    color: white !important;
+}
+
+/* Scroll to Top Button */
+.scroll-to-top {
+    background-color: rgba(255, 68, 68, 0.5) !important;
+}
+
+.scroll-to-top:hover {
+    background-color: rgba(255, 68, 68, 0.8) !important;
+}
+
+/* Card Headers (if using cards) */
+.card-header.bg-primary {
+    background-color: #ff4444 !important;
+}
+
+/* Nav Pills */
+.nav-pills .nav-link.active {
+    background-color: #ff4444 !important;
+}
+
+/* List Group Active Items */
+.list-group-item.active {
+    background-color: #ff4444 !important;
+    border-color: #ff4444 !important;
+}
+</style>
+{% endblock %}
 </head>
 
 

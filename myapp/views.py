@@ -527,6 +527,7 @@ def dashboard(request):
     
     return render(request, 'myapp/dashboard.html', context)
 @superadmin_required
+
 def admin_management(request):
     # REMOVED .prefetch_related('permissions')
     admins = Admin.objects.all().select_related('created_by').order_by('-created_at')
@@ -711,15 +712,12 @@ def add_mayors_permit(request):
         mayor = request.POST.get("mayor")
         quarter = request.POST.get("quarter")
         status = request.POST.get("status")
-        
-        # Check for uniqueness
+
         if MayorsPermit.objects.filter(control_no=control_no).exists():
-            messages.error(request, f"Control No '{control_no}' is already used.")
-            return redirect('add-mayors-permit')
+            return JsonResponse({"success": False, "error": f"Control No '{control_no}' is already used."})
 
         if MayorsPermit.objects.filter(or_no=or_no).exists():
-            messages.error(request, f"OR No '{or_no}' is already used.")
-            return redirect('add-mayors-permit')
+            return JsonResponse({"success": False, "error": f"OR No '{or_no}' is already used."})
 
         MayorsPermit.objects.create(
             control_no=control_no,
@@ -737,9 +735,9 @@ def add_mayors_permit(request):
             status=status
         )
         messages.success(request, "Mayor's Permit created successfully!")
-        return redirect('mayors-permit')  # redirect to permit list or change as needed
+        return JsonResponse({"success": True, "message": "Mayor's Permit created successfully!"})
 
-    return render(request, "myapp/add-mayors-permit.html")
+    return JsonResponse({"success": False, "error": "Invalid request method."})
 
 
 def id_cards(request):
@@ -929,10 +927,6 @@ def franchise(request):
     franchises = Franchise.objects.all().order_by('-date')  # latest first
     return render(request, 'myapp/franchise.html', {'franchises': franchises}) 
 
-
-def franchise_print(request, pk):
-    franchise = get_object_or_404(Franchise, pk=pk)
-    return render(request, "myapp/franchise-print.html", {"franchise": franchise})
 
 
 

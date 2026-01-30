@@ -1,6 +1,13 @@
 {% extends 'myapp/base.html' %}
 {% load static %}
 {% block content %}
+<!-- Dashboard Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-3">
+    <h6 class="mb-0 text-gray-800" style="font-weight:bold;">
+        Dashboard
+    </h6>
+</div>
+
 
 <div class="row">
     <!-- Left side - Stats Cards (6 columns) -->
@@ -8,11 +15,11 @@
         <div class="row">
             <!-- Potpot Registered Card -->
             <div class="col-xl-6 col-md-6 mb-4">
-                <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card border-left-info shadow h-100 py-2">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
                                     Potpot Registered
                                 </div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ permit_count }}</div>
@@ -27,11 +34,11 @@
 
             <!-- Motorcycle Registered Card -->
             <div class="col-xl-6 col-md-6 mb-4">
-                <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card border-left-info shadow h-100 py-2">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
                                     Motorcycle Registered
                                 </div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ tricycle_count }}</div>
@@ -50,7 +57,7 @@
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
                                     Potpot Active Permits
                                 </div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pedicab_active }}</div>
@@ -88,7 +95,7 @@
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
                                     Potpot Expired Permits
                                 </div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pedicab_expired }}</div>
@@ -107,7 +114,7 @@
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
                                     Motorcycle Active Permits
                                 </div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ tricycle_active }}</div>
@@ -145,7 +152,7 @@
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
                                     Motorcycle Expired Permits
                                 </div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ tricycle_expired }}</div>
@@ -206,7 +213,7 @@
     <div class="col-lg-6">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Recent Activities</h6>
+                <h6 class="m-0 font-weight-bold text-dark">Recent Activities</h6>
             </div>
     <div class="card-body" style="max-height: 600px; overflow-y: auto;">
     <div class="activity-list">

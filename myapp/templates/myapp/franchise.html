@@ -9,7 +9,7 @@
 
     <div class="card-body">
          <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Franchise Records</h6>
+        <h6 class="m-0 font-weight-bold text-dark">Franchise Records</h6>
         <div class="btn-group">
             <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#importModal">
                 <i class="fas fa-file-import"></i> Import CSV
@@ -17,7 +17,7 @@
             <a href="#" class="btn btn-sm btn-danger">
                 <i class="fas fa-file-export"></i> Export CSV
             </a>
-            <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addRecordModal">
+            <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#addRecordModal">
                 <i class="fas fa-plus"></i> Add New Record
             </button>
         </div>
@@ -43,7 +43,7 @@
                         <th>Municipal Treasurer</th>
                         <th>Action</th>
                     </tr>
-                     <tr>  <!-- ← ADDED THIS ENTIRE ROW -->
+                     <tr>
                         <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
                         <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
                         <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
@@ -57,9 +57,9 @@
                         <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
                         <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
                         <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th></th>  <!-- Empty for Action column -->
-                    </tr>  <!-- ← END OF ADDED ROW -->
-                                </thead>
+                        <th></th>
+                    </tr>
+                </thead>
 
                 <tfoot>
                     <tr>
@@ -100,16 +100,29 @@
                         <td class="text-center">
                             <div class="btn-group" role="group" aria-label="actions">
                                 <!-- PRINT BUTTON -->
-                               <a href="{% url 'franchise-print' pk=f.id %}" 
-                                class="btn btn-sm btn-primary" 
-                                title="Print" target="_blank">
+                                <button class="btn btn-sm btn-primary print-btn" 
+                                        data-permit-id="{{ f.id }}"
+                                        data-name="{{ f.name }}"
+                                        data-denomination="{{ f.denomination }}"
+                                        data-plate="{{ f.plate_no }}"
+                                        data-valid="{{ f.valid_until }}"
+                                        data-motor="{{ f.motor_no }}"
+                                        data-authorized="{{ f.authorized_no }}"
+                                        data-chassis="{{ f.chassis_no }}"
+                                        data-route="{{ f.authorized_route }}"
+                                        data-purpose="{{ f.purpose }}"
+                                        data-receipt="{{ f.official_receipt_no }}"
+                                        data-date="{{ f.date }}"
+                                        data-amount="{{ f.amount_paid }}"
+                                        data-treasurer="{{ f.municipal_treasurer }}"
+                                        title="Print">
                                     <i class="fas fa-print"></i>
-                                </a>
+                                </button>
 
-<!-- UPDATE BUTTON -->
-<a href="#" class="btn btn-sm btn-warning btn-franchise-update" data-id="{{ f.id }}" title="Update">
-    <i class="fas fa-edit"></i>
-</a>
+                                <!-- UPDATE BUTTON -->
+                                <a href="#" class="btn btn-sm btn-warning btn-franchise-update" data-id="{{ f.id }}" title="Update">
+                                    <i class="fas fa-edit"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -124,6 +137,7 @@
         </div>
     </div>
 </div>
+
 <!-- Add New Franchise Record Modal -->
 <div class="modal fade" id="addRecordModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
@@ -295,7 +309,7 @@
         <button type="button" class="btn btn-secondary" data-dismiss="modal">
           <i class="fas fa-times"></i> Cancel
         </button>
-        <button type="button" class="btn btn-primary" id="saveFranchiseBtn">
+        <button type="button" class="btn btn-success" id="saveFranchiseBtn">
           <i class="fas fa-save"></i> Save Record
         </button>
       </div>
@@ -477,7 +491,7 @@
         <button type="button" class="btn btn-danger" data-dismiss="modal">
           <i class="fas fa-times"></i> Cancel
         </button>
-        <button type="button" class="btn btn-primary text-white" id="updateFranchiseBtn">
+        <button type="button" class="btn btn-success text-white" id="updateFranchiseBtn">
           <i class="fas fa-save"></i> Update Record
         </button>
       </div>
@@ -486,10 +500,10 @@
   </div>
 </div>
 
-
 <script>
+const logoURL = "{% static 'assets/img/lgu.png' %}";
+
 document.addEventListener("DOMContentLoaded", function () {
-    
     // Helper function to convert date to input format
     function toInputDate(dateStr) {
         if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
@@ -528,6 +542,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 that.search(this.value).draw();
             }
         });
+    });
+
+    // PRINT BUTTON - Using the same pattern as the working template
+    $(document).on('click', '.print-btn', function() {
+        const permitId = $(this).data('permit-id');
+        printFranchise(permitId);
     });
 
     // Save Franchise Record button
@@ -626,6 +646,198 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+// PRINT FUNCTION - Based on the working template pattern
+function printFranchise(permitId) {
+    const button = document.querySelector(`[data-permit-id="${permitId}"]`);
+    if (!button) return alert('Button not found');
+
+    // Extract data from data attributes
+    const name = button.dataset.name || '';
+    const denomination = button.dataset.denomination || '';
+    const plateNo = button.dataset.plate || '';
+    const validUntil = button.dataset.valid || '';
+    const motorNo = button.dataset.motor || '';
+    const authorizedNo = button.dataset.authorized || '';
+    const chassisNo = button.dataset.chassis || '';
+    const authorizedRoute = button.dataset.route || '';
+    const purpose = button.dataset.purpose || '';
+    const receiptNo = button.dataset.receipt || '';
+    const date = button.dataset.date || '';
+    const amountPaid = button.dataset.amount || '';
+    const treasurer = button.dataset.treasurer || '';
+  const contentHTML = `
+    <div style="position: relative; margin-bottom: 10px; height: 140px;">
+        <!-- LEFT: LOGO -->
+        <div style="position: absolute; left: 0; top: 0;">
+            <img src="${typeof logoURL !== 'undefined' ? logoURL : ''}" alt="Logo" style="height:120px;">
+        </div>
+
+        <!-- CENTER: GOV HEADER -->
+        <div style="
+            position: absolute;
+            left: 50%;
+            top: 25px;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.3;
+            width: max-content;
+        ">
+            <div style="font-weight:bold;">Republic of the Philippines</div>
+            <div>Province of Leyte</div>
+            <div>Municipality of Palompon</div>
+        </div>
+    </div>
+
+    <!-- TITLE -->
+    <div style="text-align:center; margin-bottom:20px; font-size:22px;">
+        <div style="letter-spacing:1px; font-weight: bold">FRANCHISE CONFIRMATION/ VERIFICATION</div>
+    </div>
+
+    <!-- CONTENT TABLE -->
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;">
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold; width: 30%;">Name:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${name}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Denomination:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${denomination}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Plate No:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${plateNo}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Valid Until:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${validUntil}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Motor No:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${motorNo}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Authorized No:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${authorizedNo}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Chassis No:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${chassisNo}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Authorized Route:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${authorizedRoute}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Purpose:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${purpose}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Official Receipt No:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${receiptNo}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Date:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${date}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Amount Paid:</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${amountPaid}</td>
+        </tr>
+    </table>
+
+    <!-- MUNICIPAL TREASURER SIGNATURE -->
+    <div style="margin-top: 60px; text-align: right; font-size: 13px;">
+        <div style="display: inline-block; text-align: center;">
+            <div style="border-bottom: 1px solid black; padding-bottom: 2px; width: 250px; font-weight: bold; text-transform: uppercase;">
+                ${treasurer || '&nbsp;'}
+            </div>
+            <div style="margin-top: 3px; text-transform: uppercase;">
+                MUNICIPAL TREASURER
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px; text-align: center; color: #666; font-size: 12px;">
+        <p>This is an official franchise record</p>
+        <p>Printed on: ${new Date().toLocaleString()}</p>
+    </div>
+    `;
+
+
+    // Create iframe for printing
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+        <html>
+        <head>
+            <title>Print Franchise Record</title>
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                
+                body {
+                    margin: 0;
+                    font-family: "Times New Roman", Times, serif;
+                    font-size: 16px;
+                }
+                
+                .print-container {
+                    padding: 40px;
+                    width: 210mm;
+                    min-height: 297mm;
+                    margin: 0 auto;
+                }
+                
+                @media print {
+                    @page {
+                        size: A4;
+                        margin: 0;
+                    }
+                    
+                    body, html {
+                        width: 210mm;
+                        height: 297mm;
+                        margin: 0;
+                        padding: 0;
+                    }
+
+                    .print-container {
+                        page-break-after: avoid;
+                        page-break-before: avoid;
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-container">
+                ${contentHTML}
+            </div>
+        </body>
+        </html>
+    `);
+
+    
+    doc.close();
+    
+    // Wait for content to load before printing
+    iframe.contentWindow.onload = function() {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => {
+            document.body.removeChild(iframe);
+        }, 100);
+    };
+}
 </script>
 
 {% endblock %}

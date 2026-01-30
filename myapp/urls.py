@@ -21,7 +21,6 @@ urlpatterns = [
     path("mtop", views.mtop, name="mtop"),
     path('mtop/<int:pk>/print/', views.mtop_print, name='mtop_print'),
     path('franchise/', views.franchise, name='franchise'),
-    path('franchise-print/<int:pk>/print/', views.franchise_print, name='franchise-print'),
     path('mayors-permit-tricycle/', views.mayors_permit_tricycle, name='mayors-permit-tricycle'),
     path('export-mayors-permit/', export_mayors_permit, name='export-mayors-permit'),
     path('export-mayors-permit-tri/', views.export_mayors_permit_tri, name='export-mayors-permit-tri'),

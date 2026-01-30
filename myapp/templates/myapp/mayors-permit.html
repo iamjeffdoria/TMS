@@ -17,7 +17,7 @@
                         <div class="card shadow mb-4">
                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
 
-                              <h6 class="m-0 font-weight-bold text-primary">Mayor's Permit Pedicab Records</h6>
+                              <h6 class="m-0 font-weight-bold text-dark">Mayor's Permit Pedicab Records</h6>
 
                               <div class="btn-group">
 
@@ -30,10 +30,9 @@
                                       <i class="fas fa-file-export"></i> Export CSV
                                   </a>
 
-                                  <!-- ADD PERMIT BUTTON -->
-                                  <a href="{% url 'add-mayors-permit' %}" class="btn btn-sm btn-primary">
-                                      <i class="fas fa-plus"></i> Add New Permit
-                                  </a>
+                             <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#addPermitModal">
+                                  <i class="fas fa-plus"></i> Add New Permit
+                              </button>
 
                               </div>
 
@@ -364,7 +363,7 @@
           </div>
 
           <div class="modal-footer bg-light">
-            <button class="btn btn-primary" id="saveUpdateBtn">
+            <button class="btn btn-success" id="saveUpdateBtn">
               <i class="fas fa-check"></i> Save Changes
             </button>
             <button class="btn btn-danger" data-dismiss="modal">
@@ -375,6 +374,179 @@
         </div>
       </div>
     </div>
+<!-- Add Permit Modal -->
+<div class="modal fade" id="addPermitModal" tabindex="-1" aria-labelledby="addPermitModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title font-weight-bold" id="addPermitModalLabel">
+          <i class="fas fa-plus mr-2"></i> Add New Mayor's Permit
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form id="addPermitForm">
+          {% csrf_token %}
+          <div class="form-row">
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Control No</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                </div>
+                <input type="text" name="control_no" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Status</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+                </div>
+                <select name="status" class="form-control">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="expired">Expired</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Name</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-user"></i></span>
+                </div>
+                <input type="text" name="name" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Address</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                </div>
+                <input type="text" name="address" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Business Name</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-building"></i></span>
+                </div>
+                <input type="text" name="business_name" class="form-control">
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Motorized Operation</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-bicycle"></i></span>
+                </div>
+                <input type="text" name="motorized_operation" class="form-control">
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">OR No</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-receipt"></i></span>
+                </div>
+                <input type="text" name="or_no" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Amount Paid</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-peso-sign"></i></span>
+                </div>
+                <input type="number" name="amount_paid" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Issue Date</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
+                </div>
+                <input type="date" name="issue_date" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Expiry Date</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+                </div>
+                <input type="date" name="expiry_date" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Issued At</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
+                </div>
+                <input type="text" name="issued_at" class="form-control">
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Mayor</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                </div>
+                <input type="text" name="mayor" class="form-control">
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Quarter</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-chart-line"></i></span>
+                </div>
+                <select name="quarter" class="form-control">
+                  <option value="First Quarter">Q1</option>
+                  <option value="Second Quarter">Q2</option>
+                  <option value="Third Quarter">Q3</option>
+                  <option value="Fourth Quarter">Q4</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button class="btn btn-success" id="saveAddPermitBtn">
+          <i class="fas fa-check"></i> Save Permit
+        </button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
     <script>
     document.addEventListener("DOMContentLoaded", function () {
 
@@ -564,6 +736,37 @@ $('#statusFilter').on('change', function() {
 });
 
     });
+
+    // Add Permit
+document.getElementById("saveAddPermitBtn").addEventListener("click", function() {
+    let form = document.getElementById("addPermitForm");
+    let formData = new FormData(form);
+    let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+    fetch("{% url 'add-mayors-permit' %}", {
+        method: "POST",
+        body: formData,
+        headers: { "X-CSRFToken": csrftoken },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            $("#addPermitModal").modal("hide");
+
+            let alertBox = document.createElement("div");
+            alertBox.className = "alert alert-success mt-3";
+            alertBox.innerText = data.message;
+            document.querySelector(".card-body").prepend(alertBox);
+
+            setTimeout(() => alertBox.remove(), 3000);
+            location.reload();
+        } else {
+            alert(data.error || "Failed to add permit.");
+        }
+    })
+    .catch(err => console.error(err));
+});
+
     </script>
   
 
@@ -597,8 +800,6 @@ $('#statusFilter').on('change', function() {
     </div>
   </div>
 </div>
-
-
 
 
     {% endblock %}
