@@ -217,10 +217,28 @@
 <div class="card shadow mb-4">
 	<div class="card-header py-3 d-flex justify-content-between align-items-center">
 		<h6 class="m-0 font-weight-bold text-dark">ID Cards</h6>
-<!-- Button to trigger modal -->
-<button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#addIdCardModal">
-    <i class="fas fa-plus"></i> Add ID Card
-</button>
+
+<div class="btn-group" role="group" aria-label="ID Card actions">
+
+    <button type="button"
+            class="btn btn-success btn-sm"
+            data-toggle="modal"
+            data-target="#importIdCardZipModal">
+        <i class="fas fa-file-import"></i> Import ZIP
+    </button>
+
+      <a href="{% url 'export-idcards' %}" class="btn btn-danger btn-sm">
+        <i class="fas fa-file-export"></i> Export ZIP
+    </a>
+
+        <!-- Add ID Card -->
+    <button type="button"
+            class="btn btn-info btn-sm"
+            data-toggle="modal"
+            data-target="#addIdCardModal">
+        <i class="fas fa-plus"></i> Add ID Card
+    </button>
+</div>
 
 
 	</div>
@@ -305,7 +323,7 @@
             <div class="btn-group btn-group-sm" role="group">
             <button type="button" class="btn btn-info" title="View"
                 onclick="viewIdCard(
-                    '{{ card.image.url }}',
+                    '{% if card.image %}{{ card.image.url }}{% endif %}',
                     '{{ card.name|escapejs }}',
                     '{{ card.id_number }}',
                     '{{ card.get_gender_display }}',
@@ -322,7 +340,7 @@
              <button type="button" class="btn btn-warning" title="Update"
                 onclick="openUpdateModal(
                     '{{ card.id }}',
-                    '{{ card.image.url }}',
+                     '{% if card.image %}{{ card.image.url }}{% endif %}',
                     '{{ card.name|escapejs }}',
                     '{{ card.id_number }}',
                     '{{ card.gender }}',
@@ -341,8 +359,8 @@
                 <i class="fas fa-trash"></i>
               </button>
         <button type="button" class="btn btn-secondary" title="Print" 
-                onclick="preparePrint(
-            '{{ card.image.url }}',
+              onclick="preparePrint(
+            '{% if card.image %}{{ card.image.url }}{% endif %}',
             '{{ card.name|escapejs }}',
             '{{ card.id_number }}',
             '{{ card.address|escapejs }}',
@@ -859,9 +877,60 @@
   </div>
 </div>
 
+<!-- Import ID Card ZIP Modal -->
+<div class="modal fade" id="importIdCardZipModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-file-import mr-2"></i> Import ID Cards
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form id="importIdCardZipForm" enctype="multipart/form-data" action="{% url 'import-idcards' %}" method="POST">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="font-weight-bold">Select ZIP File</label>
+            <small class="form-text text-muted d-block mb-2">
+              Upload a ZIP file containing id_cards.csv and an images folder
+            </small>
+            <input type="file" name="zip_file" class="form-control-file" accept=".zip" required>
+          </div>
+          <div class="alert alert-info" role="alert">
+            <small>
+              <strong>Expected ZIP structure:</strong><br>
+              - id_cards.csv<br>
+              - images/<br>
+              &nbsp;&nbsp;- image1.jpg<br>
+              &nbsp;&nbsp;- image2.jpg<br>
+              etc.
+            </small>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-success" id="importIdCardZipBtn">
+          <i class="fas fa-check"></i> Import
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script>
 
-
+document.getElementById("importIdCardZipBtn").addEventListener("click", function () {
+    document.getElementById("importIdCardZipForm").submit();
+});
 // Function to show image preview
 function showImagePreview(imageUrl) {
     document.getElementById('preview-image').src = imageUrl;

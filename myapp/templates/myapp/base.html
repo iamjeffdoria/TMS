@@ -43,6 +43,9 @@
     
     <!-- Enhanced Messages Styling -->
     <style>
+        table tfoot {
+        display: none !important;
+}
           /* Apply sidebar state before page renders to prevent flicker */
     html.sidebar-toggled-init #wrapper .sidebar {
         width: 6.5rem !important;
@@ -905,7 +908,23 @@ a.text-primary:focus {
 
         setInterval(updateClock, 1000);
         updateClock();
+
+
+        // Collapse sidebar dropdowns when clicking normal nav links
+$('.sidebar .nav-link').on('click', function () {
+    // If this link is NOT a collapse trigger
+    if (!$(this).attr('data-toggle')) {
+        // Close all collapse menus
+        $('.sidebar .collapse').collapse('hide');
+
+        // Clear stored collapse state
+        localStorage.removeItem('activeCollapse');
+    }
+});
+
         });
+
+        
     </script>
 
 	<!-- <script src="{% static 'js/main.js' %}"></script> -->

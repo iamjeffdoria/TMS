@@ -47,6 +47,8 @@ urlpatterns = [
     path('franchise/add/', views.add_franchise, name='add-franchise'),
     path('franchise/update/', views.update_franchise, name='update-franchise'),
     # path('api/admin/<int:admin_id>/', views.get_admin_details, name='get_admin_details'),
+    path('export-idcards/', views.export_idcards_with_images, name='export-idcards'),
+    path('import-idcards/', views.import_idcards_with_images, name='import-idcards'),   
 ]
 
 if settings.DEBUG:

@@ -18,16 +18,26 @@
    <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-dark">Mayor's Permit Tricycle Records</h6>
        <div class="btn-group">
-        <!-- IMPORT -->
+     <!-- IMPORT -->
         <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#importTriModal">
-            <i class="fas fa-file-import"></i> Import CSV
+            <i class="fas fa-file-import"></i> Import File
         </button>
 
-        <!-- EXPORT -->
-        <a href="{% url 'export-mayors-permit-tri' %}" class="btn btn-danger btn-sm">
-            <i class="fas fa-file-export"></i> Export CSV
-        </a>
-
+            <!-- EXPORT DROPDOWN -->
+        <div class="btn-group">
+            <button type="button" class="btn btn-danger btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-file-export"></i> Export
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="{% url 'export-mayors-permit-tri' %}?format=csv">
+                    <i class="fas fa-file-csv"></i> Export as CSV
+                </a>
+                <a class="dropdown-item" href="{% url 'export-mayors-permit-tri' %}?format=excel">
+                    <i class="fas fa-file-excel"></i> Export as Excel
+                </a>
+            </div>
+        </div>
+        
         <!-- ADD PERMIT -->
         <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#addPermitModal">
             <i class="fas fa-plus"></i> Add Permit
@@ -383,7 +393,7 @@
     <div class="modal-content">
 
       <div class="modal-header bg-success text-white">
-        <h5 class="modal-title"><i class="fas fa-file-import"></i> Import CSV</h5>
+        <h5 class="modal-title"><i class="fas fa-file-import"></i> Import File</h5>
         <button class="close" data-dismiss="modal">&times;</button>
       </div>
 
@@ -391,9 +401,9 @@
         {% csrf_token %}
 
         <div class="modal-body">
-          <label><strong>Select CSV File</strong></label>
-          <input type="file" name="csv_file" accept=".csv" class="form-control" required>
-        
+          <label><strong>Select CSV or Excel File</strong></label>
+          <input type="file" name="csv_file" accept=".csv,.xlsx,.xls" class="form-control" required>
+          <small class="form-text text-muted">Supported formats: .csv, .xlsx, .xls</small>
         </div>
 
         <div class="modal-footer">
@@ -408,6 +418,8 @@
     </div>
   </div>
 </div>
+
+
 <!-- Update Permit Modal -->
 <div class="modal fade" id="updatePermitModal" tabindex="-1" role="dialog" aria-labelledby="updatePermitModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">

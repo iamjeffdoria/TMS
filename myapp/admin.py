@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Admin, MayorsPermit, IDCard, Mtop, Franchise, MayorsPermitTricycle, SuperAdmin, AdminPermission, MayorsPermitHistory, MayorsPermitTricycleHistory, ActivityLog
+from .models import Admin, MayorsPermit, IDCard, Mtop, Franchise, MayorsPermitTricycle, SuperAdmin, AdminPermission, MayorsPermitHistory, MayorsPermitTricycleHistory, ActivityLog, Task
 
 
 admin.site.register(Admin)
@@ -13,3 +13,4 @@ admin.site.register(AdminPermission)
 admin.site.register(MayorsPermitHistory)
 admin.site.register(MayorsPermitTricycleHistory)
 admin.site.register(ActivityLog)
+admin.site.register(Task)

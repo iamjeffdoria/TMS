@@ -67,7 +67,6 @@ class AdminPermission(models.Model):
         verbose_name_plural = "Admin Permissions"
 
 
-
 class MayorsPermit(models.Model):
     control_no = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=255)
@@ -116,7 +115,7 @@ class IDCard(models.Model):
     weight = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)  # e.g., 70.50 kg
     date_issued = models.DateField()
     expiration_date = models.DateField()
-    image = models.ImageField(upload_to='idcard_images/')
+    image = models.ImageField(upload_to='idcard_images/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.name} ({self.id_number})"
@@ -197,6 +196,7 @@ class MayorsPermitTricycle(models.Model):
     class Meta:
         verbose_name = "Mayor's Permit - Tricycle"
         verbose_name_plural = "Mayor's Permits - Tricycles"
+
 class MayorsPermitHistory(models.Model):
     permit = models.ForeignKey(
         MayorsPermit,
@@ -303,3 +303,14 @@ class ActivityLog(models.Model):
     
     def __str__(self):
         return f"{self.model_type} - {self.action} - {self.object_name}"
+
+
+
+class Task(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    is_completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
