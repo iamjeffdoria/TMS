@@ -111,57 +111,7 @@
                                             </tr>
                                         </tfoot>
                                         <tbody>
-                                          {% for permit in permits %} 
-                                            <tr>
-                                                <td>{{ permit.control_no }}</td>
-                                                <td data-search="{{ permit.status }}" data-order="{{ permit.status }}">
-                                                    {% if permit.status == "active" %}
-                                                        <span class="badge badge-success">Active</span>
-                                                    {% elif permit.status == "inactive" %}
-                                                        <span class="badge badge-warning">Inactive</span>
-                                                    {% elif permit.status == "expired" %}
-                                                        <span class="badge badge-danger">Expired</span>
-                                                    {% else %}
-                                                        <span class="badge badge-secondary">{{ permit.status|capfirst }}</span>
-                                                    {% endif %}
-                                                </td>
-
-                                                <td>{{ permit.name }}</td>
-                                                <td>{{ permit.address }}</td>
-                                                <td>{{ permit.business_name }}</td>
-                                                <td>{{ permit.motorized_operation }}</td>
-                                                <td>{{ permit.or_no }}</td>
-                                                <td>{{ permit.amount_paid }}</td>
-                                                <td>{{ permit.issue_date }}</td>
-                                                <td>{{ permit.expiry_date }}</td>
-                                                <td>{{ permit.issued_at }}</td>
-                                                <td>{{ permit.mayor }}</td>
-                                                <td>{{ permit.get_quarter_display }}</td>
-                                                <td class="text-center">
-                                                    <div class="btn-group" role="group" aria-label="actions">
-                                                        <a href="#" class="btn btn-sm btn-primary btn-view" data-id="{{ permit.id }}" title="View">
-                                                            <i class="fas fa-eye"></i>
-                                                        </a>
-                                                        <a href="{% url 'print-mayors-permit' permit.id %}" target="_blank"
-                                                            class="btn btn-sm btn-secondary">
-                                                              <i class="fas fa-print"></i>
-                                                          </a>
-
-                                                        <a href="#" class="btn btn-sm btn-info btn-update" data-id="{{ permit.id }}" title="Update">
-                                                            <i class="fas fa-edit"></i>
-                                                        </a>
-                                                        <!-- History Button -->
-                                                     <a href="{% url 'mayors-permit-history' permit.id %}" class="btn btn-sm btn-warning btn-history" data-id="{{ permit.id }}" title="Status history">
-                                                          <i class="fas fa-history"></i>
-                                                      </a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            {% empty %}
-                                            <tr>
-                                                <td colspan="13" class="text-center text-muted">No permits found</td>
-                                            </tr>
-                                            {% endfor %}
+                                         
                                         </tbody>
                                     </table>
                                 </div>
@@ -555,6 +505,68 @@
   </div>
 </div>
 
+<!-- History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+
+      <!-- Header -->
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title font-weight-bold" id="historyModalLabel">
+          <i class="fas fa-history mr-2"></i> Status History
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body py-4">
+        <div class="container-fluid">
+          <!-- Permit Info -->
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <div class="small text-muted">Control No</div>
+              <div class="font-weight-bold" id="history-control-no">-</div>
+            </div>
+            <div class="col-md-4">
+              <div class="small text-muted">Name</div>
+              <div class="font-weight-bold" id="history-name">-</div>
+            </div>
+            <div class="col-md-4">
+              <div class="small text-muted">Current Status</div>
+              <div class="font-weight-bold" id="history-current-status">-</div>
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- History Timeline -->
+          <div class="row">
+            <div class="col-12">
+              <h6 class="font-weight-bold mb-3">Status Change History</h6>
+              <div id="historyTimeline">
+                <div class="text-center text-muted py-4">
+                  <i class="fas fa-spinner fa-spin fa-2x"></i>
+                  <p class="mt-2">Loading history...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i> Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
     <script>
     document.addEventListener("DOMContentLoaded", function () {
 
@@ -609,9 +621,6 @@
           $("#viewModal").modal("show");
       });
   });
-
-
-
 
         function toInputDate(dateStr) {
             if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
@@ -698,29 +707,60 @@
             });
 
         });
-
   var table = $('#dataTable').DataTable({
-      "pageLength": 5,
-      "lengthChange": false,
-      "ordering": false,
-      "searching": true,
-      "dom": 'lrtip',
-      "columnDefs": [
-          {
-              "targets": [9, 8, 7, 10, 11, 12],
-              "visible": false,
-              "searchable": true
-          },
-          
-      ]
-  });
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "{% url 'mayors-permit-datatable' %}",
+            "type": "GET"
+        },
+        "pageLength": 5,
+        "lengthChange": false,
+        "ordering": false,
+        "searching": true,
+        "dom": 'lrtip',
+        "columns": [
+            { "data": 0 },  // Control No
+            { "data": 1 },  // Status
+            { "data": 2 },  // Name
+            { "data": 3 },  // Address
+            { "data": 4 },  // Business Name
+            { "data": 5 },  // Motorized Operation
+            { "data": 6 },  // OR No
+            { "data": 7 },  // Amount Paid
+            { "data": 8 },  // Issue Date
+            { "data": 9 },  // Expiry Date
+            { "data": 10 }, // Issued At
+            { "data": 11 }, // Mayor
+            { "data": 12 }, // Quarter
+            { "data": 13, "orderable": false },  // Action
+            { "data": 14 },  // Hidden ID
+            { "data": 15 }   // Hidden raw status
+        ],
+        "columnDefs": [
+            {
+                "targets": [7, 8, 9, 10, 11, 12],  // Hidden columns
+                "visible": false,
+                "searchable": true
+            },
+            {
+                "targets": 14,  // ID column
+                "visible": false,
+                "searchable": false
+            },
+            {
+                "targets": 15,  // Raw status column
+                "visible": false,
+                "searchable": false
+            }
+        ]
+    });
 
- // Apply column search from header inputs (for text inputs)
+    // Column search for text inputs
     table.columns().every(function(index) {
         var that = this;
         
-        // Skip the Status column (index 1) and Action column (index 13)
-        if (index === 1 || index === 13) {
+        if (index === 1 || index === 13 || index === 14 || index === 15) {
             return;
         }
         
@@ -730,49 +770,228 @@
             }
         });
     });
-// Handle Status dropdown filter separately with exact match
-$('#statusFilter').on('change', function() {
-    var searchValue = this.value;
-    
-    if (searchValue === '') {
-        // Show all if "All" is selected
-        table.column(1).search('').draw();
-    } else {
-        // Use regex for exact word match (case insensitive)
-        table.column(1).search('^' + searchValue + '$', true, false).draw();
-    }
-});
 
+    // Status dropdown filter
+    $('#statusFilter').on('change', function() {
+        var searchValue = this.value;
+        table.column(1).search(searchValue).draw();
+    });
+
+    // View button - use event delegation
+    $('#dataTable tbody').on('click', '.btn-view', function(e) {
+        e.preventDefault();
+        
+        let row = table.row($(this).closest('tr'));
+        let data = row.data();
+        
+        let fields = [
+            "Control No", "Status", "Name", "Address", "Business Name",
+            "Motorized Operation", "OR No", "Amount Paid", "Issue Date",
+            "Expiry Date", "Issued At", "Mayor", "Quarter"
+        ];
+
+        let html = "";
+        for (let i = 0; i < fields.length; i++) {
+            let value = data[i] || '&mdash;';
+            html += `
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="small text-muted">${fields[i]}</div>
+                    <div class="font-weight-bold">${value}</div>
+                </div>
+            `;
+        }
+
+        document.getElementById("modalContent").innerHTML = html;
+        $("#viewModal").modal("show");
+    });
+
+    function toInputDate(dateStr) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+        let d = new Date(dateStr);
+        if (isNaN(d.getTime())) return "";
+        let m = ("0" + (d.getMonth() + 1)).slice(-2);
+        let day = ("0" + d.getDate()).slice(-2);
+        return `${d.getFullYear()}-${m}-${day}`;
+    }
+
+    // Update button - use event delegation
+    $('#dataTable tbody').on('click', '.btn-update', function(e) {
+        e.preventDefault();
+        
+        let row = table.row($(this).closest('tr'));
+        let data = row.data();
+
+        document.getElementById("u_id").value = data[14];  // ID from hidden column
+        document.getElementById("u_control_no").value = data[0];
+        document.getElementById("u_status").value = data[15];  // Raw status from hidden column
+        document.getElementById("u_name").value = data[2];
+        document.getElementById("u_address").value = data[3];
+        document.getElementById("u_business_name").value = data[4];
+        document.getElementById("u_motorized").value = data[5];
+        document.getElementById("u_or_no").value = data[6];
+        document.getElementById("u_amount_paid").value = data[7];
+        document.getElementById("u_issue_date").value = toInputDate(data[8]);
+        document.getElementById("u_expiry_date").value = toInputDate(data[9]);
+        document.getElementById("u_issued_at").value = data[10];
+        document.getElementById("u_mayor").value = data[11];
+        document.getElementById("u_quarter").value = data[12].trim();
+
+        $("#updateModal").modal("show");
+    });
+
+    // Save Update
+    document.getElementById("saveUpdateBtn").addEventListener("click", function () {
+        let id = document.getElementById("u_id").value;
+        let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+        let formData = new FormData();
+        formData.append("control_no", document.getElementById("u_control_no").value);
+        formData.append("status", document.getElementById("u_status").value);
+        formData.append("name", document.getElementById("u_name").value);
+        formData.append("address", document.getElementById("u_address").value);
+        formData.append("business_name", document.getElementById("u_business_name").value);
+        formData.append("motorized_operation", document.getElementById("u_motorized").value);
+        formData.append("or_no", document.getElementById("u_or_no").value);
+        formData.append("amount_paid", document.getElementById("u_amount_paid").value);
+        formData.append("issue_date", document.getElementById("u_issue_date").value);
+        formData.append("expiry_date", document.getElementById("u_expiry_date").value);
+        formData.append("issued_at", document.getElementById("u_issued_at").value);
+        formData.append("mayor", document.getElementById("u_mayor").value);
+        formData.append("quarter", document.getElementById("u_quarter").value);
+
+        fetch(`/mayors-permit/update/${id}/`, {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": csrftoken },
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                $("#updateModal").modal("hide");
+
+                let alertBox = document.createElement("div");
+                alertBox.className = "alert alert-success mt-3";
+                alertBox.innerText = data.message;
+                document.querySelector(".card-body").prepend(alertBox);
+
+                setTimeout(() => alertBox.remove(), 3000);
+                table.ajax.reload();  // Reload table instead of page refresh
+            }
+        });
     });
 
     // Add Permit
-document.getElementById("saveAddPermitBtn").addEventListener("click", function() {
-    let form = document.getElementById("addPermitForm");
-    let formData = new FormData(form);
-    let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    document.getElementById("saveAddPermitBtn").addEventListener("click", function() {
+        let form = document.getElementById("addPermitForm");
+        let formData = new FormData(form);
+        let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
-    fetch("{% url 'add-mayors-permit' %}", {
-        method: "POST",
-        body: formData,
-        headers: { "X-CSRFToken": csrftoken },
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            $("#addPermitModal").modal("hide");
+        fetch("{% url 'add-mayors-permit' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": csrftoken },
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                $("#addPermitModal").modal("hide");
 
-            let alertBox = document.createElement("div");
-            alertBox.className = "alert alert-success mt-3";
-            alertBox.innerText = data.message;
-            document.querySelector(".card-body").prepend(alertBox);
+                let alertBox = document.createElement("div");
+                alertBox.className = "alert alert-success mt-3";
+                alertBox.innerText = data.message;
+                document.querySelector(".card-body").prepend(alertBox);
 
-            setTimeout(() => alertBox.remove(), 3000);
-            location.reload();
-        } else {
-            alert(data.error || "Failed to add permit.");
-        }
-    })
-    .catch(err => console.error(err));
+                setTimeout(() => alertBox.remove(), 3000);
+                table.ajax.reload();  // Reload table instead of page refresh
+            } else {
+                alert(data.error || "Failed to add permit.");
+            }
+        })
+        .catch(err => console.error(err));
+    });
+
+    // History button - use event delegation
+$('#dataTable tbody').on('click', '.btn-history', function(e) {
+    e.preventDefault();
+    
+    let permitId = $(this).data('id');
+    
+    // Show modal
+    $("#historyModal").modal("show");
+    
+    // Fetch history data
+    fetch(`/mayors-permit/history-data/${permitId}/`)
+        .then(res => res.json())
+        .then(response => {
+            if (response.success) {
+                let data = response.data;
+                
+                // Populate permit info
+                document.getElementById('history-control-no').textContent = data.permit_info.control_no;
+                document.getElementById('history-name').textContent = data.permit_info.name;
+                
+                // Format current status with badge
+                let statusBadge = '';
+                if (data.permit_info.current_status === 'active') {
+                    statusBadge = '<span class="badge badge-success">Active</span>';
+                } else if (data.permit_info.current_status === 'inactive') {
+                    statusBadge = '<span class="badge badge-warning">Inactive</span>';
+                } else if (data.permit_info.current_status === 'expired') {
+                    statusBadge = '<span class="badge badge-danger">Expired</span>';
+                }
+                document.getElementById('history-current-status').innerHTML = statusBadge;
+                
+                // Populate history timeline
+                let timelineHtml = '';
+                if (data.history && data.history.length > 0) {
+                    data.history.forEach(record => {
+                        timelineHtml += `
+                            <div class="card mb-2">
+                                <div class="card-body py-2">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-3">
+                                            <small class="text-muted"><i class="fas fa-calendar"></i> ${record.date}</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <span class="badge badge-secondary">${record.old_status}</span>
+                                            <i class="fas fa-arrow-right mx-2"></i>
+                                            <span class="badge badge-primary">${record.new_status}</span>
+                                        </div>
+                                        <div class="col-md-3 text-right">
+                                            <small class="text-muted">${record.changed_by}</small>
+                                        </div>
+                                    </div>
+                                    ${record.reason ? `<div class="row mt-2"><div class="col-12"><small><strong>Reason:</strong> ${record.reason}</small></div></div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    timelineHtml = `
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle"></i> No status change history available
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('historyTimeline').innerHTML = timelineHtml;
+            } else {
+                document.getElementById('historyTimeline').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> ${response.error || 'Failed to load history'}
+                    </div>
+                `;
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching history:', err);
+            document.getElementById('historyTimeline').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Error loading history data
+                </div>
+            `;
+        });
+});
 });
 
     </script>

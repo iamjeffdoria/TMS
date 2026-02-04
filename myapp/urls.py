@@ -53,6 +53,8 @@ urlpatterns = [
     path('mtop/export/', views.export_mtop, name='export-mtop'),
     path('franchise/import/', views.import_franchise, name='import-franchise'),
     path('franchise/export/', views.export_franchise, name='export-franchise'),
+    path('mayors-permit/datatable/', views.mayors_permit_datatable, name='mayors-permit-datatable'),
+    path('mayors-permit/history-data/<int:permit_id>/', views.get_permit_history, name='get-permit-history'),
     
 ]
 

@@ -32,6 +32,9 @@ from django.conf import settings
 from django.db import transaction
 import shutil
 import openpyxl
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.core.serializers import serialize
 
 def superadmin_required(view_func):
     @wraps(view_func)
@@ -729,6 +732,150 @@ def mayors_permit(request):
     permits = MayorsPermit.objects.all()
     return render(request, 'myapp/mayors-permit.html', {'permits': permits})
 
+
+
+def mayors_permit_datatable(request):
+    """Server-side processing endpoint for DataTables"""
+    
+    # DataTables parameters
+    draw = int(request.GET.get('draw', 1))
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 10))
+    search_value = request.GET.get('search[value]', '')
+    
+    # Base queryset
+    queryset = MayorsPermit.objects.all()
+    
+    # Global search
+    if search_value:
+        queryset = queryset.filter(
+            Q(control_no__icontains=search_value) |
+            Q(name__icontains=search_value) |
+            Q(address__icontains=search_value) |
+            Q(business_name__icontains=search_value) |
+            Q(or_no__icontains=search_value)
+        )
+    
+    # Column-specific search
+    for i in range(14):  # 14 columns total
+        column_search = request.GET.get(f'columns[{i}][search][value]', '')
+        if column_search:
+            if i == 0:  # Control No
+                queryset = queryset.filter(control_no__icontains=column_search)
+            elif i == 1:  # Status - exact match
+                queryset = queryset.filter(status__iexact=column_search)
+            elif i == 2:  # Name
+                queryset = queryset.filter(name__icontains=column_search)
+            elif i == 3:  # Address
+                queryset = queryset.filter(address__icontains=column_search)
+            elif i == 4:  # Business Name
+                queryset = queryset.filter(business_name__icontains=column_search)
+            elif i == 5:  # Motorized Operation
+                queryset = queryset.filter(motorized_operation__icontains=column_search)
+            elif i == 6:  # OR No
+                queryset = queryset.filter(or_no__icontains=column_search)
+            elif i == 7:  # Amount Paid
+                queryset = queryset.filter(amount_paid__icontains=column_search)
+            elif i == 8:  # Issue Date
+                queryset = queryset.filter(issue_date__icontains=column_search)
+            elif i == 9:  # Expiry Date
+                queryset = queryset.filter(expiry_date__icontains=column_search)
+            elif i == 10:  # Issued At
+                queryset = queryset.filter(issued_at__icontains=column_search)
+            elif i == 11:  # Mayor
+                queryset = queryset.filter(mayor__icontains=column_search)
+            elif i == 12:  # Quarter
+                queryset = queryset.filter(quarter__icontains=column_search)
+    
+    # Total records
+    total_records = MayorsPermit.objects.count()
+    filtered_records = queryset.count()
+    
+    # Pagination
+    permits = queryset[start:start + length]
+    
+    # Format data
+    data = []
+    for permit in permits:
+        # Status badge HTML
+        if permit.status == "active":
+            status_html = '<span class="badge badge-success">Active</span>'
+        elif permit.status == "inactive":
+            status_html = '<span class="badge badge-warning">Inactive</span>'
+        elif permit.status == "expired":
+            status_html = '<span class="badge badge-danger">Expired</span>'
+        else:
+            status_html = f'<span class="badge badge-secondary">{permit.status.capitalize()}</span>'
+        
+        # Generate URLs using reverse()
+        print_url = reverse('print-mayors-permit', args=[permit.id])
+        history_url = reverse('mayors-permit-history', args=[permit.id])
+        
+      # Action buttons HTML - MODIFIED HISTORY BUTTON
+        action_html = f'''
+        <div class="btn-group" role="group">
+            <a href="#" class="btn btn-sm btn-primary btn-view" data-id="{permit.id}" title="View">
+                <i class="fas fa-eye"></i>
+            </a>
+            <a href="{print_url}" target="_blank" class="btn btn-sm btn-secondary" title="Print">
+                <i class="fas fa-print"></i>
+            </a>
+            <a href="#" class="btn btn-sm btn-info btn-update" data-id="{permit.id}" title="Update">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="#" class="btn btn-sm btn-warning btn-history" data-id="{permit.id}" title="Status history">
+                <i class="fas fa-history"></i>
+            </a>
+        </div>
+        '''
+        
+        data.append([
+            permit.control_no,
+            status_html,
+            permit.name,
+            permit.address,
+            permit.business_name or '',
+            permit.motorized_operation or '',
+            permit.or_no,
+            str(permit.amount_paid),
+            permit.issue_date.strftime('%Y-%m-%d'),
+            permit.expiry_date.strftime('%Y-%m-%d'),
+            permit.issued_at or '',
+            permit.mayor or '',
+            permit.get_quarter_display(),
+            action_html,
+            permit.id,  # Hidden column for ID
+            permit.status  # Hidden column for raw status value
+        ])
+    
+    return JsonResponse({
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': filtered_records,
+        'data': data
+    })
+
+
+# THIS IS COMPLETELY NEW - ADD THIS FUNCTION
+def get_permit_history(request, permit_id):
+    """Get history data for a specific permit"""
+    try:
+        permit = MayorsPermit.objects.get(id=permit_id)
+        
+        history_data = {
+            'permit_info': {
+                'control_no': permit.control_no,
+                'name': permit.name,
+                'current_status': permit.status,
+            },
+            'history': [
+                # Add your history records here
+            ]
+        }
+        
+        return JsonResponse({'success': True, 'data': history_data})
+    except MayorsPermit.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Permit not found'})
 
 def add_mayors_permit(request):
     if request.method == "POST":
@@ -1431,153 +1578,71 @@ def import_franchise(request):
         """Convert header to lowercase, replace spaces/periods with underscores, and fix common variations"""
         normalized = []
         for h in header:
-            # Convert to lowercase, strip whitespace
-            h = h.strip().lower()
-            # Replace spaces and periods with underscores
+            h = h.lower().strip()
             h = h.replace(' ', '_').replace('.', '')
-            # Fix common spelling variations
-            h = h.replace('chassis', 'chassis')
+            h = h.replace('chassis', 'chassis').replace('authorized', 'authorized')
             normalized.append(h)
         return normalized
     
     try:
         if is_excel:
-            # Handle Excel file
-            wb = openpyxl.load_workbook(uploaded_file)
-            ws = wb.active
-            rows = list(ws.iter_rows(values_only=True))
-            
-            if not rows:
-                messages.error(request, "Excel file is empty.")
-                return redirect('franchise')
-            
-            # Validate and normalize header
-            raw_header = [str(cell).strip() if cell else '' for cell in rows[0]]
-            normalized_header = normalize_header(raw_header)
-            
-            if normalized_header != expected_header:
-                messages.error(request, f"Invalid Excel header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
-                return redirect('franchise')
-            
-            # Skip header row
-            data_rows = rows[1:]
-            
-            for i, row in enumerate(data_rows, start=2):
-                if not row or all(cell is None for cell in row):
-                    continue
-                
-                if len(row) < len(expected_header):
-                    errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
-                    continue
-                
-                try:
-                    # Handle date parsing for Excel - keep original date type
-                    def parse_excel_date(date_val):
-                        if isinstance(date_val, datetime):
-                            return date_val.date()
-                        elif isinstance(date_val, str):
-                            return datetime.strptime(date_val.strip(), "%Y-%m-%d").date()
-                        else:
-                            return date_val
-                    
-                    valid_until_obj = parse_excel_date(row[3])
-                    date_obj = parse_excel_date(row[10])
-                    
-                    try:
-                        amount_paid = int(float(row[11])) if row[11] else 0
-                    except ValueError:
-                        raise ValueError(f"Invalid amount_paid '{row[11]}'")
-                    
-                    Franchise.objects.update_or_create(
-                        plate_no=str(row[2]).strip() if row[2] else '',
-                        authorized_no=str(row[5]).strip() if row[5] else '',
-                        defaults={
-                            "name": str(row[0]).strip() if row[0] else '',
-                            "denomination": str(row[1]).strip() if row[1] else '',
-                            "valid_until": valid_until_obj,
-                            "motor_no": str(row[4]).strip() if row[4] else '',
-                            "chassis_no": str(row[6]).strip() if row[6] else '',
-                            "authorized_route": str(row[7]).strip() if row[7] else '',
-                            "purpose": str(row[8]).strip() if row[8] else '',
-                            "official_receipt_no": str(row[9]).strip() if row[9] else '',
-                            "date": date_obj,
-                            "amount_paid": amount_paid,
-                            "municipal_treasurer": str(row[12]).strip() if row[12] else '',
-                        },
-                    )
-                    success_count += 1
-                
-                except ValueError as ve:
-                    errors.append(f"Row {i}: Value error - {ve}")
-                except Exception as e:
-                    errors.append(f"Row {i}: {e}")
-        
+            df = pd.read_excel(uploaded_file)
         else:
-            # Handle CSV file
-            file_data = uploaded_file.read().decode("utf-8-sig").splitlines()
-            reader = csv.reader(file_data)
-            raw_header = next(reader)
-            
-            # Validate and normalize header columns
-            normalized_header = normalize_header(raw_header)
-            
-            if normalized_header != expected_header:
-                messages.error(request, f"Invalid CSV header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
-                return redirect('franchise')
-            
-            for i, row in enumerate(reader, start=2):
-                # Strip whitespace from all columns
-                row = [c.strip() for c in row]
-                
-                if len(row) != len(expected_header):
-                    errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+            df = pd.read_csv(uploaded_file)
+        
+        # Normalize DataFrame columns
+        df.columns = normalize_header(df.columns)
+        
+        for idx, row in df.iterrows():
+            try:
+                # Check for duplicates
+                if Franchise.objects.filter(plate_no=row['plate_no']).exists():
+                    errors.append(f"Row {idx+2}: Plate No '{row['plate_no']}' already exists.")
                     continue
                 
-                try:
-                    valid_until_obj = datetime.strptime(row[3], "%Y-%m-%d").date()
-                    date_obj = datetime.strptime(row[10], "%Y-%m-%d").date()
-                    
-                    try:
-                        amount_paid = int(float(row[11])) if row[11] else 0
-                    except ValueError:
-                        raise ValueError(f"Invalid amount_paid '{row[11]}'")
-                    
-                    Franchise.objects.update_or_create(
-                        plate_no=row[2],
-                        authorized_no=row[5],
-                        defaults={
-                            "name": row[0],
-                            "denomination": row[1],
-                            "valid_until": valid_until_obj,
-                            "motor_no": row[4],
-                            "chassis_no": row[6],
-                            "authorized_route": row[7],
-                            "purpose": row[8],
-                            "official_receipt_no": row[9],
-                            "date": date_obj,
-                            "amount_paid": amount_paid,
-                            "municipal_treasurer": row[12],
-                        },
-                    )
-                    success_count += 1
+                if Franchise.objects.filter(authorized_no=row['authorized_no']).exists():
+                    errors.append(f"Row {idx+2}: Authorized No '{row['authorized_no']}' already exists.")
+                    continue
                 
-                except ValueError as ve:
-                    errors.append(f"Row {i}: Value error - {ve}")
-                except Exception as e:
-                    errors.append(f"Row {i}: {e}")
+                # Convert amount_paid to int (handle decimal strings)
+                try:
+                    amount_paid = int(float(row.get('amount_paid', 0)))
+                except (ValueError, TypeError):
+                    amount_paid = 0
+                
+                # Create franchise record
+                Franchise.objects.create(
+                    name=row.get('name', ''),
+                    denomination=row.get('denomination', ''),
+                    plate_no=row.get('plate_no', ''),
+                    valid_until=row.get('valid_until', ''),
+                    motor_no=row.get('motor_no', ''),
+                    authorized_no=row.get('authorized_no', ''),
+                    chassis_no=row.get('chassis_no', ''),
+                    authorized_route=row.get('authorized_route', ''),
+                    purpose=row.get('purpose', ''),
+                    official_receipt_no=row.get('official_receipt_no', ''),
+                    date=row.get('date', ''),
+                    amount_paid=amount_paid,
+                    municipal_treasurer=row.get('municipal_treasurer', '')
+                )
+                success_count += 1
+                
+            except Exception as e:
+                errors.append(f"Row {idx+2}: {str(e)}")
         
-        if success_count:
-            messages.success(request, f"{success_count} Franchise records imported successfully!")
+        if success_count > 0:
+            messages.success(request, f"Successfully imported {success_count} franchise record(s).")
         
         if errors:
-            messages.warning(request, "Some rows could not be imported:\n" + "\n".join(errors[:10]))
-            if len(errors) > 10:
-                messages.warning(request, f"... and {len(errors) - 10} more errors.")
-    
+            for error in errors:
+                messages.warning(request, error)
+        
+        return redirect('franchise')
+        
     except Exception as e:
-        messages.error(request, f"Failed to read file: {e}")
-    
-    return redirect('franchise')
+        messages.error(request, f"Error processing file: {str(e)}")
+        return redirect('franchise')
 
 
 def export_franchise(request):
@@ -1630,44 +1695,47 @@ def export_franchise(request):
                 cell = ws.cell(row=row_num, column=col_num)
                 cell.value = value
         
-        # Create response
-        response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = f'attachment; filename="franchise_records_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        # Auto adjust column width
+        for column in ws.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                max_length = max(max_length, len(str(cell.value)))
+            ws.column_dimensions[column_letter].width = max_length + 2
         
+        # Save to BytesIO
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="franchise_records.xlsx"'
         wb.save(response)
         return response
     
-    else:  # Default to CSV
-        # Create the HttpResponse object with CSV header
+    else:
+        # CSV export
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="franchise_records_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        response['Content-Disposition'] = 'attachment; filename="franchise_records.csv"'
         
         writer = csv.writer(response)
-        
-        # Write header
-        writer.writerow([
+        headers = [
             'name', 'denomination', 'plate_no', 'valid_until', 'motor_no',
             'authorized_no', 'chassis_no', 'authorized_route', 'purpose',
             'official_receipt_no', 'date', 'amount_paid', 'municipal_treasurer'
-        ])
+        ]
+        writer.writerow(headers)
         
-        # Write data
         franchises = Franchise.objects.all().order_by('id')
         for franchise in franchises:
             writer.writerow([
                 franchise.name,
                 franchise.denomination,
                 franchise.plate_no,
-                franchise.valid_until.strftime('%Y-%m-%d'),
+                franchise.valid_until,
                 franchise.motor_no,
                 franchise.authorized_no,
                 franchise.chassis_no,
                 franchise.authorized_route,
                 franchise.purpose,
                 franchise.official_receipt_no,
-                franchise.date.strftime('%Y-%m-%d'),
+                franchise.date,
                 franchise.amount_paid,
                 franchise.municipal_treasurer,
             ])
