@@ -12,11 +12,21 @@
         <h6 class="m-0 font-weight-bold text-dark">Franchise Records</h6>
         <div class="btn-group">
             <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#importModal">
-                <i class="fas fa-file-import"></i> Import CSV
+                <i class="fas fa-file-import"></i> Import File
             </button>
-            <a href="#" class="btn btn-sm btn-danger">
-                <i class="fas fa-file-export"></i> Export CSV
-            </a>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-danger dropdown-toggle" data-toggle="dropdown">
+                    <i class="fas fa-file-export"></i> Export
+                </button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'export-franchise' %}?format=csv">
+                        <i class="fas fa-file-csv"></i> Export as CSV
+                    </a>
+                    <a class="dropdown-item" href="{% url 'export-franchise' %}?format=excel">
+                        <i class="fas fa-file-excel"></i> Export as Excel
+                    </a>
+                </div>
+            </div>
             <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#addRecordModal">
                 <i class="fas fa-plus"></i> Add New Record
             </button>
@@ -136,6 +146,38 @@
             </table>
         </div>
     </div>
+</div>
+
+<!-- Import Franchise Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="fas fa-file-import"></i> Import File</h5>
+        <button class="close text-white" data-dismiss="modal">&times;</button>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" action="{% url 'import-franchise' %}">
+        {% csrf_token %}
+
+        <div class="modal-body">
+          <label><strong>Select CSV or Excel File</strong></label>
+          <input type="file" name="import_file" accept=".csv,.xlsx,.xls" class="form-control" required>
+          <small class="form-text text-muted">Supported formats: .csv, .xlsx, .xls</small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-upload"></i> Upload
+          </button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
 </div>
 
 <!-- Add New Franchise Record Modal -->
@@ -521,6 +563,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "lengthChange": false,
         "ordering": false,
         "searching": true,
+        "scrollCollapse": true,
         "dom": 'lrtip',
         "columnDefs": [
             {

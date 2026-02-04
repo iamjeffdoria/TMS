@@ -48,7 +48,12 @@ urlpatterns = [
     path('franchise/update/', views.update_franchise, name='update-franchise'),
     # path('api/admin/<int:admin_id>/', views.get_admin_details, name='get_admin_details'),
     path('export-idcards/', views.export_idcards_with_images, name='export-idcards'),
-    path('import-idcards/', views.import_idcards_with_images, name='import-idcards'),   
+    path('import-idcards/', views.import_idcards_with_images, name='import-idcards'),
+    path('mtop/import/', views.import_mtop, name='import-mtop'),
+    path('mtop/export/', views.export_mtop, name='export-mtop'),
+    path('franchise/import/', views.import_franchise, name='import-franchise'),
+    path('franchise/export/', views.export_franchise, name='export-franchise'),
+    
 ]
 
 if settings.DEBUG:

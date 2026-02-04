@@ -31,6 +31,7 @@ from django.utils.timezone import now
 from django.conf import settings
 from django.db import transaction
 import shutil
+import openpyxl
 
 def superadmin_required(view_func):
     @wraps(view_func)
@@ -844,6 +845,8 @@ def export_idcards_with_images(request):
     except Exception as e:
         messages.error(request, f"Error exporting ID Cards: {str(e)}")
         return redirect('id-cards')
+
+
 @require_POST
 def import_idcards_with_images(request):
     """Import ID Cards from ZIP file containing CSV and images"""
@@ -1121,6 +1124,555 @@ def print_mayors_permit(request, pk):
 def mtop(request):
     mtops = Mtop.objects.all()
     return render(request, 'myapp/mtop.html', {'mtops': mtops})
+
+
+def import_mtop(request):
+    """Import MTOP records from CSV or Excel file"""
+    if request.method != "POST":
+        messages.error(request, 'Invalid request method')
+        return redirect('mtop')
+    
+    # Check if file exists in request
+    uploaded_file = request.FILES.get('import_file')
+    if not uploaded_file:
+        messages.error(request, "No file uploaded.")
+        return redirect('mtop')
+    
+    file_name = uploaded_file.name.lower()
+    is_excel = file_name.endswith(('.xlsx', '.xls'))
+    is_csv = file_name.endswith('.csv')
+    
+    if not (is_csv or is_excel):
+        messages.error(request, "Please upload a CSV or Excel file (.csv, .xlsx, .xls)")
+        return redirect('mtop')
+    
+    errors = []
+    success_count = 0
+    
+    # Expected header columns
+    expected_header = ['name', 'case_no', 'address', 'no_of_units', 'route_operation',
+                      'make', 'motor_no', 'chasses_no', 'plate_no', 'date',
+                      'municipal_treasurer', 'officer_in_charge', 'mayor']
+    
+    def normalize_header(header):
+        """Convert header to lowercase, replace spaces/periods with underscores, and fix common variations"""
+        normalized = []
+        for h in header:
+            # Convert to lowercase, strip whitespace
+            h = h.strip().lower()
+            # Replace spaces and periods with underscores
+            h = h.replace(' ', '_').replace('.', '')
+            # Fix common spelling variations
+            h = h.replace('chassis', 'chasses')  # chassis -> chasses
+            normalized.append(h)
+        return normalized
+    
+    try:
+        if is_excel:
+            # Handle Excel file
+            wb = openpyxl.load_workbook(uploaded_file)
+            ws = wb.active
+            rows = list(ws.iter_rows(values_only=True))
+            
+            if not rows:
+                messages.error(request, "Excel file is empty.")
+                return redirect('mtop')
+            
+            # Validate and normalize header
+            raw_header = [str(cell).strip() if cell else '' for cell in rows[0]]
+            normalized_header = normalize_header(raw_header)
+            
+            if normalized_header != expected_header:
+                messages.error(request, f"Invalid Excel header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
+                return redirect('mtop')
+            
+            # Skip header row
+            data_rows = rows[1:]
+            
+            for i, row in enumerate(data_rows, start=2):
+                if not row or all(cell is None for cell in row):
+                    continue
+                
+                if len(row) < len(expected_header):
+                    errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+                    continue
+                
+                try:
+                    # Handle date parsing for Excel - keep original date type
+                    def parse_excel_date(date_val):
+                        if isinstance(date_val, datetime):
+                            return date_val.date()
+                        elif isinstance(date_val, str):
+                            return datetime.strptime(date_val.strip(), "%Y-%m-%d").date()
+                        else:
+                            return date_val
+                    
+                    date_obj = parse_excel_date(row[9])
+                    
+                    try:
+                        no_of_units = int(float(row[3])) if row[3] else 1
+                    except ValueError:
+                        raise ValueError(f"Invalid no_of_units '{row[3]}'")
+                    
+                    Mtop.objects.update_or_create(
+                        case_no=str(row[1]).strip() if row[1] else '',
+                        defaults={
+                            "name": str(row[0]).strip() if row[0] else '',
+                            "address": str(row[2]).strip() if row[2] else '',
+                            "no_of_units": no_of_units,
+                            "route_operation": str(row[4]).strip() if row[4] else '',
+                            "make": str(row[5]).strip() if row[5] else '',
+                            "motor_no": str(row[6]).strip() if row[6] else '',
+                            "chasses_no": str(row[7]).strip() if row[7] else '',
+                            "plate_no": str(row[8]).strip() if row[8] else '',
+                            "date": date_obj,
+                            "municipal_treasurer": str(row[10]).strip() if row[10] else '',
+                            "officer_in_charge": str(row[11]).strip() if row[11] else '',
+                            "mayor": str(row[12]).strip() if row[12] else '',
+                        },
+                    )
+                    success_count += 1
+                
+                except ValueError as ve:
+                    errors.append(f"Row {i}: Value error - {ve}")
+                except Exception as e:
+                    errors.append(f"Row {i}: {e}")
+        
+        else:
+            # Handle CSV file
+            file_data = uploaded_file.read().decode("utf-8-sig").splitlines()
+            reader = csv.reader(file_data)
+            raw_header = next(reader)
+            
+            # Validate and normalize header columns
+            normalized_header = normalize_header(raw_header)
+            
+            if normalized_header != expected_header:
+                messages.error(request, f"Invalid CSV header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
+                return redirect('mtop')
+            
+            for i, row in enumerate(reader, start=2):
+                # Strip whitespace from all columns
+                row = [c.strip() for c in row]
+                
+                if len(row) != len(expected_header):
+                    errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+                    continue
+                
+                try:
+                    date_obj = datetime.strptime(row[9], "%Y-%m-%d").date()
+                    
+                    try:
+                        no_of_units = int(row[3])
+                    except ValueError:
+                        raise ValueError(f"Invalid no_of_units '{row[3]}'")
+                    
+                    Mtop.objects.update_or_create(
+                        case_no=row[1],
+                        defaults={
+                            "name": row[0],
+                            "address": row[2],
+                            "no_of_units": no_of_units,
+                            "route_operation": row[4],
+                            "make": row[5],
+                            "motor_no": row[6],
+                            "chasses_no": row[7],
+                            "plate_no": row[8],
+                            "date": date_obj,
+                            "municipal_treasurer": row[10],
+                            "officer_in_charge": row[11],
+                            "mayor": row[12],
+                        },
+                    )
+                    success_count += 1
+                
+                except ValueError as ve:
+                    errors.append(f"Row {i}: Value error - {ve}")
+                except Exception as e:
+                    errors.append(f"Row {i}: {e}")
+        
+        if success_count:
+            messages.success(request, f"{success_count} MTOP records imported successfully!")
+        
+        if errors:
+            messages.warning(request, "Some rows could not be imported:\n" + "\n".join(errors[:10]))
+            if len(errors) > 10:
+                messages.warning(request, f"... and {len(errors) - 10} more errors.")
+    
+    except Exception as e:
+        messages.error(request, f"Failed to read file: {e}")
+    
+    return redirect('mtop')
+
+
+def export_mtop(request):
+    """Export MTOP records to CSV or Excel file based on format parameter"""
+    export_format = request.GET.get('format', 'csv').lower()
+    
+    if export_format == 'excel':
+        # Create workbook
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "MTOP Records"
+        
+        # Define styles
+        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=11)
+        
+        # Write headers
+        headers = [
+            'name', 'case_no', 'address', 'no_of_units', 'route_operation',
+            'make', 'motor_no', 'chasses_no', 'plate_no', 'date',
+            'municipal_treasurer', 'officer_in_charge', 'mayor'
+        ]
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+        
+        # Write data
+        mtops = Mtop.objects.all().order_by('id')
+        for row_num, mtop in enumerate(mtops, 2):
+            data = [
+                mtop.name,
+                mtop.case_no,
+                mtop.address,
+                mtop.no_of_units,
+                mtop.route_operation,
+                mtop.make,
+                mtop.motor_no,
+                mtop.chasses_no,
+                mtop.plate_no,
+                mtop.date,
+                mtop.municipal_treasurer,
+                mtop.officer_in_charge,
+                mtop.mayor,
+            ]
+            
+            for col_num, value in enumerate(data, 1):
+                cell = ws.cell(row=row_num, column=col_num)
+                cell.value = value
+        
+        # Create response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="mtop_records_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+    
+    else:  # Default to CSV
+        # Create the HttpResponse object with CSV header
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="mtop_records_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        
+        writer = csv.writer(response)
+        
+        # Write header
+        writer.writerow([
+            'name', 'case_no', 'address', 'no_of_units', 'route_operation',
+            'make', 'motor_no', 'chasses_no', 'plate_no', 'date',
+            'municipal_treasurer', 'officer_in_charge', 'mayor'
+        ])
+        
+        # Write data
+        mtops = Mtop.objects.all().order_by('id')
+        for mtop in mtops:
+            writer.writerow([
+                mtop.name,
+                mtop.case_no,
+                mtop.address,
+                mtop.no_of_units,
+                mtop.route_operation,
+                mtop.make,
+                mtop.motor_no,
+                mtop.chasses_no,
+                mtop.plate_no,
+                mtop.date.strftime('%Y-%m-%d'),
+                mtop.municipal_treasurer,
+                mtop.officer_in_charge,
+                mtop.mayor,
+            ])
+        
+        return response
+
+def import_franchise(request):
+    """Import Franchise records from CSV or Excel file"""
+    if request.method != "POST":
+        messages.error(request, 'Invalid request method')
+        return redirect('franchise')
+    
+    # Check if file exists in request
+    uploaded_file = request.FILES.get('import_file')
+    if not uploaded_file:
+        messages.error(request, "No file uploaded.")
+        return redirect('franchise')
+    
+    file_name = uploaded_file.name.lower()
+    is_excel = file_name.endswith(('.xlsx', '.xls'))
+    is_csv = file_name.endswith('.csv')
+    
+    if not (is_csv or is_excel):
+        messages.error(request, "Please upload a CSV or Excel file (.csv, .xlsx, .xls)")
+        return redirect('franchise')
+    
+    errors = []
+    success_count = 0
+    
+    # Expected header columns
+    expected_header = ['name', 'denomination', 'plate_no', 'valid_until', 'motor_no',
+                      'authorized_no', 'chassis_no', 'authorized_route', 'purpose',
+                      'official_receipt_no', 'date', 'amount_paid', 'municipal_treasurer']
+    
+    def normalize_header(header):
+        """Convert header to lowercase, replace spaces/periods with underscores, and fix common variations"""
+        normalized = []
+        for h in header:
+            # Convert to lowercase, strip whitespace
+            h = h.strip().lower()
+            # Replace spaces and periods with underscores
+            h = h.replace(' ', '_').replace('.', '')
+            # Fix common spelling variations
+            h = h.replace('chassis', 'chassis')
+            normalized.append(h)
+        return normalized
+    
+    try:
+        if is_excel:
+            # Handle Excel file
+            wb = openpyxl.load_workbook(uploaded_file)
+            ws = wb.active
+            rows = list(ws.iter_rows(values_only=True))
+            
+            if not rows:
+                messages.error(request, "Excel file is empty.")
+                return redirect('franchise')
+            
+            # Validate and normalize header
+            raw_header = [str(cell).strip() if cell else '' for cell in rows[0]]
+            normalized_header = normalize_header(raw_header)
+            
+            if normalized_header != expected_header:
+                messages.error(request, f"Invalid Excel header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
+                return redirect('franchise')
+            
+            # Skip header row
+            data_rows = rows[1:]
+            
+            for i, row in enumerate(data_rows, start=2):
+                if not row or all(cell is None for cell in row):
+                    continue
+                
+                if len(row) < len(expected_header):
+                    errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+                    continue
+                
+                try:
+                    # Handle date parsing for Excel - keep original date type
+                    def parse_excel_date(date_val):
+                        if isinstance(date_val, datetime):
+                            return date_val.date()
+                        elif isinstance(date_val, str):
+                            return datetime.strptime(date_val.strip(), "%Y-%m-%d").date()
+                        else:
+                            return date_val
+                    
+                    valid_until_obj = parse_excel_date(row[3])
+                    date_obj = parse_excel_date(row[10])
+                    
+                    try:
+                        amount_paid = int(float(row[11])) if row[11] else 0
+                    except ValueError:
+                        raise ValueError(f"Invalid amount_paid '{row[11]}'")
+                    
+                    Franchise.objects.update_or_create(
+                        plate_no=str(row[2]).strip() if row[2] else '',
+                        authorized_no=str(row[5]).strip() if row[5] else '',
+                        defaults={
+                            "name": str(row[0]).strip() if row[0] else '',
+                            "denomination": str(row[1]).strip() if row[1] else '',
+                            "valid_until": valid_until_obj,
+                            "motor_no": str(row[4]).strip() if row[4] else '',
+                            "chassis_no": str(row[6]).strip() if row[6] else '',
+                            "authorized_route": str(row[7]).strip() if row[7] else '',
+                            "purpose": str(row[8]).strip() if row[8] else '',
+                            "official_receipt_no": str(row[9]).strip() if row[9] else '',
+                            "date": date_obj,
+                            "amount_paid": amount_paid,
+                            "municipal_treasurer": str(row[12]).strip() if row[12] else '',
+                        },
+                    )
+                    success_count += 1
+                
+                except ValueError as ve:
+                    errors.append(f"Row {i}: Value error - {ve}")
+                except Exception as e:
+                    errors.append(f"Row {i}: {e}")
+        
+        else:
+            # Handle CSV file
+            file_data = uploaded_file.read().decode("utf-8-sig").splitlines()
+            reader = csv.reader(file_data)
+            raw_header = next(reader)
+            
+            # Validate and normalize header columns
+            normalized_header = normalize_header(raw_header)
+            
+            if normalized_header != expected_header:
+                messages.error(request, f"Invalid CSV header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
+                return redirect('franchise')
+            
+            for i, row in enumerate(reader, start=2):
+                # Strip whitespace from all columns
+                row = [c.strip() for c in row]
+                
+                if len(row) != len(expected_header):
+                    errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+                    continue
+                
+                try:
+                    valid_until_obj = datetime.strptime(row[3], "%Y-%m-%d").date()
+                    date_obj = datetime.strptime(row[10], "%Y-%m-%d").date()
+                    
+                    try:
+                        amount_paid = int(float(row[11])) if row[11] else 0
+                    except ValueError:
+                        raise ValueError(f"Invalid amount_paid '{row[11]}'")
+                    
+                    Franchise.objects.update_or_create(
+                        plate_no=row[2],
+                        authorized_no=row[5],
+                        defaults={
+                            "name": row[0],
+                            "denomination": row[1],
+                            "valid_until": valid_until_obj,
+                            "motor_no": row[4],
+                            "chassis_no": row[6],
+                            "authorized_route": row[7],
+                            "purpose": row[8],
+                            "official_receipt_no": row[9],
+                            "date": date_obj,
+                            "amount_paid": amount_paid,
+                            "municipal_treasurer": row[12],
+                        },
+                    )
+                    success_count += 1
+                
+                except ValueError as ve:
+                    errors.append(f"Row {i}: Value error - {ve}")
+                except Exception as e:
+                    errors.append(f"Row {i}: {e}")
+        
+        if success_count:
+            messages.success(request, f"{success_count} Franchise records imported successfully!")
+        
+        if errors:
+            messages.warning(request, "Some rows could not be imported:\n" + "\n".join(errors[:10]))
+            if len(errors) > 10:
+                messages.warning(request, f"... and {len(errors) - 10} more errors.")
+    
+    except Exception as e:
+        messages.error(request, f"Failed to read file: {e}")
+    
+    return redirect('franchise')
+
+
+def export_franchise(request):
+    """Export Franchise records to CSV or Excel file based on format parameter"""
+    export_format = request.GET.get('format', 'csv').lower()
+    
+    if export_format == 'excel':
+        # Create workbook
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Franchise Records"
+        
+        # Define styles
+        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=11)
+        
+        # Write headers
+        headers = [
+            'name', 'denomination', 'plate_no', 'valid_until', 'motor_no',
+            'authorized_no', 'chassis_no', 'authorized_route', 'purpose',
+            'official_receipt_no', 'date', 'amount_paid', 'municipal_treasurer'
+        ]
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+        
+        # Write data
+        franchises = Franchise.objects.all().order_by('id')
+        for row_num, franchise in enumerate(franchises, 2):
+            data = [
+                franchise.name,
+                franchise.denomination,
+                franchise.plate_no,
+                franchise.valid_until,
+                franchise.motor_no,
+                franchise.authorized_no,
+                franchise.chassis_no,
+                franchise.authorized_route,
+                franchise.purpose,
+                franchise.official_receipt_no,
+                franchise.date,
+                franchise.amount_paid,
+                franchise.municipal_treasurer,
+            ]
+            
+            for col_num, value in enumerate(data, 1):
+                cell = ws.cell(row=row_num, column=col_num)
+                cell.value = value
+        
+        # Create response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="franchise_records_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+    
+    else:  # Default to CSV
+        # Create the HttpResponse object with CSV header
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="franchise_records_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        
+        writer = csv.writer(response)
+        
+        # Write header
+        writer.writerow([
+            'name', 'denomination', 'plate_no', 'valid_until', 'motor_no',
+            'authorized_no', 'chassis_no', 'authorized_route', 'purpose',
+            'official_receipt_no', 'date', 'amount_paid', 'municipal_treasurer'
+        ])
+        
+        # Write data
+        franchises = Franchise.objects.all().order_by('id')
+        for franchise in franchises:
+            writer.writerow([
+                franchise.name,
+                franchise.denomination,
+                franchise.plate_no,
+                franchise.valid_until.strftime('%Y-%m-%d'),
+                franchise.motor_no,
+                franchise.authorized_no,
+                franchise.chassis_no,
+                franchise.authorized_route,
+                franchise.purpose,
+                franchise.official_receipt_no,
+                franchise.date.strftime('%Y-%m-%d'),
+                franchise.amount_paid,
+                franchise.municipal_treasurer,
+            ])
+        
+        return response
 
 def mtop_print(request, pk):
     mtop = Mtop.objects.get(pk=pk)
