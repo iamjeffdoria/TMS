@@ -35,6 +35,8 @@ import openpyxl
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.core.serializers import serialize
+from django.utils.timezone import localtime
+
 
 def superadmin_required(view_func):
     @wraps(view_func)
@@ -855,12 +857,24 @@ def mayors_permit_datatable(request):
         'data': data
     })
 
-
-# THIS IS COMPLETELY NEW - ADD THIS FUNCTION
 def get_permit_history(request, permit_id):
     """Get history data for a specific permit"""
     try:
         permit = MayorsPermit.objects.get(id=permit_id)
+        
+        # Fetch actual history records from database
+        history_records = MayorsPermitHistory.objects.filter(permit=permit).order_by('-activated_at')
+        
+        history_list = []
+        for record in history_records:
+            history_list.append({
+                'date':localtime(record.activated_at).strftime('%Y-%m-%d %I:%M %p'
+),
+                'old_status': record.previous_status.capitalize(),
+                'new_status': record.new_status.capitalize(),
+                'changed_by': record.updated_by_name or 'System',
+                'reason': record.remarks or ''
+            })
         
         history_data = {
             'permit_info': {
@@ -868,15 +882,16 @@ def get_permit_history(request, permit_id):
                 'name': permit.name,
                 'current_status': permit.status,
             },
-            'history': [
-                # Add your history records here
-            ]
+            'history': history_list
         }
         
         return JsonResponse({'success': True, 'data': history_data})
+        
     except MayorsPermit.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Permit not found'})
-
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    
 def add_mayors_permit(request):
     if request.method == "POST":
         control_no = request.POST.get("control_no")
@@ -1751,13 +1766,221 @@ def franchise(request):
     return render(request, 'myapp/franchise.html', {'franchises': franchises}) 
 
 
-
-
 def mayors_permit_tricycle(request):
     permits = MayorsPermitTricycle.objects.all()
     return render(request, 'myapp/mayors-permit-tri.html', {'permits': permits})
 
 
+def mayors_permit_tri_history_data(request, permit_id):
+    """API endpoint to fetch status history for a specific tricycle permit"""
+    try:
+        # Get the permit
+        permit = get_object_or_404(MayorsPermitTricycle, id=permit_id)
+        
+        # Get all history records for this permit
+        history_records = MayorsPermitTricycleHistory.objects.filter(
+            permit_id=permit_id
+        ).order_by('-activated_at')
+        
+        # Format history data
+        history_data = []
+        for record in history_records:
+            # Determine who changed it
+            if record.updated_by_name:
+                changed_by = record.updated_by_name
+            elif record.updated_by_type:
+                changed_by = record.updated_by_type.capitalize()
+            else:
+                changed_by = 'System'
+            
+            history_data.append({
+                'date': record.activated_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'old_status': record.previous_status.capitalize(),
+                'new_status': record.new_status.capitalize(),
+                'changed_by': changed_by,
+                'reason': record.remarks or ''
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'permit_info': {
+                    'control_no': permit.control_no,
+                    'name': permit.name,
+                    'current_status': permit.status
+                },
+                'history': history_data
+            }
+        })
+        
+    except MayorsPermitTricycle.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Permit not found'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+def mayors_permit_tricycle_datatable(request):
+    """Server-side processing endpoint for DataTables"""
+    
+    # DataTables parameters
+    draw = int(request.GET.get('draw', 1))
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 10))
+    search_value = request.GET.get('search[value]', '')
+    
+    # Base queryset
+    queryset = MayorsPermitTricycle.objects.all()
+    
+    # Global search
+    if search_value:
+        queryset = queryset.filter(
+            Q(control_no__icontains=search_value) |
+            Q(name__icontains=search_value) |
+            Q(address__icontains=search_value) |
+            Q(business_name__icontains=search_value) |
+            Q(or_no__icontains=search_value)
+        )
+    
+    # Column-specific search
+    for i in range(14):
+        column_search = request.GET.get(f'columns[{i}][search][value]', '')
+        if column_search:
+            if i == 0:  # Control No
+                queryset = queryset.filter(control_no__icontains=column_search)
+            elif i == 1:  # Status - exact match
+                queryset = queryset.filter(status__iexact=column_search)
+            elif i == 2:  # Name
+                queryset = queryset.filter(name__icontains=column_search)
+            elif i == 3:  # Address
+                queryset = queryset.filter(address__icontains=column_search)
+            elif i == 4:  # Motorized Operation
+                queryset = queryset.filter(motorized_operation__icontains=column_search)
+            elif i == 5:  # Business Name
+                queryset = queryset.filter(business_name__icontains=column_search)
+            elif i == 6:  # Expiry Date
+                queryset = queryset.filter(expiry_date__icontains=column_search)
+            elif i == 7:  # Amount Paid
+                queryset = queryset.filter(amount_paid__icontains=column_search)
+            elif i == 8:  # OR No
+                queryset = queryset.filter(or_no__icontains=column_search)
+            elif i == 9:  # Issue Date
+                queryset = queryset.filter(issue_date__icontains=column_search)
+            elif i == 10:  # Issued At
+                queryset = queryset.filter(issued_at__icontains=column_search)
+            elif i == 11:  # Mayor
+                queryset = queryset.filter(mayor__icontains=column_search)
+            elif i == 12:  # Quarter
+                queryset = queryset.filter(quarter__icontains=column_search)
+    
+    # Total records
+    total_records = MayorsPermitTricycle.objects.count()
+    filtered_records = queryset.count()
+    
+    # Pagination
+    permits = queryset[start:start + length]
+    
+    # Format data
+    data = []
+    for permit in permits:
+        # Status badge HTML
+        if permit.status == "active":
+            status_html = '<span class="badge badge-success">Active</span>'
+        elif permit.status == "inactive":
+            status_html = '<span class="badge badge-warning">Inactive</span>'
+        elif permit.status == "expired":
+            status_html = '<span class="badge badge-danger">Expired</span>'
+        else:
+            status_html = f'<span class="badge badge-secondary">{permit.status.capitalize()}</span>'
+        
+        # Action buttons HTML
+        action_html = f'''
+        <div class="btn-group" role="group">
+             <button class="btn btn-sm btn-info btn-view" title="View Details" 
+                data-id="{permit.id}"
+                data-control_no="{permit.control_no}"
+                data-status="{permit.status}"
+                data-name="{permit.name}"
+                data-address="{permit.address}"
+                data-motorized_operation="{permit.motorized_operation}"
+                data-business_name="{permit.business_name}"
+                data-expiry_date="{permit.expiry_date}"
+                data-amount_paid="{permit.amount_paid}"
+                data-or_no="{permit.or_no}"
+                data-issue_date="{permit.issue_date}"
+                data-issued_at="{permit.issued_at}"
+                data-mayor="{permit.mayor}"
+                data-quarter="{permit.quarter}">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-primary btn-print" title="Print" 
+                data-permit-id="{permit.id}"
+                data-control-no="{permit.control_no}"
+                data-name="{permit.name}"
+                data-address="{permit.address}"
+                data-motorized="{permit.motorized_operation}"
+                data-business="{permit.business_name}"
+                data-expiry="{permit.expiry_date}"
+                data-quarter="{permit.quarter}"
+                data-amount="{permit.amount_paid}"
+                data-or="{permit.or_no}"
+                data-issue="{permit.issue_date}"
+                data-issued-at="{permit.issued_at}"
+                data-mayor="{permit.mayor}">
+                <i class="fas fa-print"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-warning btn-update" title="Update"
+                data-id="{permit.id}"
+                data-control_no="{permit.control_no}"
+                data-status="{permit.status}"
+                data-name="{permit.name}"
+                data-address="{permit.address}"
+                data-motorized_operation="{permit.motorized_operation}"
+                data-business_name="{permit.business_name}"
+                data-expiry_date="{permit.expiry_date}"
+                data-amount_paid="{permit.amount_paid}"
+                data-or_no="{permit.or_no}"
+                data-issue_date="{permit.issue_date}"
+                data-issued_at="{permit.issued_at}"
+                data-mayor="{permit.mayor}"
+                data-quarter="{permit.quarter}">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary btn-history" data-id="{permit.id}" title="History">
+                <i class="fas fa-history"></i>
+            </button>
+        </div>
+        '''
+        
+        data.append([
+            permit.control_no,
+            status_html,
+            permit.name,
+            permit.address,
+            permit.motorized_operation or '',
+            permit.business_name or '',
+            permit.expiry_date.strftime('%Y-%m-%d'),
+            str(permit.amount_paid),
+            permit.or_no,
+            permit.issue_date.strftime('%Y-%m-%d'),
+            permit.issued_at or '',
+            permit.mayor or '',
+            permit.get_quarter_display(),
+            action_html,
+            permit.id,  # Hidden column for ID
+            permit.status  # Hidden column for raw status value
+        ])
+    
+    return JsonResponse({
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': filtered_records,
+        'data': data
+    })
 
 def add_permit_tri(request):
     if request.method == 'POST':
@@ -2320,15 +2543,3 @@ def mayors_permit_history(request, permit_id):
     })
 
 
-
-def mayors_permit_tri_history(request, permit_id):
-    history = (
-        MayorsPermitTricycleHistory.objects
-        .filter(permit_id=permit_id)  # Only this permit's history
-        .select_related('permit')
-        .order_by('-activated_at')
-    )
-
-    return render(request, 'myapp/mayors-permit-tri-history.html', {
-        'history': history
-    })

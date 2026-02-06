@@ -22,6 +22,7 @@ urlpatterns = [
     path('mtop/<int:pk>/print/', views.mtop_print, name='mtop_print'),
     path('franchise/', views.franchise, name='franchise'),
     path('mayors-permit-tricycle/', views.mayors_permit_tricycle, name='mayors-permit-tricycle'),
+    path('mayors-permit-tri/datatable/', views.mayors_permit_tricycle_datatable, name='mayors-permit-tri-datatable'),
     path('export-mayors-permit/', export_mayors_permit, name='export-mayors-permit'),
     path('export-mayors-permit-tri/', views.export_mayors_permit_tri, name='export-mayors-permit-tri'),
     path('import-mayors-permit-tri/', views.import_mayors_permit_tri, name='import-mayors-permit-tri'),
@@ -43,7 +44,6 @@ urlpatterns = [
     views.mayors_permit_history,
     name='mayors-permit-history'
     ),
-    path('mayors-permit-tri-history/<int:permit_id>/', views.mayors_permit_tri_history, name='mayors-permit-tri-history'),
     path('franchise/add/', views.add_franchise, name='add-franchise'),
     path('franchise/update/', views.update_franchise, name='update-franchise'),
     # path('api/admin/<int:admin_id>/', views.get_admin_details, name='get_admin_details'),
@@ -55,6 +55,10 @@ urlpatterns = [
     path('franchise/export/', views.export_franchise, name='export-franchise'),
     path('mayors-permit/datatable/', views.mayors_permit_datatable, name='mayors-permit-datatable'),
     path('mayors-permit/history-data/<int:permit_id>/', views.get_permit_history, name='get-permit-history'),
+    path('mayors-permit-tri/history-data/<int:permit_id>/', 
+         views.mayors_permit_tri_history_data, 
+         name='mayors-permit-tri-history-data'),
+    
     
 ]
 

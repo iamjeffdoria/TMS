@@ -14,21 +14,6 @@ _stop_event = Event()
 def _run_loop(interval_seconds: int):
     logger.info("Scheduler loop started (interval=%s seconds)", interval_seconds)
 
-    # Run initial check immediately on start
-    try:
-        logger.info("Running initial scheduled tasks")
-        start_ts = time.time()
-        results = mark_expired_permits()
-        # Log counts when available
-        if isinstance(results, dict):
-            for k, v in results.items():
-                logger.info("Expired %d rows for %s", v, k)
-        else:
-            logger.info("Expired result: %s", results)
-        logger.info("Initial scheduled tasks completed in %.2fs", time.time() - start_ts)
-    except Exception:
-        logger.exception("Initial scheduled task failed")
-
     # Main loop
     while not _stop_event.wait(interval_seconds):
         try:

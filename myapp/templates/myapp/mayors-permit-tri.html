@@ -66,122 +66,26 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-
                 <tfoot>
-                    <tr>
-                        <th>Control No</th>
-                        <th>Name</th>
-                        <th>Address</th>
-                        <th>Motorized Operation</th>
-                        <th>Business Name</th>
-                        <th>Expiry Date</th>
-                        <th>Amount Paid</th>
-                        <th>OR No</th>
-                        <th>Issue Date</th>
-                        <th>Issued At</th>
-                        <th>Mayor</th>
-                        <th>Quarter</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </tfoot>
-
-                <tbody>
-                {% for permit in permits %}
-                <tr id="permit-{{ permit.id }}">
-                    <td>{{ permit.control_no }}</td>
-                    <td data-search="{{ permit.status }}" data-order="{{ permit.status }}">
-                        {% if permit.status == "active" %}
-                            <span class="badge badge-success">Active</span>
-                        {% elif permit.status == "inactive" %}
-                            <span class="badge badge-warning">Inactive</span>
-                        {% elif permit.status == "expired" %}
-                            <span class="badge badge-danger">Expired</span>
-                        {% else %}
-                            <span class="badge badge-secondary">{{ permit.status|capfirst }}</span>
-                        {% endif %}
-                    </td>
-
-                    <td>{{ permit.name }}</td>
-                    <td>{{ permit.address }}</td>
-                    <td>{{ permit.motorized_operation }}</td>
-                    <td>{{ permit.business_name }}</td>
-                    <td>{{ permit.expiry_date }}</td>
-                    <td>{{ permit.amount_paid }}</td>
-                    <td>{{ permit.or_no }}</td>
-                    <td>{{ permit.issue_date }}</td>
-                    <td>{{ permit.issued_at }}</td>
-                    <td>{{ permit.mayor }}</td>
-                    <td>{{ permit.quarter }}</td>
-                    <td class="text-center">
-                        <div class="btn-group" role="group" aria-label="actions">
-
-                                  <!-- View Button -->
-                        <button type="button" class="btn btn-sm btn-info btn-view" title="View"
-                            data-control-no="{{ permit.control_no }}"
-                            data-status="{{ permit.status }}"
-                            data-name="{{ permit.name }}"
-                            data-address="{{ permit.address }}"
-                            data-motorized="{{ permit.motorized_operation }}"
-                            data-business="{{ permit.business_name }}"
-                            data-expiry="{{ permit.expiry_date }}"
-                            data-quarter="{{ permit.quarter }}"
-                            data-amount="{{ permit.amount_paid }}"
-                            data-or="{{ permit.or_no }}"
-                            data-issue="{{ permit.issue_date }}"
-                            data-issued-at="{{ permit.issued_at }}"
-                            data-mayor="{{ permit.mayor }}">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                            <!-- Print Button -->
-                        <button class="btn btn-sm btn-primary print-btn" title="Print" 
-                                data-permit-id="{{ permit.id }}"
-                                data-control-no="{{ permit.control_no }}"
-                                data-name="{{ permit.name }}"
-                                data-address="{{ permit.address }}"
-                                data-motorized="{{ permit.motorized_operation }}"
-                                data-business="{{ permit.business_name }}"
-                                data-expiry="{{ permit.expiry_date }}"
-                                data-quarter="{{ permit.quarter }}"
-                                data-amount="{{ permit.amount_paid }}"
-                                data-or="{{ permit.or_no }}"
-                                data-issue="{{ permit.issue_date }}"
-                                data-issued-at="{{ permit.issued_at }}"
-                                data-mayor="{{ permit.mayor }}">
-                            <i class="fas fa-print"></i>
-                        </button>
-                      <!-- Update Button -->
-                            <button type="button" 
-                                    class="btn btn-sm btn-warning update-btn" 
-                                    title="Update"
-                                    data-toggle="modal" data-target="#updatePermitModal"
-                                    data-id="{{ permit.id }}"
-                                    data-control_no="{{ permit.control_no }}"
-                                    data-status="{{ permit.status }}"
-                                    data-name="{{ permit.name }}"
-                                    data-address="{{ permit.address }}"
-                                    data-motorized_operation="{{ permit.motorized_operation }}"
-                                    data-business_name="{{ permit.business_name }}"
-                                    data-expiry_date="{{ permit.expiry_date }}"
-                                    data-amount_paid="{{ permit.amount_paid }}"
-                                    data-or_no="{{ permit.or_no }}"
-                                    data-issue_date="{{ permit.issue_date }}"
-                                    data-issued_at="{{ permit.issued_at }}"
-                                    data-mayor="{{ permit.mayor }}"
-                                    data-quarter="{{ permit.quarter }}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                   <a href="{% url 'mayors-permit-tri-history' permit.id %}" class="btn btn-sm btn-secondary" title="History">
-                        <i class="fas fa-history"></i>
-                    </a>
-                    </div>
-                    </td>
-                </tr>
-                {% empty %}
                 <tr>
-                    <td colspan="14" class="text-center text-muted">No records found</td>
+                    <th>Control No</th>
+                    <th>Status</th>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Motorized Operation</th>
+                    <th>Business Name</th>
+                    <th>Expiry Date</th>
+                    <th>Amount Paid</th>
+                    <th>OR No</th>
+                    <th>Issue Date</th>
+                    <th>Issued At</th>
+                    <th>Mayor</th>
+                    <th>Quarter</th>
+                    <th>Action</th>
                 </tr>
-                {% endfor %}
+                </tfoot>
+                <tbody>
+               
             </tbody>
 
             </table>
@@ -189,25 +93,7 @@
     </div>
 </div>
 
-<!-- View Permit Modal -->
-<div class="modal fade" id="viewPermitModal" tabindex="-1" role="dialog" aria-labelledby="viewPermitModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-    <div class="modal-content shadow-sm">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="viewPermitModalLabel"><i class="fas fa-eye mr-2"></i> Permit Details</h5>
-        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body py-3">
-        <div class="container-fluid">
-          <div class="row" id="viewPermitContent"></div>
-        </div>
-      </div>
-      <div class="modal-footer bg-light">
-        <button class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <!-- Add Permit Modal -->
 <div class="modal fade" id="addPermitModal" tabindex="-1" role="dialog" aria-labelledby="addPermitModalLabel" aria-hidden="true">
@@ -597,25 +483,273 @@
     </div>
 </div>
 
+<!-- History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title font-weight-bold" id="historyModalLabel">
+          <i class="fas fa-history mr-2"></i> Status History
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body py-4">
+        <div class="container-fluid">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <div class="small text-muted">Control No</div>
+              <div class="font-weight-bold" id="history-control-no">-</div>
+            </div>
+            <div class="col-md-4">
+              <div class="small text-muted">Name</div>
+              <div class="font-weight-bold" id="history-name">-</div>
+            </div>
+            <div class="col-md-4">
+              <div class="small text-muted">Current Status</div>
+              <div class="font-weight-bold" id="history-current-status">-</div>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="row">
+            <div class="col-12">
+              <h6 class="font-weight-bold mb-3">Status Change History</h6>
+              <div id="historyTimeline" style="max-height: 300px; overflow-y: auto; padding-right: 10px;">
+                <div class="text-center text-muted py-4">
+                  <i class="fas fa-spinner fa-spin fa-2x"></i>
+                  <p class="mt-2">Loading history...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- View Details Modal -->
+<div class="modal fade" id="viewPermitModal" tabindex="-1" role="dialog" aria-labelledby="viewPermitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content shadow-lg border-0">
+            
+            <!-- Header -->
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title font-weight-bold" id="viewPermitModalLabel">
+                    <i class="fas fa-file-alt mr-2"></i> Permit Information
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body py-4">
+                <div class="container-fluid">
+                    <div class="row" id="viewModalContent">
+                        <!-- Content will be injected by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <script>
+  function formatLocalDateTime(dateString) {
+    const [datePart, timePart] = dateString.split(' ');
+    const [year, month, day] = datePart.split('-');
+    const [hour, minute, second] = timePart.split(':');
+    
+    const d = new Date(year, month - 1, day, hour, minute, second);
+
+    const formattedDate = d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric'
+    });
+
+    const formattedTime = d.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    return `${formattedDate} • ${formattedTime}`;
+}
+
+function getStatusBadge(status) {
+    status = status.toLowerCase();
+    
+    if (status === 'active') {
+        return '<span class="badge badge-success">Active</span>';
+    } else if (status === 'inactive') {
+        return '<span class="badge badge-warning">Inactive</span>';
+    } else if (status === 'expired') {
+        return '<span class="badge badge-danger">Expired</span>';
+    } else {
+        return `<span class="badge badge-secondary">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+    }
+}
 const logoURL = "{% static 'assets/img/lgu.png' %}"; // server-side parsed URL\
 
 
+document.addEventListener("DOMContentLoaded", function () {
 
- document.addEventListener("DOMContentLoaded", function () {
-    // ▶ Clone header row for filtering
+// View button - use event delegation
+$('#dataTable tbody').on('click', '.btn-view', function(e) {
+    e.preventDefault();
+    
+    // Get all data attributes
+    const data = this.dataset;
+    
+    // Define fields with their labels and values
+    const fields = [
+        { label: "Control No", value: data.control_no },
+        { label: "Status", value: data.status, isBadge: true },
+        { label: "Name", value: data.name },
+        { label: "Address", value: data.address },
+        { label: "Business Name", value: data.business_name },
+        { label: "Motorized Operation", value: data.motorized_operation },
+        { label: "OR No", value: data.or_no },
+        { label: "Amount Paid", value: data.amount_paid, isCurrency: true },
+        { label: "Issue Date", value: data.issue_date, isDate: true },
+        { label: "Expiry Date", value: data.expiry_date, isDate: true },
+        { label: "Issued At", value: data.issued_at },
+        { label: "Mayor", value: data.mayor },
+        { label: "Quarter", value: data.quarter }
+    ];
+
+    // Build HTML
+    let html = "";
+    fields.forEach(field => {
+        let displayValue = field.value || '&mdash;';
+        
+        // Handle status badge
+        if (field.isBadge && field.value) {
+            displayValue = getStatusBadge(field.value);
+        }
+        
+        // Handle currency formatting
+        if (field.isCurrency && field.value) {
+            displayValue = '₱' + parseFloat(field.value).toLocaleString();
+        }
+        
+        // Handle date formatting
+        if (field.isDate && field.value) {
+            displayValue = formatDisplayDate(field.value);
+        }
+        
+        html += `
+            <div class="col-md-4 col-sm-6 mb-4">
+                <div class="small text-muted">${field.label}</div>
+                <div class="font-weight-bold">${displayValue}</div>
+            </div>
+        `;
+    });
+
+    document.getElementById("viewModalContent").innerHTML = html;
+    $("#viewPermitModal").modal("show");
+});
+
+// Helper function to format dates for display
+function formatDisplayDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+    
+    function toInputDate(dateStr) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+        let d = new Date(dateStr);
+        if (isNaN(d.getTime())) return "";
+        let m = ("0" + (d.getMonth() + 1)).slice(-2);
+        let day = ("0" + d.getDate()).slice(-2);
+        return `${d.getFullYear()}-${m}-${day}`;
+    }
+
+    // Initialize DataTable with server-side processing
+    var table = $('#dataTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "{% url 'mayors-permit-tri-datatable' %}",
+            "type": "GET"
+        },
+        "pageLength": 5,
+        "lengthChange": false,
+        "ordering": false,
+        "searching": true,
+        "dom": 'lrtip',
+        "columns": [
+            { "data": 0 },  // Control No
+            { "data": 1 },  // Status
+            { "data": 2 },  // Name
+            { "data": 3 },  // Address
+            { "data": 4 },  // Motorized Operation
+            { "data": 5 },  // Business Name
+            { "data": 6 },  // Expiry Date
+            { "data": 7 },  // Amount Paid
+            { "data": 8 },  // OR No
+            { "data": 9 },  // Issue Date
+            { "data": 10 }, // Issued At
+            { "data": 11 }, // Mayor
+            { "data": 12 }, // Quarter
+            { "data": 13, "orderable": false },  // Action
+            { "data": 14 },  // Hidden ID
+            { "data": 15 }   // Hidden raw status
+        ],
+        "columnDefs": [
+            {
+                "targets": [6,7,8,9,10,11,12],  // Hidden columns
+                "visible": false,
+                "searchable": true
+            },
+            {
+                "targets": 14,  // ID column
+                "visible": false,
+                "searchable": false
+            },
+            {
+                "targets": 15,  // Raw status column
+                "visible": false,
+                "searchable": false
+            }
+        ]
+    });
+
+    // Clone header row for filtering
     $('#dataTable thead tr').clone(true).appendTo('#dataTable thead');
-
+    
     $('#dataTable thead tr:eq(1) th').each(function (i) {
-
-        // Do NOT add search boxes for the Action column
-        if (i === 13) {
+        if (i === 6) {
             $(this).html('');
             return;
         }
 
-        // Status column (index 1) → dropdown
         if (i === 1) {
             $(this).html(
                 '<select class="form-control form-control-sm border-secondary">' +
@@ -627,11 +761,9 @@ const logoURL = "{% static 'assets/img/lgu.png' %}"; // server-side parsed URL\
             );
 
             $('select', this).on('change', function () {
-                var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                table.column(i).search(val ? '^' + val + '$' : '', true, false).draw();
+                table.column(i).search(this.value).draw();
             });
         } else {
-            // Other columns → input
             $(this).html('<input type="text" class="form-control form-control-sm border-secondary" />');
             $('input', this).on('keyup change', function () {
                 if (table.column(i).search() !== this.value) {
@@ -641,43 +773,17 @@ const logoURL = "{% static 'assets/img/lgu.png' %}"; // server-side parsed URL\
         }
     });
 
-    var table = $('#dataTable').DataTable({
-    "pageLength": 5,
-    "lengthChange": false,
-    "ordering": false,
-    "searching": true,
-    "dom": 'lrtip',
-    "columnDefs": [
-        {
-            "targets": [6, 7,9,10,11, 12],
-            "visible": false,
-            "searchable": true
-        },
-    ]
-});
+    // Print button - use event delegation
+    $('#dataTable tbody').on('click', '.btn-print', function(e) {
+        e.preventDefault();
+        const permitId = $(this).data('permit-id');
+        printPermit(permitId);
+    });
 
-// Add this after the DataTables initialization
-$(document).on('click', '.print-btn', function() {
-    const permitId = $(this).data('permit-id');
-    printPermit(permitId);
-});
-// Populate update form when update button is clicked
-const updateButtons = document.querySelectorAll('.update-btn');
-
-updateButtons.forEach(button => {
-    button.addEventListener('click', function () {
-        // Helper to convert any date string to YYYY-MM-DD
-        const toDateInputFormat = (dateStr) => {
-            if (!dateStr) return '';
-            // Try parsing using Date object
-            const date = new Date(dateStr);
-            if (isNaN(date.getTime())) return '';
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
-        }
-
+    // Update button - use event delegation  
+    $('#dataTable tbody').on('click', '.btn-update', function(e) {
+        e.preventDefault();
+        
         document.getElementById('update_permit_id').value = this.dataset.id;
         document.getElementById('update_control_no').value = this.dataset.control_no;
         document.getElementById('update_status').value = this.dataset.status;
@@ -685,128 +791,162 @@ updateButtons.forEach(button => {
         document.getElementById('update_address').value = this.dataset.address;
         document.getElementById('update_motorized_operation').value = this.dataset.motorized_operation;
         document.getElementById('update_business_name').value = this.dataset.business_name;
-
-        // Convert dates to YYYY-MM-DD for <input type="date">
-        document.getElementById('update_issue_date').value = toDateInputFormat(this.dataset.issue_date);
-        document.getElementById('update_expiry_date').value = toDateInputFormat(this.dataset.expiry_date);
-
+        document.getElementById('update_issue_date').value = toInputDate(this.dataset.issue_date);
+        document.getElementById('update_expiry_date').value = toInputDate(this.dataset.expiry_date);
         document.getElementById('update_amount_paid').value = this.dataset.amount_paid;
         document.getElementById('update_or_no').value = this.dataset.or_no;
         document.getElementById('update_issued_at').value = this.dataset.issued_at;
         document.getElementById('update_mayor').value = this.dataset.mayor;
         document.getElementById('update_quarter').value = this.dataset.quarter;
+
+        $('#updatePermitModal').modal('show');
+    });
+
+    // Handle update form submission
+    document.getElementById('updatePermitForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const permitId = document.getElementById('update_permit_id').value;
+        const formData = {
+            control_no: document.getElementById('update_control_no').value,
+            name: document.getElementById('update_name').value,
+            address: document.getElementById('update_address').value,
+            motorized_operation: document.getElementById('update_motorized_operation').value,
+            business_name: document.getElementById('update_business_name').value,
+            issue_date: document.getElementById('update_issue_date').value,
+            expiry_date: document.getElementById('update_expiry_date').value,
+            amount_paid: document.getElementById('update_amount_paid').value,
+            or_no: document.getElementById('update_or_no').value,
+            issued_at: document.getElementById('update_issued_at').value,
+            mayor: document.getElementById('update_mayor').value,
+            quarter: document.getElementById('update_quarter').value,
+            status: document.getElementById('update_status').value
+        };
+
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`/update-permit/${permitId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#updatePermitModal').modal('hide');
+                
+                let alertBox = document.createElement("div");
+                alertBox.className = "alert alert-success mt-3";
+                alertBox.innerText = data.message || 'Permit updated successfully';
+                document.querySelector(".card-body").prepend(alertBox);
+
+                setTimeout(() => alertBox.remove(), 3000);
+                table.ajax.reload();
+            } else {
+                alert('Error updating permit: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating permit. Please try again.');
+        });
+    });
+
+    // History button - use event delegation
+    $('#dataTable tbody').on('click', '.btn-history', function(e) {
+        e.preventDefault();
+        
+        let permitId = $(this).data('id');
+        
+        $("#historyModal").modal("show");
+        
+        // You'll need to create this endpoint
+        fetch(`/mayors-permit-tri/history-data/${permitId}/`)
+            .then(res => {
+                console.log('Response status:', res.status);
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(response => {
+                console.log('Response data:', response);
+                
+                if (response.success) {
+                    let data = response.data;
+                    
+                    document.getElementById('history-control-no').textContent = data.permit_info.control_no;
+                    document.getElementById('history-name').textContent = data.permit_info.name;
+                    
+                    let statusBadge = getStatusBadge(data.permit_info.current_status);
+                    document.getElementById('history-current-status').innerHTML = statusBadge;
+                    
+                    let timelineHtml = '';
+                    if (data.history && data.history.length > 0) {
+                        data.history.forEach(record => {
+                            let oldStatusBadge = getStatusBadge(record.old_status.toLowerCase());
+                            let newStatusBadge = getStatusBadge(record.new_status.toLowerCase());
+                            
+                            timelineHtml += `
+                                <div class="card mb-2">
+                                    <div class="card-body py-2">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar"></i>
+                                                    ${formatLocalDateTime(record.date)}
+                                                </small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                ${oldStatusBadge}
+                                                <i class="fas fa-arrow-right mx-2"></i>
+                                                ${newStatusBadge}
+                                            </div>
+                                            <div class="col-md-3 text-right">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user"></i> ${record.changed_by}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        ${record.reason ? `<div class="row mt-2"><div class="col-12"><small><strong>Reason:</strong> ${record.reason}</small></div></div>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        timelineHtml = `
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle"></i> No status change history available
+                            </div>
+                        `;
+                    }
+                    
+                    document.getElementById('historyTimeline').innerHTML = timelineHtml;
+                } else {
+                    document.getElementById('historyTimeline').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> ${response.error || 'Failed to load history'}
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching history:', err);
+                document.getElementById('historyTimeline').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Error: ${err.message}
+                    </div>
+                `;
+            });
     });
 });
-
-// Handle update form submission
-document.getElementById('updatePermitForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const permitId = document.getElementById('update_permit_id').value;
-    const formData = {
-        control_no: document.getElementById('update_control_no').value,
-        name: document.getElementById('update_name').value,
-        address: document.getElementById('update_address').value,
-        motorized_operation: document.getElementById('update_motorized_operation').value,
-        business_name: document.getElementById('update_business_name').value,
-        issue_date: document.getElementById('update_issue_date').value,
-        expiry_date: document.getElementById('update_expiry_date').value,
-        amount_paid: document.getElementById('update_amount_paid').value,
-        or_no: document.getElementById('update_or_no').value,
-        issued_at: document.getElementById('update_issued_at').value,
-        mayor: document.getElementById('update_mayor').value,
-        quarter: document.getElementById('update_quarter').value,
-        status: document.getElementById('update_status').value
-    };
-
-    // Get CSRF token
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    // Send update request
-    fetch(`/update-permit/${permitId}/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Close modal
-            $('#updatePermitModal').modal('hide');
-            
-            // Reload page to show updated data
-            location.reload();
-        } else {
-            alert('Error updating permit: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error updating permit. Please try again.');
-    });
-});
-
-});
-
 
 </script>
 <script>
 
-// View button handler — inject minimal 3-column content into the modal
-const viewButtons = document.querySelectorAll('.btn-view');
-viewButtons.forEach(btn => {
-    btn.addEventListener('click', function () {
-        const row = this.closest('tr');
-        const fallback = (index) => {
-            const tds = row ? row.querySelectorAll('td') : [];
-            return tds[index] ? tds[index].textContent.trim() : '';
-        };
-
-        const fields = [
-            ['Control No','control-no',0],
-            ['Status','status',1],
-            ['Name','name',2],
-            ['Address','address',3],
-            ['Motorized Operation','motorized',4],
-            ['Business Name','business',5],
-            ['OR No','or',8],
-            ['Amount Paid','amount',7],
-            ['Issue Date','issue',9],
-            ['Expiry Date','expiry',6],
-            ['Issued At','issued-at',10],
-            ['Mayor','mayor',11],
-            ['Quarter','quarter',12]
-        ];
-
-        let html = '';
-        fields.forEach(f => {
-            const label = f[0]; const attr = f[1]; const idx = f[2];
-            let value = this.getAttribute('data-' + attr) || fallback(idx) || '';
-            if (attr === 'status' && value) {
-                    const raw = value.toLowerCase();
-
-                    let badgeClass = 'badge-secondary';
-                    if (raw === 'active') badgeClass = 'badge-success';
-                    else if (raw === 'inactive') badgeClass = 'badge-warning';
-                    else if (raw === 'expired') badgeClass = 'badge-danger';
-
-                    value = `
-                        <span class="badge ${badgeClass}">
-                            ${raw.charAt(0).toUpperCase() + raw.slice(1)}
-                        </span>
-                    `;
-                }
-            if (!value) value = '&mdash;';
-            html += `\n  <div class="col-md-4 col-sm-6 mb-3">\n    <div class="small text-muted">${label}</div>\n    <div class="font-weight-bold">${value}</div>\n  </div>`;
-        });
-
-        document.getElementById('viewPermitContent').innerHTML = html;
-        $('#viewPermitModal').modal('show');
-    });
-});
 
 
 function printPermit(permitId) {
