@@ -201,15 +201,13 @@
 
 {% block head_extra %}
 <style>
-
-
 /* ========================================
    LIGHTER RED THEME (#ff4444) - COMPLETE OVERRIDE
    ======================================== */
 
 /* Primary Background Gradient (Sidebar) */
 .bg-gradient-primary {
-    background: linear-gradient(180deg, #ff4444 10%, #e63939 100%) !important;
+    background: linear-gradient(180deg, #bf1616 10%, #eb2626 100%) !important;
 }
 
 /* Buttons */
@@ -271,14 +269,6 @@ a.text-primary:focus {
     color: #e63939 !important;
 }
 
-/* Sidebar Active State */
-.sidebar .nav-item.active .nav-link {
-    background-color: #e63939 !important;
-}
-
-.sidebar .nav-link:hover {
-    background-color: rgba(255, 68, 68, 0.1) !important;
-}
 
 /* Badges */
 .badge-primary {
@@ -368,6 +358,149 @@ a.text-primary:focus {
     background-color: #ff4444 !important;
     border-color: #ff4444 !important;
 }
+ .filter-card {
+        border-left: 4px solid #4e73df;
+    }
+    .results-card {
+        background: #f8f9fc;
+        border-left: 4px solid #1cc88a;
+    }
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    /* ===============================
+   SIDEBAR FONT CLARITY & MATCHING
+   =============================== */
+
+/* Base sidebar text */
+.sidebar {
+    font-family: "Nunito", sans-serif;
+}
+
+/* Brand text (TMS) */
+.sidebar .sidebar-brand-text {
+    color: #ffffff !important;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+}
+
+/* Sidebar headings (Interface, etc.) */
+.sidebar .sidebar-heading {
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+/* Main nav links */
+.sidebar .nav-item .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 600;
+}
+
+/* Icons */
+.sidebar .nav-item .nav-link i {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Hover state */
+.sidebar .nav-item .nav-link:hover {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Active menu item */
+.sidebar .nav-item.active > .nav-link {
+    background-color: rgba(255, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+/* Collapse menu container */
+.sidebar .collapse-inner {
+    background-color: rgba(255, 255, 255, 0.96) !important;
+}
+
+/* Collapse menu links */
+.sidebar .collapse-item {
+    color: #e63939 !important;
+    font-weight: 600;
+}
+
+/* Collapse hover */
+.sidebar .collapse-item:hover {
+    background-color: rgba(255, 68, 68, 0.12) !important;
+    color: #b02a2a !important;
+}
+
+/* Collapse active item */
+.sidebar .collapse-item.active {
+    background-color: rgba(255, 68, 68, 0.18) !important;
+    color: #b02a2a !important;
+    font-weight: 700;
+}
+
+/* Divider lines */
+.sidebar-divider {
+    border-color: rgba(255, 255, 255, 0.25) !important;
+}
+/* ===============================
+   MINIMAL PRO LOADER (RED)
+   =============================== */
+
+#sidebar-loader {
+    position: fixed;
+    inset: 0;
+    /* Subtle dark overlay with high-end blur */
+    background: rgba(0, 0, 0, 0.4); 
+    backdrop-filter: blur(8px);
+    z-index: 10050;
+    display: none;
+    flex-direction: column; /* Stack spinner and text */
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+}
+
+#sidebar-loader.active {
+    display: flex;
+}
+
+.sidebar-spinner {
+    width: 40px;
+    height: 40px;
+    /* Clean, high-contrast borders */
+    border: 3px solid rgba(255, 255, 255, 0.05); 
+    border-top: 3px solid #ff3b3b; /* Vibrant, modern red */
+    border-radius: 50%;
+    
+    /* Elegant, tight rotation */
+    animation: sidebarSpin 0.8s linear infinite;
+}
+
+/* Optional: Adding a very subtle center dot instead of a pulsing engine */
+.sidebar-loader-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-loader-text {
+    margin-top: 16px;
+    font-size: 11px; /* Smaller, uppercase is "pro" standard */
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@keyframes sidebarSpin {
+    to { transform: rotate(360deg); }
+}
+    
 </style>
 {% endblock %}
 </head>
@@ -375,7 +508,14 @@ a.text-primary:focus {
 
 
 <body id="page-top">
-   
+   <!-- Global Sidebar Loader -->
+<div id="sidebar-loader">
+    <div class="sidebar-loader-content">
+        <div class="sidebar-spinner"></div>
+        <div class="sidebar-loader-text">Loading...</div>
+    </div>
+</div>
+
 	    <!-- Page Wrapper -->
     <div id="wrapper">
 
@@ -440,7 +580,7 @@ a.text-primary:focus {
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
                     aria-expanded="true" aria-controls="collapseUtilities">
                       <i class="fas fa-fw fa-motorcycle"></i>
-                    <span>Motorcycle Registration </span>
+                    <span>Tricycle Registration </span>
                 </a>
                 <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities"
                     data-parent="#accordionSidebar">
@@ -449,6 +589,7 @@ a.text-primary:focus {
                         <a class="collapse-item" href="{% url 'mayors-permit-tricycle' %}">Mayor's Permit- Tricyle</a>
                         <a class="collapse-item" href="{% url 'mtop' %}">MTOP</a>
                         <a class="collapse-item" href="{% url 'franchise' %}">Franchise</a>
+                        <a class="collapse-item" href="{% url 'create-report-tri' %}">Tricycle List</a>
                         <!-- <a class="collapse-item" href="#">Animations</a>
                         <a class="collapse-item" href="utilities-other.html">Other</a> -->
                     </div>
@@ -925,6 +1066,26 @@ $('.sidebar .nav-link').on('click', function () {
 });
 
         });
+/* ===============================
+   SIDEBAR NAVIGATION LOADER
+   =============================== */
+
+$('.sidebar .nav-link, .sidebar .collapse-item').on('click', function (e) {
+    const href = $(this).attr('href');
+
+    // Ignore collapse toggles
+    if (!href || href === '#' || $(this).attr('data-toggle') === 'collapse') {
+        return;
+    }
+
+    // Ignore same-page links
+    if (href === window.location.pathname) {
+        return;
+    }
+
+    // Show loader ONLY for real navigation
+    $('#sidebar-loader').addClass('active');
+});
 
         
     </script>

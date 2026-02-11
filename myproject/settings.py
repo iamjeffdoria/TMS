@@ -1,5 +1,5 @@
-import pymysql
-pymysql.install_as_MySQLdb()
+# import pymysql
+# pymysql.install_as_MySQLdb()
 
 import os
 from pathlib import Path
@@ -69,8 +69,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
 
 # DATABASES = {
 #     'default': {
@@ -79,19 +78,37 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 #     }
 # }
 
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'potpotdb',        # Your database name
-        'USER': 'potpotuser',      # Your MySQL username
-        'PASSWORD': 'StrongPassword123',  # Your MySQL password
-        'HOST': 'localhost',       # Usually localhost
-        'PORT': '3306',            # Default MySQL port
+        'NAME': 'potpotdb',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
         'OPTIONS': {
+            'charset': 'utf8mb4',
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        }
+        },
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'potpotdb',        # Your database name
+#         'USER': 'potpotuser',      # Your MySQL username
+#         'PASSWORD': 'StrongPassword123',  # Your MySQL password
+#         'HOST': 'localhost',       # Usually localhost
+#         'PORT': '3306',            # Default MySQL port
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#         }
+#     }
+# }
 
 
 # Password validation
@@ -139,5 +156,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 

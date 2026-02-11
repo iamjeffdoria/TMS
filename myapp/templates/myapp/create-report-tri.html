@@ -1,0 +1,978 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="card shadow mb-4">
+    <!-- Card Header with Buttons -->
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-dark">Tricycle List</h6>
+        
+        <!-- Button Group -->
+        <div class="btn-group">
+            <!-- IMPORT -->
+            <button
+                type="button"
+                class="btn btn-success btn-sm"
+                data-toggle="modal"
+                data-target="#importTriModal"
+            >
+                <i class="fas fa-file-import"></i> Import
+            </button>
+
+            <!-- EXPORT DROPDOWN -->
+            <div class="btn-group">
+                <button
+                    type="button"
+                    class="btn btn-danger btn-sm dropdown-toggle"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                >
+                    <i class="fas fa-file-export"></i> Export
+                </button>
+
+              <div class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'export-create-report-tri' %}?format=csv">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </a>
+                    <a class="dropdown-item" href="{% url 'export-create-report-tri' %}?format=excel">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </a>
+                </div>
+            </div>
+
+            <!-- ADD -->
+            <button
+                type="button"
+                class="btn btn-info btn-sm"
+                data-toggle="modal"
+                data-target="#addPermitModal"
+            >
+                <i class="fas fa-plus"></i> Add
+            </button>
+        </div>
+    </div>
+
+    <!-- Frontend Filter & Summary -->
+    <div class="card-body">
+        <!-- Date Filter with Print Button -->
+        <div class="row g-2 mb-3 align-items-end">
+            <div class="col-md-4">
+                <label class="small fw-bold">From Date</label>
+                <input type="date" id="filterStart" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold">To Date</label>
+                <input type="date" id="filterEnd" class="form-control form-control-sm">
+            </div>
+  <div class="col-md-4">
+<div class="dropdown">
+    <button class="btn btn-primary btn-sm w-100 dropdown-toggle" type="button" id="printReportBtn" data-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-print"></i> Print Report
+    </button>
+    <div class="dropdown-menu p-3" aria-labelledby="printReportBtn" style="min-width: 250px;">
+        <h6 class="dropdown-header px-0">Select Reports to Print</h6>
+        <div class="dropdown-divider"></div>
+
+
+        <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left;">
+            <input class="form-check-input" type="checkbox" value="renewed" id="checkRenewed">
+            <label class="form-check-label fs-6" for="checkRenewed">
+                <i class="fas fa-sync"></i> Renewed Permit
+            </label>
+        </div>
+
+        <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left;">
+            <input class="form-check-input" type="checkbox" value="registered" id="checkRegistered">
+            <label class="form-check-label fs-6" for="checkRegistered">
+                <i class="fas fa-file-alt"></i> Registered Tricycle
+            </label>
+        </div>
+
+   
+
+        <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left;">
+            <input class="form-check-input" type="checkbox" value="expired" id="checkExpired">
+            <label class="form-check-label fs-6" for="checkExpired">
+                <i class="fas fa-exclamation-triangle"></i> Expired Permit
+            </label>
+        </div>
+
+        <div class="dropdown-divider"></div>
+
+        <button type="button" class="btn btn-primary btn-sm w-100" id="confirmPrintBtn">
+            <i class="fas fa-check"></i> OK
+        </button>
+    </div>
+</div>
+
+
+</div>
+        </div>
+
+        <!-- Summary Counts -->
+        <div class="row text-center small fw-bold mb-4">
+            <div class="col-md">
+                <div class="border rounded p-2">
+                    Renewed Permit<br><span id="countRenewed">0</span>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="border rounded p-2">
+                    Registered Tricyle<br><span id="countRegistered">0</span>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="border rounded p-2">
+                    Expired Permit<br><span id="countExpired">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="createReportTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Body Number</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Make/Kind</th>
+                        <th>Engine/Motor No</th>
+                        <th>Chassis No</th>
+                        <th>Plate No</th>
+                        <th>Date Registered</th>
+                        <th>Date Expired</th>
+                        <th style="display:none;">Status</th>
+                        <th>Remarks</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>Body Number</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Make/Kind</th>
+                        <th>Engine/Motor No</th>
+                        <th>Chassis No</th>
+                        <th>Plate No</th>
+                        <th>Date Registered</th>
+                        <th>Date Expired</th>
+                        <th style="display:none;">Status</th>
+                        <th>Remarks</th>
+                        <th>Action</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+                    <!-- Data will be loaded via AJAX -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Print Content -->
+<div id="printContent" style="display: none;">
+    <!-- Content will be dynamically generated here -->
+</div>
+<!-- Import Modal -->
+<div class="modal fade" id="importTriModal" tabindex="-1" role="dialog" aria-labelledby="importTriModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="importTriModalLabel">
+                    <i class="fas fa-file-import"></i> Import File
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" action="{% url 'import-create-report-tri' %}">
+                {% csrf_token %}
+                
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Select CSV or Excel File</label>
+                        <input type="file" name="csv_file" accept=".csv,.xlsx,.xls" class="form-control" required>
+                        <small class="form-text text-muted">
+                            <i class="fas fa-info-circle"></i> Supported formats: .csv, .xlsx, .xls
+                        </small>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-upload"></i> Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Add Tricycle Modal -->
+<div class="modal fade" id="addPermitModal" tabindex="-1" aria-labelledby="addPermitModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+
+      <!-- Modal Header -->
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title font-weight-bold" id="addPermitModalLabel">
+          <i class="fas fa-plus mr-2"></i> Add New Tricycle
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <form id="addPermitForm">
+          {% csrf_token %}
+          <div class="form-row">
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Body Number</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                </div>
+                <input type="text" name="body_number" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Name</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-user"></i></span>
+                </div>
+                <input type="text" name="name" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Address</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                </div>
+                <input type="text" name="address" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Make/Kind</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-motorcycle"></i></span>
+                </div>
+                <input type="text" name="make_kind" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Engine/Motor No</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-cogs"></i></span>
+                </div>
+                <input type="text" name="engine_motor_no" class="form-control">
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Chassis No</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-tools"></i></span>
+                </div>
+                <input type="text" name="chassis_no" class="form-control">
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Plate No</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                </div>
+                <input type="text" name="plate_no" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Date Registered</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
+                </div>
+                <input type="date" name="date_registered" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Date Expired</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+                </div>
+                <input type="date" name="date_expired" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Status</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+                </div>
+                <select name="status" class="form-control" required>
+                  <option value="">Select Status</option>
+                  <option value="New">New</option>
+                  <option value="Renewed">Renewed</option>
+                  <option value="Expired">Expired</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+
+         <div class="col-lg-6 col-md-6 mb-3">
+  <label class="font-weight-bold">Remarks</label>
+  <div class="input-group">
+    <div class="input-group-prepend">
+      <span class="input-group-text"><i class="fas fa-sticky-note"></i></span>
+    </div>
+    <textarea name="remarks" class="form-control" rows="2" placeholder="Enter Remarks"></textarea>
+  </div>
+</div>
+
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer bg-light">
+        <button class="btn btn-success" id="saveAddPermitBtn">
+          <i class="fas fa-check"></i> Save Tricycle
+        </button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- View Tricycle Modal -->
+
+<div class="modal fade" id="viewPermitModal" tabindex="-1"
+     aria-labelledby="viewPermitModalLabel" aria-hidden="true">
+
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+
+    <div class="modal-content border-0 shadow-sm">
+
+      <!-- Header -->
+      <div class="modal-header border-bottom-0 pb-0">
+        <h6 class="modal-title text-muted text-uppercase"
+            id="viewPermitModalLabel"
+            style="letter-spacing: 1px; font-weight: 700;">
+          Tricycle Details
+        </h6>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-sm table-borderless mb-0">
+            <tbody id="viewModalContent">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer border-top-0 pt-0">
+        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- Update Tricycle Modal -->
+<div class="modal fade" id="updatePermitModal" tabindex="-1" aria-labelledby="updatePermitModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+
+      <!-- Modal Header -->
+      <div class="modal-header bg-warning text-white">
+        <h5 class="modal-title font-weight-bold" id="updatePermitModalLabel">
+          <i class="fas fa-edit mr-2"></i> Update Tricycle
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <form id="updatePermitForm">
+          {% csrf_token %}
+          <input type="hidden" name="tricycle_id" id="update_tricycle_id">
+          
+          <div class="form-row">
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Body Number</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                </div>
+                <input type="text" name="body_number" id="update_body_number" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Name</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-user"></i></span>
+                </div>
+                <input type="text" name="name" id="update_name" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Address</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                </div>
+                <input type="text" name="address" id="update_address" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Make/Kind</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-motorcycle"></i></span>
+                </div>
+                <input type="text" name="make_kind" id="update_make_kind" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Engine/Motor No</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-cogs"></i></span>
+                </div>
+                <input type="text" name="engine_motor_no" id="update_engine_motor_no" class="form-control">
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Chassis No</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-tools"></i></span>
+                </div>
+                <input type="text" name="chassis_no" id="update_chassis_no" class="form-control">
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Plate No</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                </div>
+                <input type="text" name="plate_no" id="update_plate_no" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Date Registered</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
+                </div>
+                <input type="date" name="date_registered" id="update_date_registered" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Date Expired</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+                </div>
+                <input type="date" name="date_expired" id="update_date_expired" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3">
+              <label class="font-weight-bold">Status</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+                </div>
+                <select name="status" id="update_status" class="form-control" required>
+                  <option value="">Select Status</option>
+                  <option value="New">New</option>
+                  <option value="Renewed">Renewed</option>
+                  <option value="Expired">Expired</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="col-lg-6 col-md-6 mb-3">
+              <label class="font-weight-bold">Remarks</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="fas fa-sticky-note"></i></span>
+                </div>
+                <textarea name="remarks" id="update_remarks" class="form-control" rows="2" placeholder="Enter Remarks"></textarea>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer bg-light">
+        <button class="btn btn-warning" id="saveUpdatePermitBtn">
+          <i class="fas fa-save"></i> Update Tricycle
+        </button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+    
+document.addEventListener("DOMContentLoaded", function () {
+
+$('#saveAddPermitBtn').on('click', function () {
+    var form = $('#addPermitForm');
+    $.ajax({
+        url: "{% url 'add-tricycle' %}",
+        type: "POST",
+        data: form.serialize(),
+        success: function (data) {
+            if (data.success) {
+                $('#addPermitModal').modal('hide');
+                $('#createReportTable').DataTable().ajax.reload();
+                form[0].reset();
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        },
+        error: function () {
+            alert('An error occurred while saving the tricycle.');
+        }
+    });
+});
+
+// Handle View button click
+$(document).on('click', '.btn-view', function() {
+    var bodyNumber = $(this).data('body-number');
+    var name = $(this).data('name');
+    var address = $(this).data('address');
+    var makeKind = $(this).data('make-kind');
+    var engineMotor = $(this).data('engine-motor');
+    var chassis = $(this).data('chassis');
+    var plateNo = $(this).data('plate-no');
+    var dateRegistered = $(this).data('date-registered');
+    var dateExpired = $(this).data('date-expired');
+    var status = $(this).data('status');
+    var remarks = $(this).data('remarks');
+    
+    var statusBadgeClass = 'badge-soft-secondary';
+    var statusBadgeStyle = 'background: #e2e8f0; color: #64748b;';
+    
+    if (status.toLowerCase().includes('active') || status.toLowerCase().includes('registered') || status.toLowerCase() === 'new') {
+        statusBadgeClass = 'badge-soft-success';
+        statusBadgeStyle = 'background: #e1fcef; color: #147d64;';
+    } else if (status.toLowerCase().includes('expired')) {
+        statusBadgeClass = 'badge-soft-danger';
+        statusBadgeStyle = 'background: #ffe5e5; color: #c41e3a;';
+    } else if (status.toLowerCase().includes('renewed')) {
+        statusBadgeClass = 'badge-soft-info';
+        statusBadgeStyle = 'background: #e0f2fe; color: #0369a1;';
+    } else if (status.toLowerCase().includes('pending')) {
+        statusBadgeClass = 'badge-soft-warning';
+        statusBadgeStyle = 'background: #fef3c7; color: #d97706;';
+    }
+    
+    var modalHTML = `
+        <tr class="border-bottom">
+            <td class="py-3 text-muted font-weight-medium" style="width: 25%;">Body Number</td>
+            <td class="py-3 font-weight-bold text-dark" style="width: 25%;">${bodyNumber}</td>
+            <td class="py-3 text-muted font-weight-medium" style="width: 25%;">Name</td>
+            <td class="py-3 font-weight-bold text-dark" style="width: 25%;">${name}</td>
+        </tr>
+        <tr class="border-bottom">
+            <td class="py-3 text-muted font-weight-medium">Address</td>
+            <td class="py-3 font-weight-bold text-dark">${address}</td>
+            <td class="py-3 text-muted font-weight-medium">Make/Kind</td>
+            <td class="py-3 font-weight-bold text-dark">${makeKind}</td>
+        </tr>
+        <tr class="border-bottom">
+            <td class="py-3 text-muted font-weight-medium">Engine/Motor No</td>
+            <td class="py-3 font-weight-bold text-dark">${engineMotor || '-'}</td>
+            <td class="py-3 text-muted font-weight-medium">Chassis No</td>
+            <td class="py-3 font-weight-bold text-dark">${chassis || '-'}</td>
+        </tr>
+        <tr class="border-bottom">
+            <td class="py-3 text-muted font-weight-medium">Plate No</td>
+            <td class="py-3 font-weight-bold text-dark">${plateNo}</td>
+            <td class="py-3 text-muted font-weight-medium">Date Registered</td>
+            <td class="py-3 font-weight-bold text-dark">${dateRegistered}</td>
+        </tr>
+        <tr class="border-bottom">
+            <td class="py-3 text-muted font-weight-medium">Date Expired</td>
+            <td class="py-3 font-weight-bold text-dark">${dateExpired}</td>
+            <td class="py-3 text-muted font-weight-medium">Status</td>
+            <td class="py-3">
+                <span class="badge badge-pill ${statusBadgeClass}" style="${statusBadgeStyle}">${status}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="py-3 text-muted font-weight-medium">Remarks</td>
+            <td class="py-3 font-weight-bold text-dark" colspan="3">${remarks || 'No remarks'}</td>
+        </tr>
+    `;
+    
+    $('#viewModalContent').html(modalHTML);
+    $('#viewPermitModal').modal('show');
+});
+
+// Handle Update button click
+$(document).on('click', '.btn-update', function() {
+    var id = $(this).data('id');
+    var bodyNumber = $(this).data('body-number');
+    var name = $(this).data('name');
+    var address = $(this).data('address');
+    var makeKind = $(this).data('make-kind');
+    var engineMotor = $(this).data('engine-motor');
+    var chassis = $(this).data('chassis');
+    var plateNo = $(this).data('plate-no');
+    var dateRegistered = $(this).data('date-registered');
+    var dateExpired = $(this).data('date-expired');
+    var status = $(this).data('status');
+    var remarks = $(this).data('remarks');
+    
+    $('#update_tricycle_id').val(id);
+    $('#update_body_number').val(bodyNumber);
+    $('#update_name').val(name);
+    $('#update_address').val(address);
+    $('#update_make_kind').val(makeKind);
+    $('#update_engine_motor_no').val(engineMotor);
+    $('#update_chassis_no').val(chassis);
+    $('#update_plate_no').val(plateNo);
+    $('#update_date_registered').val(dateRegistered);
+    $('#update_date_expired').val(dateExpired);
+    $('#update_status').val(status);
+    $('#update_remarks').val(remarks);
+    
+    $('#updatePermitModal').modal('show');
+});
+
+// Handle Update Save button click
+$('#saveUpdatePermitBtn').on('click', function () {
+    var form = $('#updatePermitForm');
+
+    $.ajax({
+        url: "{% url 'update-tricycle' %}",
+        type: "POST",
+        data: form.serialize(),
+        success: function (data) {
+            if (data.success) {
+
+                $('#updatePermitModal').modal('hide');
+
+                // Reload table (optional if page reloads)
+                $('#createReportTable').DataTable().ajax.reload(null, false);
+
+                // Small delay so modal closes smoothly
+                setTimeout(function () {
+                    location.reload();
+                }, 300);
+
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        },
+        error: function (xhr, status, error) {
+            alert('An error occurred while updating the tricycle: ' + error);
+        }
+    });
+});
+
+    
+    // Initialize DataTable with server-side processing
+    var table = $('#createReportTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "{% url 'create-report-tri-datatable' %}",
+            "type": "GET",
+            "data": function(d) {
+                // Add date filter parameters to the request
+                d.filter_start = $('#filterStart').val();
+                d.filter_end = $('#filterEnd').val();
+            },
+            "dataSrc": function(json) {
+                // Update status counts when data is loaded
+                if (json.statusCounts) {
+                    $('#countRenewed').text(json.statusCounts.renewed);
+                    $('#countRegistered').text(json.statusCounts.registered);
+                    $('#countExpired').text(json.statusCounts.expired);
+                }
+                return json.data;
+            }
+        },
+        "pageLength": 5,
+        "lengthChange": false,
+        "lengthMenu": [5, 10, 25, 50, 100],
+        "ordering": false,
+        "searching": true,
+        "dom": 'lrtip',
+        "columns": [
+            { "data": 0 },
+            { "data": 1 },
+            { "data": 2 },
+            { 
+                "data": 3,
+                "render": function(data, type, row) {
+                    var status = row[9];
+                    var statusBadge = '';
+                    
+                    if (status) {
+                        var badgeClass = '';
+                        var statusText = status;
+                        
+                        if (status.toLowerCase().includes('active') || status.toLowerCase().includes('registered')) {
+                            badgeClass = 'badge-success';
+                        } else if (status.toLowerCase().includes('expired')) {
+                            badgeClass = 'badge-danger';
+                        } else if (status.toLowerCase().includes('renewed')) {
+                            badgeClass = 'badge-info';
+                        } else if (status.toLowerCase().includes('pending')) {
+                            badgeClass = 'badge-warning';
+                        } else {
+                            badgeClass = 'badge-secondary';
+                        }
+                        
+                        statusBadge = '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
+                    }
+                    
+                    return '<span>' + data + '</span>' + statusBadge;
+                }
+            },
+            { "data": 4 },
+            { "data": 5 },
+            { "data": 6 },
+            { "data": 7 },
+            { "data": 8 },
+            { "data": 9, "visible": false, "searchable": true },
+            { "data": 10 },
+            { "data": 11, "orderable": false }
+        ],
+        "columnDefs": [
+            {
+                "targets": [7,8,9,10],
+                "visible": false,
+                "searchable": true,
+            }
+        ]
+    });
+
+    // Real-time date filtering
+    $('#filterStart, #filterEnd').on('change', function() {
+        table.ajax.reload();
+    });
+
+    $('#createReportTable thead tr').clone(true).appendTo('#createReportTable thead');
+    
+    $('#createReportTable thead tr:eq(1) th').each(function (i) {
+        var column = table.column(i);
+        
+        if (i === 11) {
+            $(this).html('');
+            return;
+        }
+
+        if (!column.visible()) {
+            $(this).html('');
+            return;
+        }
+
+        $(this).html('<input type="text" class="form-control form-control-sm border-secondary"" />');
+        
+        $('input', this).on('keyup change', function () {
+            if (column.search() !== this.value) {
+                column.search(this.value).draw();
+            }
+        });
+    });
+    
+// Handle Print Confirm Button
+$('#confirmPrintBtn').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Get selected checkboxes
+    var selectedReports = [];
+    
+    if ($('#checkRenewed').is(':checked')) {
+        selectedReports.push('renewed');
+    }
+    if ($('#checkRegistered').is(':checked')) {
+        selectedReports.push('registered');
+    }
+    if ($('#checkExpired').is(':checked')) {
+        selectedReports.push('expired');
+    }
+    
+    // Check if at least one report is selected
+    if (selectedReports.length === 0) {
+        alert('Please select at least one report to print.');
+        return;
+    }
+    
+    // Close dropdown properly using Bootstrap's method
+    $('#printReportBtn').dropdown('toggle');
+    
+    // Small delay to ensure dropdown closes before print dialog
+    setTimeout(function() {
+        generateAndPrintReports(selectedReports);
+    }, 150);
+});
+
+});
+function generateAndPrintReports(reportTypes) {
+    var printContent = '<div style="padding: 20px; font-family: Arial, sans-serif;">';
+    
+    var currentDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    reportTypes.forEach(function(type, index) {
+        if (index > 0) {
+            printContent += '<div style="page-break-before: always;"></div>';
+        }
+        
+        var reportTitle = '';
+        var table = $('#createReportTable').DataTable();
+        var allData = table.rows({ search: 'applied' }).data().toArray();
+
+        // Filter rows by report type based on the Status column (row[9]) which is hidden
+        var filteredData = allData.filter(function(row) {
+            var status = row[9].toLowerCase();
+            if (type === 'renewed') return status.includes('renewed');
+            if (type === 'registered') return status.includes('new') || status.includes('registered');
+            if (type === 'expired') return status.includes('expired');
+            return false;
+        });
+
+        // Set report title
+        if (type === 'renewed') reportTitle = 'Renewed Permit Report';
+        else if (type === 'registered') reportTitle = 'Registered Tricycle Report';
+        else if (type === 'expired') reportTitle = 'Expired Permit Report';
+
+        printContent += `
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="margin: 0; color: #333;">${reportTitle}</h1>
+                <p style="margin: 5px 0; color: #666;">Generated on ${currentDate}</p>
+                <p style="margin: 5px 0; color: #666;">Total Records: ${filteredData.length}</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                <thead>
+                    <tr style="background-color: #4e73df; color: white;">
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Body Number</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Name</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Address</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Make/Kind</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Plate No</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Date Registered</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Date Expired</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        filteredData.forEach(function(row, idx) {
+            var rowColor = idx % 2 === 0 ? '#f8f9fc' : 'white';
+            printContent += `
+                <tr style="background-color: ${rowColor};">
+                    <td style="border: 1px solid #ddd; padding: 10px;">${row[0]}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${row[1]}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${row[2]}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${row[3]}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${row[6]}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${row[7]}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${row[8]}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${row[9]}</td>
+                </tr>
+            `;
+        });
+
+        printContent += `
+                </tbody>
+            </table>
+        `;
+    });
+
+    printContent += '</div>';
+
+   // Create a hidden iframe
+var iframe = document.createElement('iframe');
+iframe.style.position = 'absolute';
+iframe.style.width = '0';
+iframe.style.height = '0';
+iframe.style.border = '0';
+document.body.appendChild(iframe);
+
+// Write content to iframe
+iframe.contentDocument.open();
+iframe.contentDocument.write('<html><head><title>Tricycle Report</title></head><body>');
+iframe.contentDocument.write(printContent);
+iframe.contentDocument.write('</body></html>');
+iframe.contentDocument.close();
+
+// Trigger print
+iframe.contentWindow.focus();
+iframe.contentWindow.print();
+
+// Remove iframe after printing
+setTimeout(function() {
+    document.body.removeChild(iframe);
+}, 1000);
+
+}
+
+</script>
+
+{% endblock %}

@@ -20,7 +20,7 @@ def random_date(start, end):
     )
 
 # Generate 50 fake rows (you can change this)
-TOTAL_ROWS = 10000
+TOTAL_ROWS = 500
 
 # File name
 output_file = "mayors_permit_fake.csv"

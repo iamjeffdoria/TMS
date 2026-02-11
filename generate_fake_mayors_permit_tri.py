@@ -17,7 +17,7 @@ quarter_choices = [
 status_choices = ["active", "inactive", "expired"]
 
 # Total rows to generate
-TOTAL_ROWS = 10000
+TOTAL_ROWS = 500
 
 # Output file
 output_file = "mayors_permit_tricycle_fake.csv"

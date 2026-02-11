@@ -1,8 +1,47 @@
 from datetime import date
 import logging
-from .models import MayorsPermit, MayorsPermitTricycle, MayorsPermitHistory, MayorsPermitTricycleHistory
+from .models import MayorsPermit, MayorsPermitTricycle, MayorsPermitHistory, MayorsPermitTricycleHistory, Tricycle, TricycleHistory
 
 logger = logging.getLogger(__name__)
+
+def mark_expired_tricycles():
+    """Automatically expire tricycles based on date_expired"""
+    today = date.today()
+
+    qs = Tricycle.objects.filter(
+        date_expired__lte=today
+    ).exclude(status='Expired')
+
+    count = qs.count()
+    if not count:
+        return 0
+
+    # ✅ Record history BEFORE updating
+    tricycles = list(qs)
+    
+    # Update status
+    qs.update(
+        status='Expired',
+        remarks='Automatically expired by system'
+    )
+    
+    # ✅ Create history records
+    histories = [
+        TricycleHistory(
+            tricycle=tricycle,
+            action='expired',
+            previous_status=tricycle.status,
+            new_status='Expired',
+            remarks='Automatically expired by system',
+            created_by='system'
+        )
+        for tricycle in tricycles
+    ]
+    TricycleHistory.objects.bulk_create(histories)
+
+    logger.info("Expired %d Tricycle(s)", count)
+    print(f"Marked {count} tricycle(s) as expired.")
+    return count
 
 def mark_expired_mayors_permits():
     """Expire regular Mayor's Permits and return count."""
@@ -71,9 +110,11 @@ def mark_expired_permits():
     """Run both expiration routines and return a dict with counts."""
     res1 = mark_expired_mayors_permits()
     res2 = mark_expired_tricycle_permits()
+    res3 = mark_expired_tricycles()
     results = {
         'mayors_permit': res1,
         'tricycle_permit': res2,
+        'tricycles': res3,
     }
     logger.info("Expiration summary: %s", results)
     return results

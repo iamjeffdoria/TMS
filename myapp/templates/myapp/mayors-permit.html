@@ -52,7 +52,7 @@
                                     <thead>
                                   <tr>
                                       <th>Control No</th>
-                                      <th>Status</th>
+                                      <th style="display:none;">Status</th>
                                       <th>Name</th>
                                       <th>Address</th>
                                       <th>Business Name</th>
@@ -68,14 +68,7 @@
                                   </tr>
                                   <tr>
                                       <th><input type="text"  class="form-control form-control-sm border-secondary" /></th>
-                                      <th>
-                                          <select class="form-control form-control-sm border-secondary" id="statusFilter">
-                                              <option value="">All</option>
-                                              <option value="Active">Active</option>
-                                              <option value="Inactive">Inactive</option>
-                                              <option value="Expired">Expired</option>
-                                          </select>
-                                      </th>
+                                      <th></th>
                                       <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
                                       <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
                                       <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
@@ -94,7 +87,7 @@
                                         <tfoot>
                                             <tr>
                                                 <th>Control No</th>
-                                                <th>Status</th>
+                                                <th style="display:none;">Status</th>
                                                 <th>Name</th>
                                                 <th>Address</th>
                                                 <th>Business Name</th>
@@ -332,6 +325,7 @@
         </div>
       </div>
     </div>
+    
 <!-- Add Permit Modal -->
 <div class="modal fade" id="addPermitModal" tabindex="-1" aria-labelledby="addPermitModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -721,11 +715,36 @@
         "dom": 'lrtip',
         "columns": [
             { "data": 0 },  // Control No
-            { "data": 1 },  // Status
+            { "data": 1, "visible": false, "searchable": true },  // Status
             { "data": 2 },  // Name
             { "data": 3 },  // Address
             { "data": 4 },  // Business Name
-            { "data": 5 },  // Motorized Operation
+            { 
+              "data": 5,   // Motorized Operation (merged with Status)
+                "render": function(data, type, row) {
+                    var status = row[1];  // Status column
+                    var statusBadge = '';
+                    
+                    if (status) {
+                        var badgeClass = '';
+                        var statusText = status.charAt(0).toUpperCase() + status.slice(1);
+                        
+                        if (status.toLowerCase() === 'active') {
+                            badgeClass = 'badge-success';
+                        } else if (status.toLowerCase() === 'inactive') {
+                            badgeClass = 'badge-warning';
+                        } else if (status.toLowerCase() === 'expired') {
+                            badgeClass = 'badge-danger';
+                        } else {
+                            badgeClass = 'badge-secondary';
+                        }
+                        
+                        statusBadge = '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
+                    }
+                    
+                    return '<span>' + data + '</span>' + statusBadge;
+                }
+            },
             { "data": 6 },  // OR No
             { "data": 7 },  // Amount Paid
             { "data": 8 },  // Issue Date
@@ -772,10 +791,10 @@
     });
 
     // Status dropdown filter
-    $('#statusFilter').on('change', function() {
-        var searchValue = this.value;
-        table.column(1).search(searchValue).draw();
-    });
+    // $('#statusFilter').on('change', function() {
+    //     var searchValue = this.value;
+    //     table.column(1).search(searchValue).draw();
+    // });
 
     // View button - use event delegation
     $('#dataTable tbody').on('click', '.btn-view', function(e) {

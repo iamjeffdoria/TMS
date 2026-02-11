@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.db import IntegrityError
 from django.contrib.auth.hashers import make_password, check_password
-from .models import Admin, MayorsPermit, IDCard, Mtop, Franchise, MayorsPermitTricycle, SuperAdmin, AdminPermission,MayorsPermitHistory, MayorsPermitTricycleHistory,ActivityLog
+from .models import Admin, MayorsPermit, IDCard, Mtop, Franchise, MayorsPermitTricycle, SuperAdmin, AdminPermission,MayorsPermitHistory, MayorsPermitTricycleHistory,ActivityLog,Tricycle, TricycleHistory
 from django.http import JsonResponse
 from django.utils.dateparse import parse_date
 from django.http import HttpResponse
@@ -800,14 +800,7 @@ def mayors_permit_datatable(request):
     data = []
     for permit in permits:
         # Status badge HTML
-        if permit.status == "active":
-            status_html = '<span class="badge badge-success">Active</span>'
-        elif permit.status == "inactive":
-            status_html = '<span class="badge badge-warning">Inactive</span>'
-        elif permit.status == "expired":
-            status_html = '<span class="badge badge-danger">Expired</span>'
-        else:
-            status_html = f'<span class="badge badge-secondary">{permit.status.capitalize()}</span>'
+      
         
         # Generate URLs using reverse()
         print_url = reverse('print-mayors-permit', args=[permit.id])
@@ -831,9 +824,10 @@ def mayors_permit_datatable(request):
         </div>
         '''
         
+       
         data.append([
             permit.control_no,
-            status_html,
+            permit.status,  # ← Send raw status text instead of HTML
             permit.name,
             permit.address,
             permit.business_name or '',
@@ -846,10 +840,9 @@ def mayors_permit_datatable(request):
             permit.mayor or '',
             permit.get_quarter_display(),
             action_html,
-            permit.id,  # Hidden column for ID
+            permit.id,
             permit.status  # Hidden column for raw status value
         ])
-    
     return JsonResponse({
         'draw': draw,
         'recordsTotal': total_records,
@@ -1205,7 +1198,7 @@ def update_mayors_permit(request, permit_id):
 
     permit = get_object_or_404(MayorsPermit, id=permit_id)
     old_status = permit.status
-    # Extract POST data
+    # Extract POST datar
     control_no = request.POST.get("control_no")
     name = request.POST.get("name")
     address = request.POST.get("address")
@@ -1823,7 +1816,6 @@ def mayors_permit_tri_history_data(request, permit_id):
             'success': False,
             'error': str(e)
         }, status=500)
-
 def mayors_permit_tricycle_datatable(request):
     """Server-side processing endpoint for DataTables"""
     
@@ -1843,39 +1835,35 @@ def mayors_permit_tricycle_datatable(request):
             Q(name__icontains=search_value) |
             Q(address__icontains=search_value) |
             Q(business_name__icontains=search_value) |
-            Q(or_no__icontains=search_value)
+            Q(motorized_operation__icontains=search_value) |
+            Q(or_no__icontains=search_value) |
+            Q(status__icontains=search_value)
         )
     
-    # Column-specific search
-    for i in range(14):
-        column_search = request.GET.get(f'columns[{i}][search][value]', '')
+    # Column-specific search with exact mapping
+    # Only process searchable columns
+    column_filters = {
+        0: 'control_no',           # Control No
+        1: 'status',                # Status (hidden but searchable)
+        2: 'name',                  # Name
+        3: 'address',               # Address
+        4: 'motorized_operation',   # Motorized Operation
+        5: 'business_name',         # Business Name
+        6: 'expiry_date',           # Expiry Date (hidden)
+        7: 'amount_paid',           # Amount Paid (hidden)
+        8: 'or_no',                 # OR No (hidden)
+        9: 'issue_date',            # Issue Date (hidden)
+        10: 'issued_at',            # Issued At (hidden)
+        11: 'mayor',                # Mayor (hidden)
+        12: 'quarter',              # Quarter (hidden)
+    }
+    
+    for col_idx, field_name in column_filters.items():
+        column_search = request.GET.get(f'columns[{col_idx}][search][value]', '').strip()
         if column_search:
-            if i == 0:  # Control No
-                queryset = queryset.filter(control_no__icontains=column_search)
-            elif i == 1:  # Status - exact match
-                queryset = queryset.filter(status__iexact=column_search)
-            elif i == 2:  # Name
-                queryset = queryset.filter(name__icontains=column_search)
-            elif i == 3:  # Address
-                queryset = queryset.filter(address__icontains=column_search)
-            elif i == 4:  # Motorized Operation
-                queryset = queryset.filter(motorized_operation__icontains=column_search)
-            elif i == 5:  # Business Name
-                queryset = queryset.filter(business_name__icontains=column_search)
-            elif i == 6:  # Expiry Date
-                queryset = queryset.filter(expiry_date__icontains=column_search)
-            elif i == 7:  # Amount Paid
-                queryset = queryset.filter(amount_paid__icontains=column_search)
-            elif i == 8:  # OR No
-                queryset = queryset.filter(or_no__icontains=column_search)
-            elif i == 9:  # Issue Date
-                queryset = queryset.filter(issue_date__icontains=column_search)
-            elif i == 10:  # Issued At
-                queryset = queryset.filter(issued_at__icontains=column_search)
-            elif i == 11:  # Mayor
-                queryset = queryset.filter(mayor__icontains=column_search)
-            elif i == 12:  # Quarter
-                queryset = queryset.filter(quarter__icontains=column_search)
+            # Use icontains for text fields
+            filter_kwargs = {f'{field_name}__icontains': column_search}
+            queryset = queryset.filter(**filter_kwargs)
     
     # Total records
     total_records = MayorsPermitTricycle.objects.count()
@@ -1887,17 +1875,6 @@ def mayors_permit_tricycle_datatable(request):
     # Format data
     data = []
     for permit in permits:
-        # Status badge HTML
-        if permit.status == "active":
-            status_html = '<span class="badge badge-success">Active</span>'
-        elif permit.status == "inactive":
-            status_html = '<span class="badge badge-warning">Inactive</span>'
-        elif permit.status == "expired":
-            status_html = '<span class="badge badge-danger">Expired</span>'
-        else:
-            status_html = f'<span class="badge badge-secondary">{permit.status.capitalize()}</span>'
-        
-        # Action buttons HTML
         action_html = f'''
         <div class="btn-group" role="group">
              <button class="btn btn-sm btn-info btn-view" title="View Details" 
@@ -1906,15 +1883,15 @@ def mayors_permit_tricycle_datatable(request):
                 data-status="{permit.status}"
                 data-name="{permit.name}"
                 data-address="{permit.address}"
-                data-motorized_operation="{permit.motorized_operation}"
-                data-business_name="{permit.business_name}"
+                data-motorized_operation="{permit.motorized_operation or ''}"
+                data-business_name="{permit.business_name or ''}"
                 data-expiry_date="{permit.expiry_date}"
                 data-amount_paid="{permit.amount_paid}"
                 data-or_no="{permit.or_no}"
                 data-issue_date="{permit.issue_date}"
-                data-issued_at="{permit.issued_at}"
-                data-mayor="{permit.mayor}"
-                data-quarter="{permit.quarter}">
+                data-issued_at="{permit.issued_at or ''}"
+                data-mayor="{permit.mayor or ''}"
+                data-quarter="{permit.get_quarter_display()}">
                 <i class="fas fa-eye"></i>
             </button>
             <button class="btn btn-sm btn-primary btn-print" title="Print" 
@@ -1922,15 +1899,15 @@ def mayors_permit_tricycle_datatable(request):
                 data-control-no="{permit.control_no}"
                 data-name="{permit.name}"
                 data-address="{permit.address}"
-                data-motorized="{permit.motorized_operation}"
-                data-business="{permit.business_name}"
+                data-motorized="{permit.motorized_operation or ''}"
+                data-business="{permit.business_name or ''}"
                 data-expiry="{permit.expiry_date}"
-                data-quarter="{permit.quarter}"
+                data-quarter="{permit.get_quarter_display()}"
                 data-amount="{permit.amount_paid}"
                 data-or="{permit.or_no}"
                 data-issue="{permit.issue_date}"
-                data-issued-at="{permit.issued_at}"
-                data-mayor="{permit.mayor}">
+                data-issued-at="{permit.issued_at or ''}"
+                data-mayor="{permit.mayor or ''}">
                 <i class="fas fa-print"></i>
             </button>
             <button type="button" class="btn btn-sm btn-warning btn-update" title="Update"
@@ -1939,15 +1916,15 @@ def mayors_permit_tricycle_datatable(request):
                 data-status="{permit.status}"
                 data-name="{permit.name}"
                 data-address="{permit.address}"
-                data-motorized_operation="{permit.motorized_operation}"
-                data-business_name="{permit.business_name}"
+                data-motorized_operation="{permit.motorized_operation or ''}"
+                data-business_name="{permit.business_name or ''}"
                 data-expiry_date="{permit.expiry_date}"
                 data-amount_paid="{permit.amount_paid}"
                 data-or_no="{permit.or_no}"
                 data-issue_date="{permit.issue_date}"
-                data-issued_at="{permit.issued_at}"
-                data-mayor="{permit.mayor}"
-                data-quarter="{permit.quarter}">
+                data-issued_at="{permit.issued_at or ''}"
+                data-mayor="{permit.mayor or ''}"
+                data-quarter="{permit.get_quarter_display()}">
                 <i class="fas fa-edit"></i>
             </button>
             <button type="button" class="btn btn-sm btn-secondary btn-history" data-id="{permit.id}" title="History">
@@ -1957,22 +1934,22 @@ def mayors_permit_tricycle_datatable(request):
         '''
         
         data.append([
-            permit.control_no,
-            status_html,
-            permit.name,
-            permit.address,
-            permit.motorized_operation or '',
-            permit.business_name or '',
-            permit.expiry_date.strftime('%Y-%m-%d'),
-            str(permit.amount_paid),
-            permit.or_no,
-            permit.issue_date.strftime('%Y-%m-%d'),
-            permit.issued_at or '',
-            permit.mayor or '',
-            permit.get_quarter_display(),
-            action_html,
-            permit.id,  # Hidden column for ID
-            permit.status  # Hidden column for raw status value
+            permit.control_no,                          # 0 - Control No
+            permit.status,                              # 1 - Status (hidden)
+            permit.name,                                # 2 - Name
+            permit.address,                             # 3 - Address
+            permit.motorized_operation or '',           # 4 - Motorized Operation
+            permit.business_name or '',                 # 5 - Business Name
+            permit.expiry_date.strftime('%Y-%m-%d'),    # 6 - Expiry Date (hidden)
+            str(permit.amount_paid),                    # 7 - Amount Paid (hidden)
+            permit.or_no,                               # 8 - OR No (hidden)
+            permit.issue_date.strftime('%Y-%m-%d'),     # 9 - Issue Date (hidden)
+            permit.issued_at or '',                     # 10 - Issued At (hidden)
+            permit.mayor or '',                         # 11 - Mayor (hidden)
+            permit.get_quarter_display(),               # 12 - Quarter (hidden)
+            action_html,                                # 13 - Action
+            permit.id,                                  # 14 - Hidden ID
+            permit.status                               # 15 - Hidden raw status
         ])
     
     return JsonResponse({
@@ -2208,8 +2185,8 @@ def import_mayors_permit_tri(request):
             return redirect("mayors-permit-tricycle")
 
         file_name = uploaded_file.name.lower()
-        is_excel = file_name.endswith(('.xlsx', '.xls'))
-        is_csv = file_name.endswith('.csv')
+        is_excel = file_name.endswith((".xlsx", ".xls"))
+        is_csv = file_name.endswith(".csv")
 
         if not (is_csv or is_excel):
             messages.error(request, "Please upload a CSV or Excel file (.csv, .xlsx, .xls)")
@@ -2218,117 +2195,145 @@ def import_mayors_permit_tri(request):
         errors = []
         success_count = 0
 
-        # Expected header columns (with underscores)
-        expected_header = ['control_no', 'name', 'address', 'motorized_operation', 
-                          'business_name', 'expiry_date', 'amount_paid', 'or_no', 
-                          'issue_date', 'issued_at', 'mayor', 'quarter', 'status']
+        # Expected header columns
+        expected_header = [
+            "control_no", "name", "address", "motorized_operation",
+            "business_name", "expiry_date", "amount_paid", "or_no",
+            "issue_date", "issued_at", "mayor", "quarter", "status"
+        ]
 
         def normalize_header(header):
-            """Convert header to lowercase and replace spaces with underscores"""
-            return [h.strip().lower().replace(' ', '_') for h in header]
+            return [h.strip().lower().replace(" ", "_") for h in header]
+
+        def parse_date_flexible(date_val):
+            if isinstance(date_val, datetime):
+                return date_val.date()
+            if date_val is None or str(date_val).strip() == "":
+                return None
+
+            date_str = str(date_val).strip()
+
+            date_formats = [
+                "%Y-%m-%d",
+                "%m/%d/%Y",
+                "%d/%m/%Y",
+                "%Y/%m/%d",
+                "%m-%d-%Y",
+                "%d-%m-%Y",
+
+                "%B %d, %Y",
+                "%b %d, %Y",
+                "%b %d %Y",
+                "%B %d %Y",
+                "%d %b %Y",
+                "%d %B %Y",
+
+                "%m/%d/%y",
+                "%m-%d-%y",
+
+                "%d-%b-%y",
+                "%d-%B-%y",
+                "%b-%d-%y",
+                "%B-%d-%y",
+            ]
+
+            for fmt in date_formats:
+                try:
+                    return datetime.strptime(date_str, fmt).date()
+                except ValueError:
+                    continue
+
+            raise ValueError(
+                f"Unable to parse date '{date_val}'. "
+                "Supported formats include YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY."
+            )
 
         try:
+            # ===================== EXCEL =====================
             if is_excel:
-                # Handle Excel file
                 wb = load_workbook(uploaded_file)
                 ws = wb.active
                 rows = list(ws.iter_rows(values_only=True))
-                
+
                 if not rows:
                     messages.error(request, "Excel file is empty.")
                     return redirect("mayors-permit-tricycle")
-                
-                # Validate and normalize header
-                raw_header = [str(cell).strip() if cell else '' for cell in rows[0]]
-                normalized_header = normalize_header(raw_header)
-                
-                if normalized_header != expected_header:
-                    messages.error(request, f"Invalid Excel header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
-                    return redirect('mayors-permit-tricycle')
-                
-                # Skip header row
-                data_rows = rows[1:]
-                
-                for i, row in enumerate(data_rows, start=2):
+
+                raw_header = [str(cell).strip() if cell else "" for cell in rows[0]]
+                if normalize_header(raw_header) != expected_header:
+                    messages.error(
+                        request,
+                        f"Invalid Excel header. Expected: {', '.join(expected_header)}"
+                    )
+                    return redirect("mayors-permit-tricycle")
+
+                for i, row in enumerate(rows[1:], start=2):
                     if not row or all(cell is None for cell in row):
                         continue
-                        
-                    # Strip whitespace from all columns
-                    row = [str(cell).strip() if cell is not None else '' for cell in row]
-                    
+
                     if len(row) < len(expected_header):
-                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+                        errors.append(
+                            f"Row {i}: Incorrect number of columns ({len(row)})."
+                        )
                         continue
 
                     try:
-                        # Handle date parsing for Excel
-                        def parse_date(date_val):
-                            if isinstance(date_val, datetime):
-                                return date_val.date()
-                            elif isinstance(date_val, str):
-                                return datetime.strptime(date_val, "%Y-%m-%d").date()
-                            else:
-                                return date_val
+                        issue_date = parse_date_flexible(row[8])
+                        expiry_date = parse_date_flexible(row[5])
 
-                        issue_date = parse_date(row[8])
-                        expiry_date = parse_date(row[5])
-                        
                         try:
                             amount_paid = int(float(row[6])) if row[6] else 0
                         except ValueError:
                             raise ValueError(f"Invalid amount_paid '{row[6]}'")
 
                         MayorsPermitTricycle.objects.update_or_create(
-                            control_no=str(row[0]) if row[0] else '',
+                            control_no=str(row[0]) if row[0] else "",
                             defaults={
-                                "name": str(row[1]) if row[1] else '',
-                                "address": str(row[2]) if row[2] else '',
-                                "motorized_operation": str(row[3]) if row[3] else '',
-                                "business_name": str(row[4]) if row[4] else '',
+                                "name": str(row[1]) if row[1] else "",
+                                "address": str(row[2]) if row[2] else "",
+                                "motorized_operation": str(row[3]) if row[3] else "",
+                                "business_name": str(row[4]) if row[4] else "",
                                 "expiry_date": expiry_date,
                                 "amount_paid": amount_paid,
-                                "or_no": str(row[7]) if row[7] else '',
+                                "or_no": str(row[7]) if row[7] else "",
                                 "issue_date": issue_date,
-                                "issued_at": str(row[9]) if row[9] else '',
-                                "mayor": str(row[10]) if row[10] else '',
-                                "quarter": str(row[11]) if row[11] else '',
-                                "status": str(row[12]) if row[12] else 'active',
+                                "issued_at": str(row[9]) if row[9] else "",
+                                "mayor": str(row[10]) if row[10] else "",
+                                "quarter": str(row[11]) if row[11] else "",
+                                "status": str(row[12]) if row[12] else "active",
                             },
                         )
                         success_count += 1
 
-                    except ValueError as ve:
-                        errors.append(f"Row {i}: Value error - {ve}")
                     except Exception as e:
                         errors.append(f"Row {i}: {e}")
 
+            # ===================== CSV =====================
             else:
-                # Handle CSV file
                 file_data = uploaded_file.read().decode("utf-8-sig").splitlines()
                 reader = csv.reader(file_data)
                 raw_header = next(reader)
-                
-                # Validate and normalize header columns
-                normalized_header = normalize_header(raw_header)
-                
-                if normalized_header != expected_header:
-                    messages.error(request, f"Invalid CSV header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
-                    return redirect('mayors-permit-tricycle')
+
+                if normalize_header(raw_header) != expected_header:
+                    messages.error(
+                        request,
+                        f"Invalid CSV header. Expected: {', '.join(expected_header)}"
+                    )
+                    return redirect("mayors-permit-tricycle")
 
                 for i, row in enumerate(reader, start=2):
-                    # Strip whitespace from all columns
-                    row = [c.strip() for c in row]
-
                     if len(row) != len(expected_header):
-                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+                        errors.append(
+                            f"Row {i}: Incorrect number of columns ({len(row)})."
+                        )
                         continue
 
                     try:
-                        issue_date = datetime.strptime(row[8], "%Y-%m-%d").date()
-                        expiry_date = datetime.strptime(row[5], "%Y-%m-%d").date()
+                        issue_date = parse_date_flexible(row[8])
+                        expiry_date = parse_date_flexible(row[5])
 
                         try:
-                            amount_paid = int(row[6])
+                            amount_paid = int(float(row[6])) if row[6] else 0
                         except ValueError:
                             raise ValueError(f"Invalid amount_paid '{row[6]}'")
 
@@ -2351,27 +2356,34 @@ def import_mayors_permit_tri(request):
                         )
                         success_count += 1
 
-                    except ValueError as ve:
-                        errors.append(f"Row {i}: Value error - {ve}")
                     except Exception as e:
                         errors.append(f"Row {i}: {e}")
 
             if success_count:
-                messages.success(request, f"{success_count} permits imported successfully!")
+                messages.success(
+                    request, f"{success_count} permits imported successfully!"
+                )
 
             if errors:
-                messages.warning(request, "Some rows could not be imported:\n" + "\n".join(errors[:10]))
+                messages.warning(
+                    request,
+                    "Some rows could not be imported:\n" + "\n".join(errors[:10])
+                )
                 if len(errors) > 10:
-                    messages.warning(request, f"... and {len(errors) - 10} more errors.")
+                    messages.warning(
+                        request,
+                        f"... and {len(errors) - 10} more errors."
+                    )
 
         except Exception as e:
             messages.error(request, f"Failed to read file: {e}")
 
         return redirect("mayors-permit-tricycle")
 
-    messages.error(request, 'Invalid request method')
-    return redirect('mayors-permit-tricycle')
+    messages.error(request, "Invalid request method")
+    return redirect("mayors-permit-tricycle")
 
+    
 def import_mayors_permit(request):
     if request.method == "POST":
         uploaded_file = request.FILES.get("csv_file")
@@ -2399,6 +2411,34 @@ def import_mayors_permit(request):
         def normalize_header(header):
             """Convert header to lowercase and replace spaces with underscores"""
             return [h.strip().lower().replace(' ', '_') for h in header]
+        
+        def parse_date_flexible(date_val):
+            """Parse date from multiple formats"""
+            if isinstance(date_val, datetime):
+                return date_val.date()
+            elif date_val is None or str(date_val).strip() == '':
+                return None
+            
+            date_str = str(date_val).strip()
+            
+            # List of common date formats to try
+            date_formats = [
+                "%Y-%m-%d",      # 2025-01-13
+                "%m/%d/%Y",      # 1/13/2025
+                "%d/%m/%Y",      # 13/1/2025
+                "%Y/%m/%d",      # 2025/1/13
+                "%m-%d-%Y",      # 1-13-2025
+                "%d-%m-%Y",      # 13-1-2025
+            ]
+            
+            for date_format in date_formats:
+                try:
+                    return datetime.strptime(date_str, date_format).date()
+                except ValueError:
+                    continue
+            
+            # If no format works, raise an error
+            raise ValueError(f"Unable to parse date '{date_val}'. Expected formats: YYYY-MM-DD or M/D/YYYY")
 
         try:
             if is_excel:
@@ -2431,17 +2471,9 @@ def import_mayors_permit(request):
                         continue
 
                     try:
-                        # Handle date parsing for Excel
-                        def parse_date(date_val):
-                            if isinstance(date_val, datetime):
-                                return date_val.date()
-                            elif isinstance(date_val, str):
-                                return datetime.strptime(date_val, "%Y-%m-%d").date()
-                            else:
-                                return date_val
-
-                        issue_date = parse_date(row[8])
-                        expiry_date = parse_date(row[5])
+                        # Use flexible date parsing for Excel
+                        issue_date = parse_date_flexible(row[8])
+                        expiry_date = parse_date_flexible(row[5])
                         amount_paid = int(float(row[6])) if row[6] else 0
 
                         MayorsPermit.objects.update_or_create(
@@ -2487,9 +2519,10 @@ def import_mayors_permit(request):
                         continue
 
                     try:
-                        issue_date = datetime.strptime(row[8], "%Y-%m-%d").date()
-                        expiry_date = datetime.strptime(row[5], "%Y-%m-%d").date()
-                        amount_paid = int(row[6])
+                        # Use flexible date parsing for CSV
+                        issue_date = parse_date_flexible(row[8])
+                        expiry_date = parse_date_flexible(row[5])
+                        amount_paid = int(float(row[6])) if row[6] else 0
 
                         MayorsPermit.objects.update_or_create(
                             control_no=row[0],
@@ -2542,4 +2575,553 @@ def mayors_permit_history(request, permit_id):
         'history': history
     })
 
+
+def create_report_tri(request):
+    return render(request, 'myapp/create-report-tri.html')
+def create_report_tri_datatable(request):
+    """Server-side processing endpoint for Create Report DataTables - SIMPLIFIED VERSION"""
+    
+    # DataTables parameters
+    draw = int(request.GET.get('draw', 1))
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 10))
+    search_value = request.GET.get('search[value]', '')
+    
+    # Date filter parameters
+    filter_start = request.GET.get('filter_start', '')
+    filter_end = request.GET.get('filter_end', '')
+    
+    # Base queryset
+    queryset = Tricycle.objects.all()
+    
+    # ✅ SIMPLE DATE FILTERING - Based on Tricycle's date_registered
+    if filter_start and filter_end:
+        queryset = queryset.filter(
+            date_registered__gte=filter_start,
+            date_registered__lte=filter_end
+        )
+    elif filter_start:
+        queryset = queryset.filter(date_registered__gte=filter_start)
+    elif filter_end:
+        queryset = queryset.filter(date_registered__lte=filter_end)
+    
+    # Global search
+    if search_value:
+        queryset = queryset.filter(
+            Q(body_number__icontains=search_value) |
+            Q(name__icontains=search_value) |
+            Q(address__icontains=search_value) |
+            Q(make_kind__icontains=search_value) |
+            Q(engine_motor_no__icontains=search_value) |
+            Q(chassis_no__icontains=search_value) |
+            Q(plate_no__icontains=search_value) |
+            Q(status__icontains=search_value) |
+            Q(remarks__icontains=search_value)
+        )
+    
+    # Column-specific search
+    for i in range(12):
+        column_search = request.GET.get(f'columns[{i}][search][value]', '')
+        if column_search:
+            if i == 0:  # Body Number
+                queryset = queryset.filter(body_number__icontains=column_search)
+            elif i == 1:  # Name
+                queryset = queryset.filter(name__icontains=column_search)
+            elif i == 2:  # Address
+                queryset = queryset.filter(address__icontains=column_search)
+            elif i == 3:  # Make/Kind
+                queryset = queryset.filter(make_kind__icontains=column_search)
+            elif i == 4:  # Engine/Motor No
+                queryset = queryset.filter(engine_motor_no__icontains=column_search)
+            elif i == 5:  # Chassis No
+                queryset = queryset.filter(chassis_no__icontains=column_search)
+            elif i == 6:  # Plate No
+                queryset = queryset.filter(plate_no__icontains=column_search)
+            elif i == 7:  # Date Registered
+                queryset = queryset.filter(date_registered__icontains=column_search)
+            elif i == 8:  # Date Expired
+                queryset = queryset.filter(date_expired__icontains=column_search)
+            elif i == 9:  # Status
+                queryset = queryset.filter(status__icontains=column_search)
+            elif i == 10:  # Remarks
+                queryset = queryset.filter(remarks__icontains=column_search)
+    
+    # ✅ SIMPLE COUNTS - Based on current status in the FILTERED queryset
+    renewed_count = queryset.filter(status='Renewed').count()
+    registered_count = queryset.filter(Q(status='New') | Q(status='Registered')).count()
+    expired_count = queryset.filter(status='Expired').count()
+    
+    # Total records
+    total_records = Tricycle.objects.count()
+    filtered_records = queryset.count()
+    
+    # Pagination
+    tricycles = queryset[start:start + length]
+    
+    # Format data
+    data = []
+    for tricycle in tricycles:
+        
+        # Action buttons HTML
+        action_html = f'''
+        <div class="btn-group" role="group">
+         <button class="btn btn-sm btn-warning btn-update" title="Update" 
+                data-id="{tricycle.id}"
+                data-body-number="{tricycle.body_number}"
+                data-name="{tricycle.name}"
+                data-address="{tricycle.address}"
+                data-make-kind="{tricycle.make_kind}"
+                data-engine-motor="{tricycle.engine_motor_no}"
+                data-chassis="{tricycle.chassis_no}"
+                data-plate-no="{tricycle.plate_no}"
+                data-date-registered="{tricycle.date_registered}"
+                data-date-expired="{tricycle.date_expired}"
+                data-status="{tricycle.status}"
+                data-remarks="{tricycle.remarks or ''}">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-info btn-view" title="View Details" 
+                data-id="{tricycle.id}"
+                data-body-number="{tricycle.body_number}"
+                data-name="{tricycle.name}"
+                data-address="{tricycle.address}"
+                data-make-kind="{tricycle.make_kind}"
+                data-engine-motor="{tricycle.engine_motor_no}"
+                data-chassis="{tricycle.chassis_no}"
+                data-plate-no="{tricycle.plate_no}"
+                data-date-registered="{tricycle.date_registered}"
+                data-date-expired="{tricycle.date_expired}"
+                data-status="{tricycle.status}"
+                data-remarks="{tricycle.remarks or ''}">
+                <i class="fas fa-eye"></i>
+            </button>
+        </div>
+        '''
+        
+        data.append([
+        tricycle.body_number,                                   # 0
+        tricycle.name,                                          # 1
+        tricycle.address,                                       # 2
+        tricycle.make_kind,                                     # 3
+        tricycle.engine_motor_no,                              # 4
+        tricycle.chassis_no,                                    # 5
+        tricycle.plate_no,                                      # 6
+        tricycle.date_registered.strftime('%Y-%m-%d'),         # 7
+        tricycle.date_expired.strftime('%Y-%m-%d'),            # 8
+        tricycle.status,                                        # 9
+        tricycle.remarks or '-',                                # 10
+        action_html,                                            # 11
+        tricycle.id                                             # 12 - NEW: Tricycle ID
+    ])
+    
+    return JsonResponse({
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': filtered_records,
+        'data': data,
+        'statusCounts': {
+            'renewed': renewed_count,
+            'registered': registered_count,
+            'expired': expired_count
+        }
+    })
+
+def export_create_report_tri(request):
+    export_format = request.GET.get('format', 'csv')
+    
+    if export_format == 'excel':
+        # Create Excel workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Tricycle Report"
+        
+        # Header styling
+        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        # Excel Header
+        headers = [
+            'Body Number', 'Name', 'Address', 'Make/Kind',
+            'Engine/Motor No', 'Chassis No', 'Plate No',
+            'Date Registered', 'Date Expired', 'Status', 'Remarks'
+        ]
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+        
+        # Excel Rows
+        for row_num, t in enumerate(Tricycle.objects.all(), 2):
+            ws.cell(row=row_num, column=1, value=t.body_number)
+            ws.cell(row=row_num, column=2, value=t.name)
+            ws.cell(row=row_num, column=3, value=t.address)
+            ws.cell(row=row_num, column=4, value=t.make_kind)
+            ws.cell(row=row_num, column=5, value=t.engine_motor_no)
+            ws.cell(row=row_num, column=6, value=t.chassis_no)
+            ws.cell(row=row_num, column=7, value=t.plate_no)
+            ws.cell(row=row_num, column=8, value=str(t.date_registered) if t.date_registered else '')
+            ws.cell(row=row_num, column=9, value=str(t.date_expired) if t.date_expired else '')
+            ws.cell(row=row_num, column=10, value=t.status)
+            ws.cell(row=row_num, column=11, value=t.remarks or '')
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(cell.value)
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            ws.column_dimensions[column_letter].width = adjusted_width
+        
+        # Create response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="tricycle_report.xlsx"'
+        wb.save(response)
+        return response
+    
+    else:  # CSV format (default)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="tricycle_report.csv"'
+        
+        writer = csv.writer(response)
+        
+        # CSV Header
+        writer.writerow([
+            'body_number', 'name', 'address', 'make_kind',
+            'engine_motor_no', 'chassis_no', 'plate_no',
+            'date_registered', 'date_expired', 'status', 'remarks'
+        ])
+        
+        # CSV Rows
+        for t in Tricycle.objects.all():
+            writer.writerow([
+                t.body_number, t.name, t.address, t.make_kind,
+                t.engine_motor_no, t.chassis_no, t.plate_no,
+                t.date_registered, t.date_expired, t.status, t.remarks or ''
+            ])
+        
+        return response
+
+
+def import_create_report_tri(request):
+    if request.method == "POST":
+        uploaded_file = request.FILES.get("csv_file")
+
+        if not uploaded_file:
+            messages.error(request, "No file uploaded.")
+            return redirect("create-report-tri")
+
+        file_name = uploaded_file.name.lower()
+        is_excel = file_name.endswith(('.xlsx', '.xls'))
+        is_csv = file_name.endswith('.csv')
+
+        if not (is_csv or is_excel):
+            messages.error(request, "Please upload a CSV or Excel file (.csv, .xlsx, .xls)")
+            return redirect("create-report-tri")
+
+        errors = []
+        success_count = 0
+
+        # Expected header columns (with underscores)
+        expected_header = ['body_number', 'name', 'address', 'make_kind', 
+                          'engine_motor_no', 'chassis_no', 'plate_no',
+                          'date_registered', 'date_expired', 'status', 'remarks']
+
+        def normalize_header(header):
+            """Convert header to lowercase and replace spaces with underscores"""
+            return [h.strip().lower().replace(' ', '_').replace('/', '_') for h in header]
+
+        try:
+            if is_excel:
+                # Handle Excel file
+                wb = load_workbook(uploaded_file)
+                ws = wb.active
+                rows = list(ws.iter_rows(values_only=True))
+                
+                if not rows:
+                    messages.error(request, "Excel file is empty.")
+                    return redirect("create-report-tri")
+                
+                # Validate and normalize header
+                raw_header = [str(cell).strip() if cell else '' for cell in rows[0]]
+                normalized_header = normalize_header(raw_header)
+                
+                if normalized_header != expected_header:
+                    messages.error(request, f"Invalid Excel header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
+                    return redirect('create-report-tri')
+                
+                # Skip header row
+                data_rows = rows[1:]
+                
+                for i, row in enumerate(data_rows, start=2):
+                    if not row or all(cell is None for cell in row):
+                        continue
+                        
+                    # Strip whitespace from all columns
+                    row = [str(cell).strip() if cell is not None else '' for cell in row]
+                    
+                    if len(row) < len(expected_header):
+                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+                        continue
+
+                    try:
+                        # Handle date parsing for Excel
+                        def parse_date(date_val):
+                            if isinstance(date_val, datetime):
+                                return date_val.date()
+                            elif isinstance(date_val, str):
+                                return datetime.strptime(date_val, "%Y-%m-%d").date()
+                            else:
+                                return date_val
+
+                        date_registered = parse_date(row[7])
+                        date_expired = parse_date(row[8])
+
+                        Tricycle.objects.update_or_create(
+                            body_number=str(row[0]) if row[0] else '',
+                            defaults={
+                                "name": str(row[1]) if row[1] else '',
+                                "address": str(row[2]) if row[2] else '',
+                                "make_kind": str(row[3]) if row[3] else '',
+                                "engine_motor_no": str(row[4]) if row[4] else '',
+                                "chassis_no": str(row[5]) if row[5] else '',
+                                "plate_no": str(row[6]) if row[6] else '',
+                                "date_registered": date_registered,
+                                "date_expired": date_expired,
+                                "status": str(row[9]) if row[9] else 'active',
+                                "remarks": str(row[10]) if row[10] else '',
+                            },
+                        )
+                        success_count += 1
+
+                    except ValueError as ve:
+                        errors.append(f"Row {i}: Value error - {ve}")
+                    except Exception as e:
+                        errors.append(f"Row {i}: {e}")
+
+            else:
+                # Handle CSV file
+                file_data = uploaded_file.read().decode("utf-8-sig").splitlines()
+                reader = csv.reader(file_data)
+                raw_header = next(reader)
+                
+                # Validate and normalize header columns
+                normalized_header = normalize_header(raw_header)
+                
+                if normalized_header != expected_header:
+                    messages.error(request, f"Invalid CSV header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
+                    return redirect('create-report-tri')
+
+                for i, row in enumerate(reader, start=2):
+                    # Strip whitespace from all columns
+                    row = [c.strip() for c in row]
+
+                    if len(row) != len(expected_header):
+                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+                        continue
+
+                    try:
+                        date_registered = datetime.strptime(row[7], "%Y-%m-%d").date()
+                        date_expired = datetime.strptime(row[8], "%Y-%m-%d").date()
+
+                        Tricycle.objects.update_or_create(
+                            body_number=row[0],
+                            defaults={
+                                "name": row[1],
+                                "address": row[2],
+                                "make_kind": row[3],
+                                "engine_motor_no": row[4],
+                                "chassis_no": row[5],
+                                "plate_no": row[6],
+                                "date_registered": date_registered,
+                                "date_expired": date_expired,
+                                "status": row[9],
+                                "remarks": row[10],
+                            },
+                        )
+                        success_count += 1
+
+                    except ValueError as ve:
+                        errors.append(f"Row {i}: Value error - {ve}")
+                    except Exception as e:
+                        errors.append(f"Row {i}: {e}")
+
+            if success_count:
+                messages.success(request, f"{success_count} tricycle records imported successfully!")
+
+            if errors:
+                messages.warning(request, "Some rows could not be imported:\n" + "\n".join(errors[:10]))
+                if len(errors) > 10:
+                    messages.warning(request, f"... and {len(errors) - 10} more errors.")
+
+        except Exception as e:
+            messages.error(request, f"Failed to read file: {e}")
+
+        return redirect("create-report-tri")
+
+    messages.error(request, 'Invalid request method')
+    return redirect('create-report-tri')
+
+@require_POST
+def add_tricycle(request):
+    try:
+        body_number = request.POST.get('body_number')
+        name = request.POST.get('name')
+        address = request.POST.get('address')
+        make_kind = request.POST.get('make_kind')
+        engine_motor_no = request.POST.get('engine_motor_no')
+        chassis_no = request.POST.get('chassis_no')
+        plate_no = request.POST.get('plate_no')
+        date_registered = request.POST.get('date_registered')
+        date_expired = request.POST.get('date_expired')
+        status = request.POST.get('status')
+        remarks = request.POST.get('remarks', '')
+
+        # Simple validation
+        if not all([body_number, name, address, make_kind, plate_no, date_registered, date_expired, status]):
+            messages.error(request, 'Please fill all required fields.')
+            return JsonResponse({'success': False, 'error': 'Please fill all required fields.'})
+
+        tricycle = Tricycle.objects.create(
+            body_number=body_number,
+            name=name,
+            address=address,
+            make_kind=make_kind,
+            engine_motor_no=engine_motor_no,
+            chassis_no=chassis_no,
+            plate_no=plate_no,
+            date_registered=date_registered,
+            date_expired=date_expired,
+            status=status,
+            remarks=remarks
+        )
+        
+        # ✅ Record creation history
+        TricycleHistory.objects.create(
+            tricycle=tricycle,
+            action='created',
+            new_status=status,
+            new_date_expired=date_expired,
+            remarks=f'Tricycle created with status: {status}',
+            created_by=request.user.username if request.user.is_authenticated else 'system'
+        )
+        
+        messages.success(request, f"Tricycle {tricycle.body_number} added successfully!")
+        return JsonResponse({'success': True})
+
+    except IntegrityError as e:
+        messages.error(request, 'Body Number or Plate Number already exists')
+        return JsonResponse({'success': False, 'error': 'Body Number or Plate Number already exists'})
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_http_methods(["POST"])
+def update_tricycle(request):
+    """Update an existing tricycle record"""
+    try:
+        tricycle_id = request.POST.get('tricycle_id')
+        
+        if not tricycle_id:
+            messages.error(request, 'Tricycle ID is required')
+            return JsonResponse({'success': False, 'error': 'Tricycle ID is required'})
+        
+        try:
+            tricycle = Tricycle.objects.get(id=tricycle_id)
+        except Tricycle.DoesNotExist:
+            messages.error(request, 'Tricycle not found')
+            return JsonResponse({'success': False, 'error': 'Tricycle not found'})
+        
+        # ✅ Store old values BEFORE updating
+        old_status = tricycle.status
+        old_date_expired = tricycle.date_expired
+        
+        # Get form data
+        body_number = request.POST.get('body_number')
+        name = request.POST.get('name')
+        address = request.POST.get('address')
+        make_kind = request.POST.get('make_kind')
+        engine_motor_no = request.POST.get('engine_motor_no', '')
+        chassis_no = request.POST.get('chassis_no', '')
+        plate_no = request.POST.get('plate_no')
+        date_registered = request.POST.get('date_registered')
+        date_expired = request.POST.get('date_expired')
+        status = request.POST.get('status')
+        remarks = request.POST.get('remarks', '')
+        
+        # Validate required fields
+        if not all([body_number, name, address, make_kind, plate_no, date_registered, date_expired, status]):
+            messages.error(request, 'All required fields must be filled')
+            return JsonResponse({'success': False, 'error': 'All required fields must be filled'})
+        
+        # Check for unique constraints
+        if Tricycle.objects.filter(body_number=body_number).exclude(id=tricycle_id).exists():
+            messages.error(request, f'Body Number "{body_number}" already exists')
+            return JsonResponse({'success': False, 'error': 'Body Number already exists'})
+        
+        if Tricycle.objects.filter(plate_no=plate_no).exclude(id=tricycle_id).exists():
+            messages.error(request, f'Plate Number "{plate_no}" already exists')
+            return JsonResponse({'success': False, 'error': 'Plate Number already exists'})
+        
+        # Update the tricycle object
+        tricycle.body_number = body_number
+        tricycle.name = name
+        tricycle.address = address
+        tricycle.make_kind = make_kind
+        tricycle.engine_motor_no = engine_motor_no
+        tricycle.chassis_no = chassis_no
+        tricycle.plate_no = plate_no
+        tricycle.date_registered = date_registered
+        tricycle.date_expired = date_expired
+        tricycle.status = status
+        tricycle.remarks = remarks
+        tricycle.save()
+        
+        # ✅ Determine what changed and record history
+        status_changed = old_status != status
+        date_expired_changed = str(old_date_expired) != date_expired
+        
+        if status_changed or date_expired_changed:
+            # Determine action type
+            if status == 'Renewed' and old_status != 'Renewed':
+                action = 'renewed'
+                history_remarks = f'Tricycle renewed from {old_status} to {status}'
+            elif status == 'Expired' and old_status != 'Expired':
+                action = 'expired'
+                history_remarks = f'Tricycle expired from {old_status}'
+            elif status_changed:
+                action = 'status_changed'
+                history_remarks = f'Status changed from {old_status} to {status}'
+            else:
+                action = 'updated'
+                history_remarks = f'Expiry date updated from {old_date_expired} to {date_expired}'
+            
+            TricycleHistory.objects.create(
+                tricycle=tricycle,
+                action=action,
+                previous_status=old_status if status_changed else None,
+                new_status=status if status_changed else None,
+                previous_date_expired=old_date_expired if date_expired_changed else None,
+                new_date_expired=date_expired if date_expired_changed else None,
+                remarks=history_remarks,
+                created_by=request.user.username if request.user.is_authenticated else 'system'
+            )
+        
+        messages.success(request, f'Tricycle "{body_number}" updated successfully!')
+        return JsonResponse({'success': True, 'message': 'Tricycle updated successfully'})
+        
+    except IntegrityError as e:
+        messages.error(request, f'Database error: {str(e)}')
+        return JsonResponse({'success': False, 'error': f'Database error: {str(e)}'})
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+        return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
 

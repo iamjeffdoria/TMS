@@ -9,10 +9,12 @@
 </div>
 
 
+
 <div class="row">
     <!-- Left side - Stats Cards (6 columns) -->
     <div class="col-lg-8">
         <div class="row">
+             {% if can_access_potpot_registration %}
             <!-- Potpot Registered Card -->
             <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
                 <div class="card border-left-info shadow h-100 py-2">
@@ -31,7 +33,8 @@
                     </div>
                 </div>
             </div>
-
+            {% endif %}
+            {% if can_access_motorcycle_registration %}
             <!-- Motorcycle Registered Card -->
            <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
 
@@ -51,8 +54,10 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Potpot Active Permits Card -->
+            {% endif %}
+            
+            {% if can_access_potpot_registration %}
+            <!-- Potpot Active Permits Cards -->
             <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
 
                 <div class="card border-left-success shadow h-100 py-2">
@@ -71,7 +76,9 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
 
+            {% if can_access_potpot_registration %}
             <!-- Potpot Inactive Permits Card -->
             <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
 
@@ -91,7 +98,9 @@
                     </div>
                 </div>
             </div>
-
+            {% endif %}
+            
+            {% if can_access_potpot_registration %}
             <!-- Potpot Expired Permits Card -->
             <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
 
@@ -111,7 +120,9 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
 
+            {% if can_access_motorcycle_registration %}
             <!-- Motorcycle Active Permits Card -->
             <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
 
@@ -131,7 +142,8 @@
                     </div>
                 </div>
             </div>
-
+            {% endif %}
+                {% if can_access_motorcycle_registration %}
             <!-- Motorcycle Inactive Permits Card -->
             <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
 
@@ -151,7 +163,9 @@
                     </div>
                 </div>
             </div>
+            {%endif%}
 
+                {% if can_access_motorcycle_registration %}
             <!-- Motorcycle Expired Permits Card -->
             <div class="col-xl-4 col-md-6 col-sm-12 mb-4">
 
@@ -171,7 +185,7 @@
                     </div>
                 </div>
             </div>
-
+            {% endif %}
 
 
         </div>
@@ -222,5 +236,49 @@
         </div>
     </div>
 </div>
+
+<script>
+function setQuickFilter(period) {
+    const today = new Date();
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    
+    endDateInput.value = today.toISOString().split('T')[0];
+    let startDate = new Date();
+    
+    switch(period) {
+        case 'today':
+            startDate = new Date(today);
+            break;
+        case 'week':
+            startDate.setDate(today.getDate() - 7);
+            break;
+        case 'month':
+            startDate.setMonth(today.getMonth() - 1);
+            break;
+        case 'year':
+            startDate.setFullYear(today.getFullYear() - 1);
+            break;
+    }
+    
+    startDateInput.value = startDate.toISOString().split('T')[0];
+}
+
+function resetFilters() {
+    document.getElementById('filterForm').reset();
+    window.location.href = window.location.pathname;
+}
+
+// Preserve filter values on page load
+window.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('filter_type')) {
+        document.getElementById('filterType').value = urlParams.get('filter_type');
+    }
+    if (urlParams.has('status_filter')) {
+        document.getElementById('statusFilter').value = urlParams.get('status_filter');
+    }
+});
+</script>
 
 {% endblock %}

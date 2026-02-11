@@ -197,6 +197,64 @@ class MayorsPermitTricycle(models.Model):
         verbose_name = "Mayor's Permit - Tricycle"
         verbose_name_plural = "Mayor's Permits - Tricycles"
 
+
+class Tricycle(models.Model):
+    STATUS_CHOICES = [
+        ('New', 'New'),
+        ('Renewed', 'Renewed'),
+        ('Expired', 'Expired'),
+        ('Inactive', 'Inactive'),
+    ]
+    
+    body_number = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=200)
+    address = models.TextField()
+    make_kind = models.CharField(max_length=100)
+    engine_motor_no = models.CharField(max_length=100)
+    chassis_no = models.CharField(max_length=100)
+    plate_no = models.CharField(max_length=20, unique=True)
+    date_registered = models.DateField()
+    date_expired = models.DateField()   
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    remarks = models.TextField(blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.body_number} - {self.name}"
+    
+
+class TricycleHistory(models.Model):
+    """Track all historical changes and events for Tricycle records"""
+    
+    ACTION_CHOICES = [
+        ('created', 'Created'),
+        ('renewed', 'Renewed'),
+        ('expired', 'Expired'),
+        ('updated', 'Updated'),
+        ('status_changed', 'Status Changed'),
+    ]
+    
+    tricycle = models.ForeignKey(
+        Tricycle, 
+        on_delete=models.CASCADE, 
+        related_name='history'
+    )
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    previous_status = models.CharField(max_length=20, blank=True, null=True)
+    new_status = models.CharField(max_length=20, blank=True, null=True)
+    previous_date_expired = models.DateField(blank=True, null=True)
+    new_date_expired = models.DateField(blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=100, blank=True, null=True)  # Optional: track user
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Tricycle History'
+        verbose_name_plural = 'Tricycle Histories'
+    
+    def __str__(self):
+        return f"{self.tricycle.body_number} - {self.action} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
 class MayorsPermitHistory(models.Model):
     permit = models.ForeignKey(
         MayorsPermit,

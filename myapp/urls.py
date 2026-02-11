@@ -59,7 +59,14 @@ urlpatterns = [
          views.mayors_permit_tri_history_data, 
          name='mayors-permit-tri-history-data'),
     
-    
+    path('create-report-tri/', views.create_report_tri, name='create-report-tri'),
+    path('create-report-tri-datatable/', views.create_report_tri_datatable, name='create-report-tri-datatable'),
+    path('export-create-report-tri/', views.export_create_report_tri, name='export-create-report-tri'),
+    path('import-create-report-tri/', views.import_create_report_tri, name='import-create-report-tri'),
+    path('add-tricycle/', views.add_tricycle, name='add-tricycle'),
+    path('update-tricycle/', views.update_tricycle, name='update-tricycle'),  # Add this line
+
+
 ]
 
 if settings.DEBUG:
