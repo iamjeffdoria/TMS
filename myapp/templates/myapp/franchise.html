@@ -715,8 +715,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-
-// PRINT FUNCTION - Based on the working template pattern
+// PRINT FUNCTION - Colon style format
 function printFranchise(permitId) {
     const button = document.querySelector(`[data-permit-id="${permitId}"]`);
     if (!button) return alert('Button not found');
@@ -761,61 +760,61 @@ function printFranchise(permitId) {
     </div>
 
     <!-- TITLE -->
-    <div style="text-align:center; margin-bottom:20px; font-size:22px;">
+    <div style="text-align:center; margin-bottom:30px; font-size:22px;">
         <div style="letter-spacing:1px; font-weight: bold">FRANCHISE CONFIRMATION/ VERIFICATION</div>
     </div>
 
-    <!-- CONTENT TABLE -->
-    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;">
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold; width: 30%;">Name:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${name}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Denomination:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${denomination}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Plate No:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${plateNo}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Valid Until:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${validUntil}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Motor No:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${motorNo}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Authorized No:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${authorizedNo}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Chassis No:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${chassisNo}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Authorized Route:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${authorizedRoute}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Purpose:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${purpose}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Official Receipt No:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${receiptNo}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Date:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${date}</td>
-        </tr>
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; font-weight: bold;">Amount Paid:</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${amountPaid}</td>
-        </tr>
-    </table>
+    <!-- CONTENT - COLON STYLE -->
+    <div style="font-size: 14px; line-height: 2; max-width: 700px; margin: 0 auto;">
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Name:</span>
+            <span style="flex: 1;">${name}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Denomination:</span>
+            <span style="flex: 1;">${denomination}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Plate No:</span>
+            <span style="flex: 1;">${plateNo}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Valid Until:</span>
+            <span style="flex: 1;">${validUntil}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Motor No:</span>
+            <span style="flex: 1;">${motorNo}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Authorized No:</span>
+            <span style="flex: 1;">${authorizedNo}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Chassis No:</span>
+            <span style="flex: 1;">${chassisNo}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Authorized Route:</span>
+            <span style="flex: 1;">${authorizedRoute}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Purpose:</span>
+            <span style="flex: 1;">${purpose}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Official Receipt No:</span>
+            <span style="flex: 1;">${receiptNo}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Date:</span>
+            <span style="flex: 1;">${date}</span>
+        </div>
+        <div style="display: flex; margin-bottom: 5px;">
+            <span style="font-weight: bold; min-width: 180px;">Amount Paid:</span>
+            <span style="flex: 1;">${amountPaid}</span>
+        </div>
+    </div>
 
     <!-- MUNICIPAL TREASURER SIGNATURE -->
     <div style="margin-top: 60px; text-align: right; font-size: 13px;">

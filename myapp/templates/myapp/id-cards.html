@@ -86,7 +86,21 @@
         text-transform: uppercase;
         color: rgb(37, 35, 35);
     }
-
+#print-area .dm-onate { 
+    top: 98%; 
+    left: 50%; 
+    transform: translateX(-50%);
+    text-align: center;
+    font-size: 24px;
+    
+    /* Palitan ang text-decoration ng mga ito: */
+    text-decoration: none; 
+    border-bottom: 1px solid black; /* Kapal at kulay ng linya */
+           /* Gap sa pagitan ng text at linya */
+    padding-left: 50px;            /* Lagpas sa kaliwa */
+    padding-right: 50px;           /* Lagpas sa kanan */
+    display: inline-block;         /* Importante para gumana ang padding */
+}
     #print-area .id-number { top: 52.3%; left: 15%; }
     #print-area .address   { top: 61.8%; left: 21%; width: 50%; line-height: 1.1; }
     #print-area .dob       { top: 76.8%; left: 2%; }
@@ -370,7 +384,8 @@
             '{{ card.height }}',
             '{{ card.weight }}',
             '{{ card.date_issued }}',
-            '{{ card.expiration_date }}'
+            '{{ card.expiration_date }}',
+            'DM Onate'
         )">
         <i class="fas fa-print"></i>
         </button>
@@ -559,6 +574,7 @@
             <div id="print-weight" class="field weight"></div>
             <div id="print-date-issued" class="field date-issued"></div>
             <div id="print-expiry-date" class="field expiry-date"></div>
+            <div id="print-dm-onate" class="field dm-onate"></div>
         </div>
     </div>
 </div>
@@ -1106,10 +1122,10 @@ document.getElementById("printId2Btn").addEventListener("click", function () {
 // Global variables to store print data temporarily
 let pendingPrintData = null;
 
-function preparePrint(photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate) {
+function preparePrint(photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate, dmOnate) {
     // Store the print data
     pendingPrintData = {
-        photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate
+        photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate, dmOnate
     };
     
     // Update modal message with ID number
@@ -1141,7 +1157,8 @@ function executePrint(idType) {
         document.getElementById('print-weight').innerText = data.weight ? data.weight + ' kg' : '';
         document.getElementById('print-date-issued').innerText = data.dateIssued || '';
         document.getElementById('print-expiry-date').innerText = data.expiryDate || '';
-        
+        document.getElementById('print-dm-onate').innerText = data.dmOnate || '';
+
         // Mark ID 1 as active for printing
         document.getElementById('print-area').classList.add('active');
         
