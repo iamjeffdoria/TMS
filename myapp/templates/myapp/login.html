@@ -67,61 +67,45 @@ body {
 
 .login-card {
     background: white;
-    border-radius: 12px;
+    border-radius: 10px;
     width: 100%;
-    max-width: 800px;
+    max-width: 380px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    display: flex;
     overflow: hidden;
 }
 
-.brand-section {
-    background: linear-gradient(180deg, #a41d1d 10%, #f02525 100%) !important; /* Changed to lighter red */
-    color: white;
-    padding: 50px 35px;
-    width: 42%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-.brand-logo {
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
-    margin-bottom: 24px;
-}
-
-.brand-title {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    line-height: 1.3;
-}
-
-.brand-subtitle {
-    font-size: 13px;
-    opacity: 0.9;
-    font-weight: 400;
-}
-
 .form-section {
-    padding: 50px 45px;
-    width: 58%;
+    padding: 32px 32px 28px;
     background: white;
 }
 
+.logo-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.brand-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin-bottom: 12px;
+}
+
 .system-title {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
     color: #2d3748;
-    margin-bottom: 28px;
+    margin-bottom: 4px;
+}
+
+.system-subtitle {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 400;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .form-label {
@@ -129,7 +113,7 @@ body {
     font-size: 13px;
     font-weight: 500;
     color: #4a5568;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
 }
 
 .password-input-wrapper {
@@ -138,7 +122,7 @@ body {
 
 .form-input {
     width: 100%;
-    padding: 11px 14px;
+    padding: 10px 12px;
     font-size: 14px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
@@ -149,19 +133,19 @@ body {
 }
 
 .password-input-wrapper .form-input {
-    padding-right: 45px;
+    padding-right: 40px;
 }
 
 .toggle-password {
     position: absolute;
-    right: 10px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     cursor: pointer;
     color: #9ca3af;
-    font-size: 15px;
+    font-size: 14px;
     padding: 6px;
     transition: color 0.2s;
     display: flex;
@@ -170,7 +154,7 @@ body {
 }
 
 .toggle-password:hover {
-    color: #ff4444;  /* Changed to lighter red */
+    color: #ff4444;
 }
 
 .toggle-password:focus {
@@ -182,15 +166,15 @@ body {
 }
 
 .form-input:focus {
-    border-color: #ff4444;  /* Changed to lighter red */
-    box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.08);  /* Changed */
+    border-color: #ff4444;
+    box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.08);
 }
 
 .form-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 18px;
 }
 
 .checkbox-container {
@@ -199,23 +183,23 @@ body {
 }
 
 .checkbox-container input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    margin-right: 8px;
+    width: 15px;
+    height: 15px;
+    margin-right: 6px;
     cursor: pointer;
-    accent-color: #ff4444;  /* Changed to lighter red */
+    accent-color: #ff4444;
 }
 
 .checkbox-container label {
-    font-size: 13px;
+    font-size: 12px;
     color: #4a5568;
     cursor: pointer;
     user-select: none;
 }
 
 .forgot-link {
-    font-size: 13px;
-    color: #ff4444;  /* Changed to lighter red */
+    font-size: 12px;
+    color: #ff4444;
     text-decoration: none;
     font-weight: 500;
 }
@@ -226,11 +210,11 @@ body {
 
 .btn-login {
     width: 100%;
-    padding: 11px;
+    padding: 10px;
     font-size: 14px;
     font-weight: 600;
     color: white;
-    background: linear-gradient(180deg, #c64545 10%, #f02525 100%) !important;  /* Changed to lighter red */
+    background: linear-gradient(180deg, #c64545 10%, #f02525 100%) !important;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -238,22 +222,22 @@ body {
 }
 
 .btn-login:hover {
-    background: #e63939;  /* Changed - darker shade for hover */
+    background: #e63939;
 }
 
 .btn-login:active {
-    background: #cc2e2e;  /* Changed - even darker for active state */
+    background: #cc2e2e;
 }
 
 .register-text {
     text-align: center;
-    margin-top: 20px;
-    font-size: 13px;
+    margin-top: 16px;
+    font-size: 12px;
     color: #6b7280;
 }
 
 .register-text a {
-    color: #ff4444;  /* Changed to lighter red */
+    color: #ff4444;
     text-decoration: none;
     font-weight: 500;
 }
@@ -331,24 +315,17 @@ body {
     opacity: 1;
 }
 
-@media (max-width: 768px) {
-    .login-card {
-        flex-direction: column;
-        max-width: 400px;
-    }
-    
-    .brand-section,
+@media (max-width: 480px) {
     .form-section {
-        width: 100%;
-        padding: 35px 30px;
+        padding: 28px 24px;
     }
     
     .brand-logo {
-        width: 80px;
-        height: 80px;
+        width: 50px;
+        height: 50px;
     }
     
-    .brand-title {
+    .system-title {
         font-size: 20px;
     }
     
@@ -367,14 +344,13 @@ body {
 
 <div class="login-wrapper">
     <div class="login-card">
-        <div class="brand-section">
-            <img src="{% static 'assets/img/lgu2.png' %}" alt="Logo" class="brand-logo">
-            <h1 class="brand-title">Traffic Management</h1>
-            <p class="brand-subtitle">Local Government Unit</p>
-        </div>
-
         <div class="form-section">
-            <h2 class="system-title">Sign In</h2>
+            <div class="logo-header">
+                <img src="{% static 'assets/img/lgu2.png' %}" alt="Logo" class="brand-logo">
+                <h2 class="system-title">Sign In</h2>
+                <p class="system-subtitle">Traffic Management System</p>
+            </div>
+
             <form method="POST" id="loginForm">
                 {% csrf_token %}
                 
