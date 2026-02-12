@@ -51,6 +51,7 @@ urlpatterns = [
     path('import-idcards/', views.import_idcards_with_images, name='import-idcards'),
     path('mtop/import/', views.import_mtop, name='import-mtop'),
     path('mtop/export/', views.export_mtop, name='export-mtop'),
+    path('mtop/datatable/', views.mtop_datatable, name='mtop-datatable'),
     path('franchise/import/', views.import_franchise, name='import-franchise'),
     path('franchise/export/', views.export_franchise, name='export-franchise'),
     path('mayors-permit/datatable/', views.mayors_permit_datatable, name='mayors-permit-datatable'),
@@ -65,6 +66,8 @@ urlpatterns = [
     path('import-create-report-tri/', views.import_create_report_tri, name='import-create-report-tri'),
     path('add-tricycle/', views.add_tricycle, name='add-tricycle'),
     path('update-tricycle/', views.update_tricycle, name='update-tricycle'),  # Add this line
+    path('franchise/datatable/', views.franchise_datatable, name='franchise-datatable'),
+    
 
 
 ]

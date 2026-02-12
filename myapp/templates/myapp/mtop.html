@@ -42,7 +42,7 @@
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
-                <thead>
+              <thead>
                     <tr>
                         <th>Name</th>
                         <th>Case No</th>
@@ -58,22 +58,6 @@
                         <th>Officer in Charge</th>
                         <th>Mayor</th>
                         <th>Action</th>
-                    </tr>
-                    <tr>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tfoot>
@@ -95,37 +79,6 @@
                     </tr>
                 </tfoot>
                 <tbody>
-                    {% for m in mtops %}
-                    <tr>
-                        <td>{{ m.name }}</td>
-                        <td>{{ m.case_no }}</td>
-                        <td>{{ m.address }}</td>
-                        <td>{{ m.no_of_units }}</td>
-                        <td>{{ m.route_operation }}</td>
-                        <td>{{ m.make }}</td>
-                        <td>{{ m.motor_no }}</td>
-                        <td>{{ m.chasses_no }}</td>
-                        <td>{{ m.plate_no }}</td>
-                        <td>{{ m.date }}</td>
-                        <td>{{ m.municipal_treasurer }}</td>
-                        <td>{{ m.officer_in_charge }}</td>
-                        <td>{{ m.mayor }}</td>
-                        <td class="text-center">
-                            <div class="btn-group" role="group" aria-label="actions">
-                                <a href="{% url 'mtop_print' m.id %}" class="btn btn-sm btn-primary" title="Print" target="_blank">
-                                    <i class="fas fa-print"></i>
-                                </a>
-                                <button class="btn btn-sm btn-warning edit-btn" data-id="{{ m.id }}" data-toggle="modal" data-target="#editRecordModal">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="14" class="text-center text-muted">No MTOP records found</td>
-                    </tr>
-                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -477,38 +430,74 @@
     </div>
 </div>
 
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Initialize DataTable
+    // Initialize DataTable with server-side processing
     var table = $('#dataTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "{% url 'mtop-datatable' %}",
+            "type": "GET"
+        },
         "pageLength": 5,
         "lengthMenu": [5, 10, 25, 50, 100],
         "lengthChange": false,
         "ordering": false,
         "searching": true,
         "dom": 'lrtip',
+        "columns": [
+            { "data": 0 },   // Name
+            { "data": 1 },   // Case No
+            { "data": 2 },   // Address
+            { "data": 3 },   // No. of Units
+            { "data": 4 },   // Route Operation
+            { "data": 5 },   // Make
+            { "data": 6 },   // Motor No
+            { "data": 7 },   // Chassis No
+            { "data": 8 },   // Plate No
+            { "data": 9 },   // Date
+            { "data": 10 },  // Municipal Treasurer
+            { "data": 11 },  // Officer in Charge
+            { "data": 12 },  // Mayor
+            { "data": 13, "orderable": false }  // Action
+        ],
         "columnDefs": [
             {
-                "targets": [5, 6, 7, 8, 10, 11, 12],
+                "targets": [6, 7, 8, 9,  10, 11, 12],
                 "visible": false,
                 "searchable": true
             }
         ]
     });
 
+    // Clone header row for column search
+    $('#dataTable thead tr').clone(true).appendTo('#dataTable thead');
+    
     // Apply column search from header inputs
-    table.columns().every(function(index) {
-        var that = this;
-        if (index === 13) {
-            return;
+ // Apply column search from header inputs
+$('#dataTable thead tr:eq(1) th').each(function(i) {
+    var column = table.column(i);
+    
+    // Define which columns should have search inputs (visible columns)
+    var searchableColumns = [0, 1, 2, 3, 4, 5]; // Name, Case No, Address, Units, Route, Date
+    
+    // Skip action column and hidden columns
+    if (i === 13 || !searchableColumns.includes(i)) {
+        $(this).html('');
+        return;
+    }
+
+    // Add input field
+    $(this).html('<input type="text" class="form-control form-control-sm border-secondary" />');
+    
+    // Apply search on input
+    $('input', this).on('keyup change', function() {
+        if (column.search() !== this.value) {
+            column.search(this.value).draw();
         }
-        $('input', this.header()).on('keyup change clear', function() {
-            if (that.search() !== this.value) {
-                that.search(this.value).draw();
-            }
-        });
     });
+});
 
     // SAVE NEW RECORD
     document.getElementById("saveRecordBtn").addEventListener("click", function () {
@@ -531,11 +520,20 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
+                // Close modal first
                 $("#addRecordModal").modal("hide");
-                location.reload();
+                
+                // Small delay to ensure modal closes smoothly before page reload
+                setTimeout(function() {
+                    location.reload();
+                }, 300);
             } else {
-                location.reload();
+                alert('Error: ' + (data.error || 'Unknown error'));
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while saving the record.');
         });
     });
 
@@ -577,10 +575,15 @@ document.addEventListener("DOMContentLoaded", function () {
             data: $("#editRecordForm").serialize(),
             success: function (res) {
                 if (res.success) {
+                    // Close modal first
                     $("#editRecordModal").modal("hide");
-                    location.reload();
+                    
+                    // Small delay to ensure modal closes smoothly before page reload
+                    setTimeout(function() {
+                        location.reload();
+                    }, 300);
                 } else {
-                    location.reload();
+                    alert('Error: ' + (res.error || 'Unknown error'));
                 }
             },
             error: function(xhr, status, error) {

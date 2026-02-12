@@ -1280,6 +1280,116 @@ def mtop(request):
     mtops = Mtop.objects.all()
     return render(request, 'myapp/mtop.html', {'mtops': mtops})
 
+def mtop_datatable(request):
+    """Server-side processing endpoint for MTOP DataTables"""
+    
+    # DataTables parameters
+    draw = int(request.GET.get('draw', 1))
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 10))
+    search_value = request.GET.get('search[value]', '')
+    
+    # Base queryset
+    queryset = Mtop.objects.all()
+    
+    # Global search
+    if search_value:
+        queryset = queryset.filter(
+            Q(name__icontains=search_value) |
+            Q(case_no__icontains=search_value) |
+            Q(address__icontains=search_value) |
+            Q(route_operation__icontains=search_value) |
+            Q(make__icontains=search_value) |
+            Q(motor_no__icontains=search_value) |
+            Q(chasses_no__icontains=search_value) |
+            Q(plate_no__icontains=search_value) |
+            Q(municipal_treasurer__icontains=search_value) |
+            Q(officer_in_charge__icontains=search_value) |
+            Q(mayor__icontains=search_value)
+        )
+    
+    # Column-specific search (matching your 14 columns)
+    for i in range(14):
+        column_search = request.GET.get(f'columns[{i}][search][value]', '')
+        if column_search:
+            if i == 0:  # Name
+                queryset = queryset.filter(name__icontains=column_search)
+            elif i == 1:  # Case No
+                queryset = queryset.filter(case_no__icontains=column_search)
+            elif i == 2:  # Address
+                queryset = queryset.filter(address__icontains=column_search)
+            elif i == 3:  # No. of Units
+                queryset = queryset.filter(no_of_units__icontains=column_search)
+            elif i == 4:  # Route Operation
+                queryset = queryset.filter(route_operation__icontains=column_search)
+            elif i == 5:  # Make
+                queryset = queryset.filter(make__icontains=column_search)
+            elif i == 6:  # Motor No
+                queryset = queryset.filter(motor_no__icontains=column_search)
+            elif i == 7:  # Chassis No
+                queryset = queryset.filter(chasses_no__icontains=column_search)
+            elif i == 8:  # Plate No
+                queryset = queryset.filter(plate_no__icontains=column_search)
+            elif i == 9:  # Date
+                queryset = queryset.filter(date__icontains=column_search)
+            elif i == 10:  # Municipal Treasurer
+                queryset = queryset.filter(municipal_treasurer__icontains=column_search)
+            elif i == 11:  # Officer in Charge
+                queryset = queryset.filter(officer_in_charge__icontains=column_search)
+            elif i == 12:  # Mayor
+                queryset = queryset.filter(mayor__icontains=column_search)
+    
+    # Total records
+    total_records = Mtop.objects.count()
+    filtered_records = queryset.count()
+    
+    # Pagination
+    mtops = queryset[start:start + length]
+    
+    # Format data
+    data = []
+    for m in mtops:
+        # Generate the print URL dynamically using reverse()
+        print_url = reverse('mtop_print', args=[m.id])
+        
+        action_html = f'''
+        <div class="btn-group" role="group" aria-label="actions">
+            <a href="{print_url}" class="btn btn-sm btn-primary" title="Print" target="_blank">
+                <i class="fas fa-print"></i>
+            </a>
+            <button class="btn btn-sm btn-warning edit-btn" 
+                data-id="{m.id}" 
+                data-toggle="modal" 
+                data-target="#editRecordModal">
+                <i class="fas fa-edit"></i>
+            </button>
+        </div>
+        '''
+        
+        data.append([
+            m.name,                                      # 0
+            m.case_no,                                   # 1
+            m.address,                                   # 2
+            m.no_of_units,                              # 3
+            m.route_operation,                          # 4
+            m.make,                                      # 5
+            m.motor_no,                                  # 6
+            m.chasses_no,                               # 7
+            m.plate_no,                                  # 8
+            m.date.strftime('%Y-%m-%d'),                # 9
+            m.municipal_treasurer,                      # 10
+            m.officer_in_charge,                        # 11
+            m.mayor,                                     # 12
+            action_html                                  # 13
+        ])
+    
+    return JsonResponse({
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': filtered_records,
+        'data': data
+    })
+
 
 def import_mtop(request):
     """Import MTOP records from CSV or Excel file"""
@@ -1758,6 +1868,124 @@ def franchise(request):
     franchises = Franchise.objects.all().order_by('-date')  # latest first
     return render(request, 'myapp/franchise.html', {'franchises': franchises}) 
 
+
+def franchise_datatable(request):
+    """Server-side processing endpoint for Franchise DataTables"""
+    
+    # DataTables parameters
+    draw = int(request.GET.get('draw', 1))
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 10))
+    search_value = request.GET.get('search[value]', '')
+    
+    # Base queryset
+    queryset = Franchise.objects.all().order_by('-date')
+    
+    # Global search
+    if search_value:
+        queryset = queryset.filter(
+            Q(name__icontains=search_value) |
+            Q(denomination__icontains=search_value) |
+            Q(plate_no__icontains=search_value) |
+            Q(motor_no__icontains=search_value) |
+            Q(authorized_no__icontains=search_value) |
+            Q(chassis_no__icontains=search_value) |
+            Q(authorized_route__icontains=search_value) |
+            Q(purpose__icontains=search_value) |
+            Q(official_receipt_no__icontains=search_value) |
+            Q(municipal_treasurer__icontains=search_value)
+        )
+    
+    # Column-specific search (matching your 14 columns)
+    for i in range(14):
+        column_search = request.GET.get(f'columns[{i}][search][value]', '')
+        if column_search:
+            if i == 0:  # Name
+                queryset = queryset.filter(name__icontains=column_search)
+            elif i == 1:  # Denomination
+                queryset = queryset.filter(denomination__icontains=column_search)
+            elif i == 2:  # Plate No
+                queryset = queryset.filter(plate_no__icontains=column_search)
+            elif i == 3:  # Valid Until
+                queryset = queryset.filter(valid_until__icontains=column_search)
+            elif i == 4:  # Motor No
+                queryset = queryset.filter(motor_no__icontains=column_search)
+            elif i == 5:  # Authorized No
+                queryset = queryset.filter(authorized_no__icontains=column_search)
+            elif i == 6:  # Chassis No
+                queryset = queryset.filter(chassis_no__icontains=column_search)
+            elif i == 7:  # Authorized Route
+                queryset = queryset.filter(authorized_route__icontains=column_search)
+            elif i == 8:  # Purpose
+                queryset = queryset.filter(purpose__icontains=column_search)
+            elif i == 9:  # Official Receipt No
+                queryset = queryset.filter(official_receipt_no__icontains=column_search)
+            elif i == 10:  # Date
+                queryset = queryset.filter(date__icontains=column_search)
+            elif i == 11:  # Amount Paid
+                queryset = queryset.filter(amount_paid__icontains=column_search)
+            elif i == 12:  # Municipal Treasurer
+                queryset = queryset.filter(municipal_treasurer__icontains=column_search)
+    
+    # Total records
+    total_records = Franchise.objects.count()
+    filtered_records = queryset.count()
+    
+    # Pagination
+    franchises = queryset[start:start + length]
+    
+    # Format data
+    data = []
+    for f in franchises:
+        action_html = f'''
+        <div class="btn-group" role="group" aria-label="actions">
+            <button class="btn btn-sm btn-primary print-btn" 
+                    data-permit-id="{f.id}"
+                    data-name="{f.name}"
+                    data-denomination="{f.denomination}"
+                    data-plate="{f.plate_no}"
+                    data-valid="{f.valid_until}"
+                    data-motor="{f.motor_no}"
+                    data-authorized="{f.authorized_no}"
+                    data-chassis="{f.chassis_no}"
+                    data-route="{f.authorized_route}"
+                    data-purpose="{f.purpose}"
+                    data-receipt="{f.official_receipt_no}"
+                    data-date="{f.date}"
+                    data-amount="{f.amount_paid}"
+                    data-treasurer="{f.municipal_treasurer}"
+                    title="Print">
+                <i class="fas fa-print"></i>
+            </button>
+            <a href="#" class="btn btn-sm btn-warning btn-franchise-update" data-id="{f.id}" title="Update">
+                <i class="fas fa-edit"></i>
+            </a>
+        </div>
+        '''
+        
+        data.append([
+            f.name,                                      # 0
+            f.denomination,                              # 1
+            f.plate_no,                                  # 2
+            f.valid_until.strftime('%Y-%m-%d'),         # 3
+            f.motor_no,                                  # 4
+            f.authorized_no,                             # 5
+            f.chassis_no,                                # 6
+            f.authorized_route,                          # 7
+            f.purpose,                                   # 8
+            f.official_receipt_no,                       # 9
+            f.date.strftime('%Y-%m-%d'),                # 10
+            str(f.amount_paid),                          # 11
+            f.municipal_treasurer,                       # 12
+            action_html                                  # 13
+        ])
+    
+    return JsonResponse({
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': filtered_records,
+        'data': data
+    })
 
 def mayors_permit_tricycle(request):
     permits = MayorsPermitTricycle.objects.all()

@@ -53,22 +53,6 @@
                         <th>Municipal Treasurer</th>
                         <th>Action</th>
                     </tr>
-                     <tr>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th></th>
-                    </tr>
                 </thead>
 
                 <tfoot>
@@ -556,8 +540,14 @@ document.addEventListener("DOMContentLoaded", function () {
         return `${d.getFullYear()}-${m}-${day}`;
     }
 
-    // Initialize DataTable
+    // Initialize DataTable with server-side processing
     var table = $('#dataTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "{% url 'franchise-datatable' %}",
+            "type": "GET"
+        },
         "pageLength": 5,
         "lengthMenu": [5, 10, 25, 50, 100],
         "lengthChange": false,
@@ -565,24 +555,54 @@ document.addEventListener("DOMContentLoaded", function () {
         "searching": true,
         "scrollCollapse": true,
         "dom": 'lrtip',
+        "columns": [
+            { "data": 0 },   // Name
+            { "data": 1 },   // Denomination
+            { "data": 2 },   // Plate No
+            { "data": 3 },   // Valid Until
+            { "data": 4 },   // Motor No
+            { "data": 5 },   // Authorized No
+            { "data": 6 },   // Chassis No
+            { "data": 7 },   // Authorized Route
+            { "data": 8 },   // Purpose
+            { "data": 9 },   // Official Receipt No
+            { "data": 10 },  // Date
+            { "data": 11 },  // Amount Paid
+            { "data": 12 },  // Municipal Treasurer
+            { "data": 13, "orderable": false }  // Action
+        ],
         "columnDefs": [
             {
-                "targets": [4, 5, 6, 9, 10, 11, 12],
+                "targets": [7, 8,9, 10, 11, 12],
                 "visible": false,
                 "searchable": true
             }
         ]
     });
 
+    // Clone header row for column search
+    $('#dataTable thead tr').clone(true).appendTo('#dataTable thead');
+    
     // Apply column search from header inputs
-    table.columns().every(function(index) {
-        var that = this;
-        if (index === 13) {  // Skip the Action column
+    $('#dataTable thead tr:eq(1) th').each(function(i) {
+        var column = table.column(i);
+        
+        // Define which columns should have search inputs (visible columns)
+        var searchableColumns = [0, 1, 2, 3, 4, 5,6]; // Name, Denomination, Plate No, Valid Until, Authorized Route, Purpose
+        
+        // Skip action column and hidden columns
+        if (i === 13 || !searchableColumns.includes(i)) {
+            $(this).html('');
             return;
         }
-        $('input', this.header()).on('keyup change clear', function() {
-            if (that.search() !== this.value) {
-                that.search(this.value).draw();
+
+        // Add input field
+        $(this).html('<input type="text" class="form-control form-control-sm border-secondary" />');
+        
+        // Apply search on input
+        $('input', this).on('keyup change', function() {
+            if (column.search() !== this.value) {
+                column.search(this.value).draw();
             }
         });
     });
@@ -616,7 +636,11 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.success) {
                 $('#addRecordModal').modal('hide');
                 form.reset();
-                location.reload();
+                
+                // Small delay to ensure modal closes smoothly before reload
+                setTimeout(function() {
+                    location.reload();
+                }, 300);
             } else {
                 location.reload();
             }
@@ -627,33 +651,31 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // UPDATE BUTTON - Get data from DataTables row
-    document.querySelectorAll(".btn-franchise-update").forEach(button => {
-        button.addEventListener("click", function (e) {
-            e.preventDefault();
+    // UPDATE BUTTON - Get data from server-side DataTables
+    $(document).on("click", ".btn-franchise-update", function (e) {
+        e.preventDefault();
+        
+        let $tr = $(this).closest("tr");
+        let row = table.row($tr);
+        let data = row.data();
 
-            let $tr = $(this).closest("tr");
-            let row = table.row($tr);
-            let data = row.data();
+        // Fill the update form with data from the table
+        document.getElementById("update-id").value = this.dataset.id;
+        document.getElementById("update-name").value = data[0] || '';
+        document.getElementById("update-denomination").value = data[1] || '';
+        document.getElementById("update-plate-no").value = data[2] || '';
+        document.getElementById("update-valid-until").value = toInputDate(data[3]);
+        document.getElementById("update-motor-no").value = data[4] || '';
+        document.getElementById("update-authorized-no").value = data[5] || '';
+        document.getElementById("update-chassis-no").value = data[6] || '';
+        document.getElementById("update-authorized-route").value = data[7] || '';
+        document.getElementById("update-purpose").value = data[8] || '';
+        document.getElementById("update-official-receipt-no").value = data[9] || '';
+        document.getElementById("update-date").value = toInputDate(data[10]);
+        document.getElementById("update-amount-paid").value = data[11] || '';
+        document.getElementById("update-municipal-treasurer").value = data[12] || '';
 
-            // Fill the update form with data from the table
-            document.getElementById("update-id").value = this.dataset.id;
-            document.getElementById("update-name").value = data[0] || '';
-            document.getElementById("update-denomination").value = data[1] || '';
-            document.getElementById("update-plate-no").value = data[2] || '';
-            document.getElementById("update-valid-until").value = toInputDate(data[3]);
-            document.getElementById("update-motor-no").value = data[4] || '';
-            document.getElementById("update-authorized-no").value = data[5] || '';
-            document.getElementById("update-chassis-no").value = data[6] || '';
-            document.getElementById("update-authorized-route").value = data[7] || '';
-            document.getElementById("update-purpose").value = data[8] || '';
-            document.getElementById("update-official-receipt-no").value = data[9] || '';
-            document.getElementById("update-date").value = toInputDate(data[10]);
-            document.getElementById("update-amount-paid").value = data[11] || '';
-            document.getElementById("update-municipal-treasurer").value = data[12] || '';
-
-            $("#updateRecordModal").modal("show");
-        });
+        $("#updateRecordModal").modal("show");
     });
 
     // Update Franchise Record button
@@ -678,7 +700,11 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
             if (data.success) {
                 $('#updateRecordModal').modal('hide');
-                location.reload();
+                
+                // Small delay to ensure modal closes smoothly before reload
+                setTimeout(function() {
+                    location.reload();
+                }, 300);
             } else {
                 location.reload();
             }
@@ -709,7 +735,8 @@ function printFranchise(permitId) {
     const date = button.dataset.date || '';
     const amountPaid = button.dataset.amount || '';
     const treasurer = button.dataset.treasurer || '';
-  const contentHTML = `
+    
+    const contentHTML = `
     <div style="position: relative; margin-bottom: 10px; height: 140px;">
         <!-- LEFT: LOGO -->
         <div style="position: absolute; left: 0; top: 0;">
@@ -808,7 +835,6 @@ function printFranchise(permitId) {
     </div>
     `;
 
-
     // Create iframe for printing
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
@@ -869,7 +895,6 @@ function printFranchise(permitId) {
         </html>
     `);
 
-    
     doc.close();
     
     // Wait for content to load before printing
