@@ -98,17 +98,24 @@
         color: rgb(37, 35, 35);
         font-size: 24px;
     }
+#print-area .full-name {
+    top: 28.5%;
+    left: 69%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-size: 24px;
+    text-transform: uppercase;
+    color: rgb(37, 35, 35);
     
-    #print-area .full-name {
-        top: 29.5%;
-        left: 70%;
-        transform: translateX(-50%);
-        width: 100%;
-        text-align: center;
-        font-size: 24px;
-        text-transform: uppercase;
-        color: rgb(37, 35, 35);
-    }
+    /* Make it look EXACTLY like the mayor's underline */
+    text-decoration: none; 
+    border-bottom: 2px solid black;
+    padding-bottom: 2px;  /* Space between text and line */
+    padding-left: 0px;    /* NO extra padding on sides */
+    padding-right: 0px;   /* NO extra padding on sides */
+    display: inline-block;
+    width: auto;          /* Width fits the text only */
+}
 #print-area .dm-onate { 
     top: 92%; 
     left: 50%; 
@@ -124,6 +131,15 @@
     padding-right: 50px;           /* Lagpas sa kanan */
     display: inline-block;         /* Importante para gumana ang padding */
 }
+ /* SIGNATURE UNDERLINE - Adjust position here! */
+    #print-area .signature-line {
+        position: absolute;
+        top: 43%;  /* Adjust up/down */
+        left: 53.5%; /* Adjust left/right */
+        width: 200px; /* Adjust line width */
+        border-bottom: 2px solid black; /* Adjust thickness */
+        text-align: center;
+    }
     #print-area .id-number { top: 48.8%; left: 13%; }
     #print-area .address   { top: 57.8%; left: 21%; width: 50%; line-height: 1.1; }
     #print-area .dob       { top: 71.8%; left: 2%; }
@@ -583,7 +599,7 @@
 
 <div id="print-area">
     <div class="id-card-wrapper">
-        <img src="{% static 'assets/img/selected-id.png' %}" class="template-bg">
+        <img src="{% static 'assets/img/potpotfinal.png' %}" class="template-bg">
         
         <div class="data-overlay">
             <img id="print-photo" src="" class="dynamic-photo">
@@ -598,6 +614,7 @@
             <div id="print-date-issued" class="field date-issued"></div>
             <div id="print-expiry-date" class="field expiry-date"></div>
             <div id="print-dm-onate" class="field dm-onate"></div>
+            <div class="signature-line"></div>
         </div>
     </div>
 </div>
