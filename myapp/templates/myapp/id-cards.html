@@ -23,9 +23,23 @@
 }
 /* Styling for the Print Templates */
 #print-area, #print-area-2 { display: none; }
-
 @media print {
-    body * { visibility: hidden; }
+    /* Reset all default page margins */
+    @page {
+        size: auto;
+        margin: 0mm;
+    }
+    
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100%;
+        height: 100%;
+    }
+    
+    body * { 
+        visibility: hidden; 
+    }
     
     /* Only show the active print area */
     #print-area.active, #print-area.active *,
@@ -36,9 +50,16 @@
     #print-area.active, #print-area-2.active {
         display: flex !important;
         position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        justify-content: center; align-items: center;
+        top: 0; 
+        left: 0; 
+        width: 100vw; 
+        height: 100vh;
+        margin: 0 !important;
+        padding: 0 !important;
+        justify-content: center; 
+        align-items: center;
         background: white;
+        page-break-after: avoid;
     }
 
     /* ============================
@@ -48,8 +69,10 @@
         position: relative;
         width: 640px;
         height: 1000px;
+        margin: 0 auto;
+        page-break-inside: avoid;
+        transform: scale(0.55); /* Normal ID card size */
     }
-
     #print-area .template-bg { 
         width: 100%; 
         height: auto; 
@@ -59,11 +82,11 @@
     /* Print Area 1 - Dynamic Photo */
     #print-area .dynamic-photo {
         position: absolute;
-        top: 28.5%;
-        left: 21.5%;
+        top: 26.4%;
+        left: 21.2%;
         transform: translateX(-50%);
-        width: 240px;
-        height: 225px;
+        width: 238px;
+        height: 218px;
         object-fit: cover;
     }
 
@@ -77,7 +100,7 @@
     }
     
     #print-area .full-name {
-        top: 31%;
+        top: 29.5%;
         left: 70%;
         transform: translateX(-50%);
         width: 100%;
@@ -87,7 +110,7 @@
         color: rgb(37, 35, 35);
     }
 #print-area .dm-onate { 
-    top: 98%; 
+    top: 92%; 
     left: 50%; 
     transform: translateX(-50%);
     text-align: center;
@@ -101,15 +124,15 @@
     padding-right: 50px;           /* Lagpas sa kanan */
     display: inline-block;         /* Importante para gumana ang padding */
 }
-    #print-area .id-number { top: 52.3%; left: 15%; }
-    #print-area .address   { top: 61.8%; left: 21%; width: 50%; line-height: 1.1; }
-    #print-area .dob       { top: 76.8%; left: 2%; }
-    #print-area .gender    { top: 76.8%; left: 38%; }
-    #print-area .or-number { top: 89%; left: 2%; }
-    #print-area .height    { top: 76.8%; left: 55%; }
-    #print-area .weight    { top: 76.8%; left: 83%; }
-    #print-area .date-issued  { top: 89%; left: 32.5%; }
-    #print-area .expiry-date  { top: 89%; left: 73%; }
+    #print-area .id-number { top: 48.8%; left: 13%; }
+    #print-area .address   { top: 57.8%; left: 21%; width: 50%; line-height: 1.1; }
+    #print-area .dob       { top: 71.8%; left: 2%; }
+    #print-area .gender    { top: 71.8%; left: 36%; }
+    #print-area .or-number { top: 82.7%; left: 2%; }
+    #print-area .height    { top: 71.8%; left: 55%; }
+    #print-area .weight    { top: 71.8%; left: 83%; }
+    #print-area .date-issued  { top: 82.7%; left: 32.5%; }
+    #print-area .expiry-date  { top: 82.7%; left: 70%; }
 
     /* ============================
        PRINT AREA 2 STYLING
@@ -560,7 +583,7 @@
 
 <div id="print-area">
     <div class="id-card-wrapper">
-        <img src="{% static 'assets/img/potpotid-2.png' %}" class="template-bg">
+        <img src="{% static 'assets/img/selected-id.png' %}" class="template-bg">
         
         <div class="data-overlay">
             <img id="print-photo" src="" class="dynamic-photo">
