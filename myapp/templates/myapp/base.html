@@ -24,58 +24,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/print-js/1.6.0/print.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/print-js/1.6.0/print.min.css"/>
 
-    <!-- Apply saved sidebar state IMMEDIATELY before page renders -->
-<script>
-    // This runs immediately, before DOM is ready
-    (function() {
-        var sidebarToggled = localStorage.getItem('sidebarToggled');
-        var activeCollapse = localStorage.getItem('activeCollapse');
-        
-        if (sidebarToggled === 'true') {
-            document.documentElement.classList.add('sidebar-toggled-init');
-        }
-        
-        if (activeCollapse) {
-            document.documentElement.setAttribute('data-active-collapse', activeCollapse);
-        }
-    })();
-</script>
     
     <!-- Enhanced Messages Styling -->
     <style>
         table tfoot {
         display: none !important;
 }
-          /* Apply sidebar state before page renders to prevent flicker */
-    html.sidebar-toggled-init #wrapper .sidebar {
-        width: 6.5rem !important;
-    }
-    
-    html.sidebar-toggled-init #wrapper .sidebar .nav-item .nav-link span {
-        display: none !important;
-    }
-    
-    html.sidebar-toggled-init #wrapper .sidebar .nav-item .nav-link {
-        text-align: center;
-        padding: 0.75rem 1rem;
-        width: 6.5rem;
-    }
-    
-    /* Remove transition on initial load */
-    .sidebar {
-        transition: none !important;
-    }
-    
-    /* Re-enable transitions after page load */
-    .sidebar.transitions-enabled {
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Show collapse menu immediately if stored */
-    html[data-active-collapse="#collapseTwo"] #collapseTwo,
-    html[data-active-collapse="#collapseUtilities"] #collapseUtilities {
-        display: block !important;
-    }
+       
         /* Enhanced Django Messages */
         .messages-container {
             position: fixed;
@@ -943,13 +898,9 @@ a.text-primary:focus {
 
    <!-- Enhanced auto-dismiss alerts with smooth animation -->
     <script>
+        
         $(document).ready(function() {
-
-                setTimeout(function() {
-                $('.sidebar').addClass('transitions-enabled');
-            }, 100);
-            
-            // Auto-dismiss messages after 6 seconds with fade-out animation
+            // Auto-dismiss messages after 10 seconds with fade-out animation
             $('.messages-container .alert').each(function() {
                 var $alert = $(this);
                 setTimeout(function() {
@@ -974,118 +925,71 @@ a.text-primary:focus {
             setInterval(updateClock, 1000);
             updateClock();
 
-             // Enable transitions after page load
-        setTimeout(function() {
-            $('.sidebar').addClass('transitions-enabled');
-        }, 50);
-        
-        // Restore sidebar toggle state
-        var sidebarToggled = localStorage.getItem('sidebarToggled');
-        if (sidebarToggled === 'true') {
-            $('body').addClass('sidebar-toggled');
-            $('.sidebar').addClass('toggled');
-        }
-        document.documentElement.classList.remove('sidebar-toggled-init');
-
-        // Restore active collapse menu
-        var activeCollapse = localStorage.getItem('activeCollapse');
-        if (activeCollapse) {
-            $(activeCollapse).addClass('show');
-            $(activeCollapse).parent('.nav-item').addClass('active');
-        }
-        document.documentElement.removeAttribute('data-active-collapse');
-
-        // Save sidebar toggle state when clicked
-        $('#sidebarToggle, #sidebarToggleTop').on('click', function() {
-            setTimeout(function() {
-                var isToggled = $('body').hasClass('sidebar-toggled');
-                localStorage.setItem('sidebarToggled', isToggled);
-            }, 50);
-        });
-
-        // Save which collapse menu is open
-        $('.nav-link[data-toggle="collapse"]').on('click', function() {
-            var target = $(this).data('target');
-            localStorage.removeItem('activeCollapse');
+            // Check if this is a manual refresh (page was reloaded by user)
+            var wasNavigated = sessionStorage.getItem('navigated');
             
-            if (!$(target).hasClass('show')) {
-                localStorage.setItem('activeCollapse', target);
-            }
-        });
-
-        // Highlight active menu item based on current URL
-        var currentUrl = window.location.pathname;
-        $('.sidebar .nav-link, .sidebar .collapse-item').each(function() {
-            var href = $(this).attr('href');
-            if (href === currentUrl) {
-                $(this).addClass('active');
-                
-                if ($(this).hasClass('collapse-item')) {
-                    $(this).closest('.collapse').addClass('show');
-                    $(this).closest('.nav-item').addClass('active');
+            if (wasNavigated === 'true') {
+                // Coming from navigation - restore dropdown state
+                var activeCollapse = sessionStorage.getItem('activeCollapse');
+                if (activeCollapse) {
+                    $(activeCollapse).addClass('show');
+                    $(activeCollapse).parent('.nav-item').addClass('active');
                 }
             }
-        });
+            // If wasNavigated is null or false, dropdowns stay collapsed (manual refresh)
+            
+            // Reset the navigation flag
+            sessionStorage.setItem('navigated', 'false');
 
-        // Auto-dismiss messages
-        $('.messages-container .alert').each(function() {
-            var $alert = $(this);
-            setTimeout(function() {
-                $alert.addClass('fade-out');
+            // Highlight active menu item based on current URL
+            var currentUrl = window.location.pathname;
+            $('.sidebar .nav-link, .sidebar .collapse-item').each(function() {
+                var href = $(this).attr('href');
+                if (href === currentUrl) {
+                    $(this).addClass('active');
+                    
+                    if ($(this).hasClass('collapse-item')) {
+                        $(this).closest('.nav-item').addClass('active');
+                    }
+                }
+            });
+
+            // Save which collapse menu is open when toggled
+            $('.nav-link[data-toggle="collapse"]').on('click', function() {
+                var target = $(this).data('target');
+                
                 setTimeout(function() {
-                    $alert.remove();
-                }, 300);
-            }, 10000);
+                    if ($(target).hasClass('show')) {
+                        sessionStorage.setItem('activeCollapse', target);
+                    } else {
+                        sessionStorage.removeItem('activeCollapse');
+                    }
+                }, 400); // Wait for collapse animation
+            });
         });
 
-        // Real-time clock
-        function updateClock() {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-            const day = now.toLocaleDateString();
-            const timeString = `${day} ${hours}:${minutes}:${seconds}`;
-            document.getElementById('real-time-clock').textContent = timeString;
-        }
+        /* ===============================
+           SIDEBAR NAVIGATION LOADER
+           =============================== */
+        $('.sidebar .nav-link, .sidebar .collapse-item').on('click', function (e) {
+            const href = $(this).attr('href');
 
-        setInterval(updateClock, 1000);
-        updateClock();
+            // Ignore collapse toggles
+            if (!href || href === '#' || $(this).attr('data-toggle') === 'collapse') {
+                return;
+            }
 
+            // Ignore same-page links
+            if (href === window.location.pathname) {
+                return;
+            }
 
-        // Collapse sidebar dropdowns when clicking normal nav links
-$('.sidebar .nav-link').on('click', function () {
-    // If this link is NOT a collapse trigger
-    if (!$(this).attr('data-toggle')) {
-        // Close all collapse menus
-        $('.sidebar .collapse').collapse('hide');
+            // Mark that we're navigating (not refreshing)
+            sessionStorage.setItem('navigated', 'true');
 
-        // Clear stored collapse state
-        localStorage.removeItem('activeCollapse');
-    }
-});
-
+            // Show loader ONLY for real navigation
+            $('#sidebar-loader').addClass('active');
         });
-/* ===============================
-   SIDEBAR NAVIGATION LOADER
-   =============================== */
-
-$('.sidebar .nav-link, .sidebar .collapse-item').on('click', function (e) {
-    const href = $(this).attr('href');
-
-    // Ignore collapse toggles
-    if (!href || href === '#' || $(this).attr('data-toggle') === 'collapse') {
-        return;
-    }
-
-    // Ignore same-page links
-    if (href === window.location.pathname) {
-        return;
-    }
-
-    // Show loader ONLY for real navigation
-    $('#sidebar-loader').addClass('active');
-});
 
         
     </script>

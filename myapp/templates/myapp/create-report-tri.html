@@ -17,7 +17,7 @@
                 data-toggle="modal"
                 data-target="#importTriModal"
             >
-                <i class="fas fa-file-import"></i> Import
+                <i class="fas fa-file-import"></i> Import File
             </button>
 
             <!-- EXPORT DROPDOWN -->
@@ -29,7 +29,7 @@
                     aria-haspopup="true"
                     aria-expanded="false"
                 >
-                    <i class="fas fa-file-export"></i> Export
+                    <i class="fas fa-file-export"></i> Export File
                 </button>
 
               <div class="dropdown-menu">
@@ -49,7 +49,7 @@
                 data-toggle="modal"
                 data-target="#addPermitModal"
             >
-                <i class="fas fa-plus"></i> Add
+                <i class="fas fa-plus"></i> Add Tricycle
             </button>
         </div>
     </div>
@@ -71,40 +71,37 @@
     <button class="btn btn-primary btn-sm w-100 dropdown-toggle" type="button" id="printReportBtn" data-toggle="dropdown" aria-expanded="false">
         <i class="fas fa-print"></i> Print Report
     </button>
-    <div class="dropdown-menu p-3" aria-labelledby="printReportBtn" style="min-width: 250px;">
-        <h6 class="dropdown-header px-0">Select Reports to Print</h6>
-        <div class="dropdown-divider"></div>
+<div class="dropdown-menu p-3" aria-labelledby="printReportBtn" style="min-width: 250px;" onclick="event.stopPropagation();">
+    <h6 class="dropdown-header px-0">Select Reports to Print</h6>
+    <div class="dropdown-divider"></div>
 
-
-        <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left;">
-            <input class="form-check-input" type="checkbox" value="renewed" id="checkRenewed">
-            <label class="form-check-label fs-6" for="checkRenewed">
-                <i class="fas fa-sync"></i> Renewed Permit
-            </label>
-        </div>
-
-        <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left;">
-            <input class="form-check-input" type="checkbox" value="registered" id="checkRegistered">
-            <label class="form-check-label fs-6" for="checkRegistered">
-                <i class="fas fa-file-alt"></i> Registered Tricycle
-            </label>
-        </div>
-
-   
-
-        <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left;">
-            <input class="form-check-input" type="checkbox" value="expired" id="checkExpired">
-            <label class="form-check-label fs-6" for="checkExpired">
-                <i class="fas fa-exclamation-triangle"></i> Expired Permit
-            </label>
-        </div>
-
-        <div class="dropdown-divider"></div>
-
-        <button type="button" class="btn btn-primary btn-sm w-100" id="confirmPrintBtn">
-            <i class="fas fa-check"></i> OK
-        </button>
+    <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left; cursor: pointer;">
+        <input class="form-check-input" type="checkbox" value="renewed" id="checkRenewed">
+        <label class="form-check-label fs-6" for="checkRenewed" style="cursor: pointer;">
+            <i class="fas fa-sync"></i> Renewed Permit
+        </label>
     </div>
+
+    <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left; cursor: pointer;">
+        <input class="form-check-input" type="checkbox" value="registered" id="checkRegistered">
+        <label class="form-check-label fs-6" for="checkRegistered" style="cursor: pointer;">
+            <i class="fas fa-file-alt"></i> Registered Tricycle
+        </label>
+    </div>
+
+    <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left; cursor: pointer;">
+        <input class="form-check-input" type="checkbox" value="expired" id="checkExpired">
+        <label class="form-check-label fs-6" for="checkExpired" style="cursor: pointer;">
+            <i class="fas fa-exclamation-triangle"></i> Expired Permit
+        </label>
+    </div>
+
+    <div class="dropdown-divider"></div>
+
+    <button type="button" class="btn btn-primary btn-sm w-100" id="confirmPrintBtn">
+        <i class="fas fa-check"></i> OK
+    </button>
+</div>
 </div>
 
 
@@ -390,15 +387,9 @@
       </div>
 
       <!-- Body -->
-      <div class="modal-body">
-        <div class="table-responsive">
-          <table class="table table-sm table-borderless mb-0">
-            <tbody id="viewModalContent">
-              <!-- Injected by JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
+ <div id="viewModalContent" class="container-fluid px-0">
+    <!-- Injected by JS -->
+</div>
 
       <!-- Footer -->
       <div class="modal-footer border-top-0 pt-0">
@@ -567,6 +558,8 @@
   </div>
 </div>
 <script>
+
+  var logoUrl = "{% static 'assets/img/lgu.png' %}";
     
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -751,7 +744,7 @@ $('#saveUpdatePermitBtn').on('click', function () {
                 return json.data;
             }
         },
-        "pageLength": 5,
+        "pageLength": 10,
         "lengthChange": false,
         "lengthMenu": [5, 10, 25, 50, 100],
         "ordering": false,
@@ -900,12 +893,38 @@ function generateAndPrintReports(reportTypes) {
         else if (type === 'registered') reportTitle = 'Registered Tricycle Report';
         else if (type === 'expired') reportTitle = 'Expired Permit Report';
 
-        printContent += `
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="margin: 0; color: #333;">${reportTitle}</h1>
-                <p style="margin: 5px 0; color: #666;">Generated on ${currentDate}</p>
-                <p style="margin: 5px 0; color: #666;">Total Records: ${filteredData.length}</p>
-            </div>
+// Get date filter values and format them
+var filterStart = $('#filterStart').val();
+var filterEnd = $('#filterEnd').val();
+var dateRangeText = '';
+
+// Function to format date as "Feb 12, 2026"
+function formatDate(dateString) {
+    if (!dateString) return '';
+    var date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+if (filterStart && filterEnd) {
+    dateRangeText = `<p style="margin: 5px 0; color: #666;">Date Range: ${formatDate(filterStart)} to ${formatDate(filterEnd)}</p>`;
+} else if (filterStart) {
+    dateRangeText = `<p style="margin: 5px 0; color: #666;">From: ${formatDate(filterStart)}</p>`;
+} else if (filterEnd) {
+    dateRangeText = `<p style="margin: 5px 0; color: #666;">Until: ${formatDate(filterEnd)}</p>`;
+}
+printContent += `
+    <div style="position: relative; margin-bottom: 30px;">
+        <img src="${logoUrl}" 
+             alt="Logo"
+             style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; object-fit: contain;">
+        
+        <div style="text-align: center; padding-top: 10px;">
+            <h1 style="margin: 0; color: #333;">${reportTitle}</h1>
+            <p style="margin: 5px 0; color: #666;">Generated on ${currentDate}</p>
+            ${dateRangeText}
+            <p style="margin: 5px 0; color: #666;">Total Records: ${filteredData.length}</p>
+        </div>
+    </div>
             
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
                 <thead>
@@ -962,9 +981,24 @@ iframe.contentDocument.write(printContent);
 iframe.contentDocument.write('</body></html>');
 iframe.contentDocument.close();
 
-// Trigger print
-iframe.contentWindow.focus();
-iframe.contentWindow.print();
+var images = iframe.contentDocument.images;
+var totalImages = images.length;
+var loadedImages = 0;
+
+if (totalImages === 0) {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+} else {
+    for (var i = 0; i < totalImages; i++) {
+        images[i].onload = function () {
+            loadedImages++;
+            if (loadedImages === totalImages) {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }
+        };
+    }
+}
 
 // Remove iframe after printing
 setTimeout(function() {

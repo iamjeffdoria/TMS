@@ -350,92 +350,6 @@
           
 				</tfoot>
 				<tbody>
-					{% for card in cards %}
-					<tr>
-      <td class="image-col">
-          {% if card.image %}
-              <img src="{{ card.image.url }}" alt="{{ card.name }}" class="id-thumb" 
-                  style="cursor: pointer;" 
-                  onclick="showImagePreview('{{ card.image.url }}')">
-          {% else %}
-              <span class="text-muted">-</span>
-          {% endif %}
-      </td>
-
-						<td>{{ card.id_number }}</td>
-						<td>{{ card.name }}</td>
-						<td>{{ card.get_gender_display }}</td>
-						<td>{{ card.date_of_birth }}</td>
-						<td class="wrap-col">{{ card.address }}</td>
-						<td>{{ card.or_number }}</td>
-						<td>{{ card.height }}</td>
-						<td>{{ card.weight }}</td>
-						<td>{{ card.date_issued }}</td>
-						<td>{{ card.expiration_date }}</td>
-            <td class="text-center">
-            <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-info" title="View"
-                onclick="viewIdCard(
-                    '{% if card.image %}{{ card.image.url }}{% endif %}',
-                    '{{ card.name|escapejs }}',
-                    '{{ card.id_number }}',
-                    '{{ card.get_gender_display }}',
-                    '{{ card.date_of_birth }}',
-                    '{{ card.address|escapejs }}',
-                    '{{ card.or_number }}',
-                    '{{ card.height }}',
-                    '{{ card.weight }}',
-                    '{{ card.date_issued }}',
-                    '{{ card.expiration_date }}'
-                )">
-            <i class="fas fa-eye"></i>
-        </button>
-             <button type="button" class="btn btn-warning" title="Update"
-                onclick="openUpdateModal(
-                    '{{ card.id }}',
-                     '{% if card.image %}{{ card.image.url }}{% endif %}',
-                    '{{ card.name|escapejs }}',
-                    '{{ card.id_number }}',
-                    '{{ card.gender }}',
-                    '{{ card.date_of_birth }}',
-                    '{{ card.address|escapejs }}',
-                    '{{ card.or_number }}',
-                    '{{ card.height }}',
-                    '{{ card.weight }}',
-                    '{{ card.date_issued }}',
-                    '{{ card.expiration_date }}'
-                )">
-            <i class="fas fa-edit"></i>
-        </button>
-
-              <button type="button" class="btn btn-danger" title="Delete">
-                <i class="fas fa-trash"></i>
-              </button>
-        <button type="button" class="btn btn-secondary" title="Print" 
-              onclick="preparePrint(
-            '{% if card.image %}{{ card.image.url }}{% endif %}',
-            '{{ card.name|escapejs }}',
-            '{{ card.id_number }}',
-            '{{ card.address|escapejs }}',
-            '{{ card.date_of_birth }}',
-            '{{ card.get_gender_display }}',
-            '{{ card.or_number }}',
-            '{{ card.height }}',
-            '{{ card.weight }}',
-            '{{ card.date_issued }}',
-            '{{ card.expiration_date }}',
-            'DM Onate'
-        )">
-        <i class="fas fa-print"></i>
-        </button>
-            </div>
-          </td>
-					</tr>
-					{% empty %}
-					<tr>
-						<td colspan="11" class="text-center text-muted">No ID cards found.</td>
-					</tr>
-					{% endfor %}
 				</tbody>
 			</table>
 		</div>
@@ -981,23 +895,18 @@
   </div>
 </div>
 
-
 <script>
-
 document.getElementById("importIdCardZipBtn").addEventListener("click", function () {
     document.getElementById("importIdCardZipForm").submit();
 });
-// Function to show image preview
+
 function showImagePreview(imageUrl) {
     document.getElementById('preview-image').src = imageUrl;
     $('#imagePreviewModal').modal('show');
 }
 
 function openUpdateModal(cardId, imageUrl, name, idNumber, gender, dob, address, orNumber, height, weight, dateIssued, expiryDate) {
-    // Fill hidden card ID
     document.getElementById('update-card-id').value = cardId;
-    
-    // Fill form fields
     document.getElementById('update-name').value = name || '';  
     document.getElementById('update-id-number').value = idNumber || '';
     document.getElementById('update-gender').value = gender || 'M';
@@ -1008,24 +917,13 @@ function openUpdateModal(cardId, imageUrl, name, idNumber, gender, dob, address,
     document.getElementById('update-weight').value = weight || '';
     document.getElementById('update-date-issued').value = formatDateForInput(dateIssued);
     document.getElementById('update-expiry-date').value = formatDateForInput(expiryDate);
-    
-    // Show current photo
     document.getElementById('update-current-photo').src = imageUrl || '';
-    
-    // Show the modal
     $('#updateIdCardModal').modal('show');
 }
 
-// Helper function to format dates for input fields
 function formatDateForInput(dateStr) {
     if (!dateStr || dateStr === 'None' || dateStr === 'null') return '';
-    
-    // If date is already in YYYY-MM-DD format, return it
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        return dateStr;
-    }
-    
-    // If date is in other formats (e.g., "Jan. 30, 2025"), convert it
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
     const date = new Date(dateStr);
     if (!isNaN(date.getTime())) {
         const year = date.getFullYear();
@@ -1033,57 +931,58 @@ function formatDateForInput(dateStr) {
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     }
-    
     return '';
 }
-  // Function to view ID card details
+
 function viewIdCard(imageUrl, name, idNumber, gender, dob, address, orNumber, height, weight, dateIssued, expiryDate) {
-    // Set image
     document.getElementById('view-image').src = imageUrl || '';
-    
-    // Set personal information
     document.getElementById('view-name').textContent = name || 'N/A';
     document.getElementById('view-id-number').textContent = idNumber || 'N/A';
     document.getElementById('view-gender').textContent = gender || 'N/A';
     document.getElementById('view-dob').textContent = dob || 'N/A';
     document.getElementById('view-address').textContent = address || 'N/A';
-    
-    // Set physical information
     document.getElementById('view-height').textContent = height ? height + ' cm' : 'N/A';
     document.getElementById('view-weight').textContent = weight ? weight + ' kg' : 'N/A';
-    
-    // Set card information
     document.getElementById('view-or-number').textContent = orNumber || 'N/A';
     document.getElementById('view-date-issued').textContent = dateIssued || 'N/A';
     document.getElementById('view-expiry-date').textContent = expiryDate || 'N/A';
-    
-    // Show the modal
     $('#viewIdCardModal').modal('show');
 }
+
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Initialize DataTable
+
     var table = $('#dataTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "{% url 'id-cards-datatable' %}",
+            "type": "GET"
+        },
         "pageLength": 10,
         "lengthChange": false,
         "ordering": false,
         "searching": true,
         "dom": 'lrtip',
-        "columnDefs": [
-            {
-                "targets": [6, 7, 8, 9, 10],
-                "visible": false,
-                "searchable": true
-            }
+        "columns": [
+            { "data": 0, "orderable": false, "searchable": false },  // Image
+            { "data": 1 },  // ID Number
+            { "data": 2 },  // Name
+            { "data": 3 },  // Gender
+            { "data": 4 },  // DOB
+            { "data": 5 },  // Address
+            { "data": 6, "visible": false, "searchable": true },  // OR No
+            { "data": 7, "visible": false, "searchable": true },  // Height
+            { "data": 8, "visible": false, "searchable": true },  // Weight
+            { "data": 9, "visible": false, "searchable": true },  // Date Issued
+            { "data": 10, "visible": false, "searchable": true }, // Expiry
+            { "data": 11, "orderable": false, "searchable": false } // Action
         ]
     });
 
-    // Apply column search from header inputs
+    // Column search inputs
     table.columns().every(function(index) {
         var that = this;
-        // Skip Image column (0) and Action column (11)
-        if (index === 0 || index === 11) {
-            return;
-        }
+        if (index === 0 || index === 11) return;
         $('input', this.header()).on('keyup change clear', function() {
             if (that.search() !== this.value) {
                 that.search(this.value).draw();
@@ -1091,7 +990,25 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // 2. Save ID Card button - SINGLE listener
+    // VIEW button - event delegation
+    $('#dataTable tbody').on('click', '.btn-view-card', function() {
+        var d = $(this).data();
+        viewIdCard(d.image, d.name, d.idnumber, d.gender, d.dob, d.address, d.ornumber, d.height, d.weight, d.dateissued, d.expiry);
+    });
+
+    // UPDATE button - event delegation
+    $('#dataTable tbody').on('click', '.btn-update-card', function() {
+        var d = $(this).data();
+        openUpdateModal(d.id, d.image, d.name, d.idnumber, d.gender, d.dob, d.address, d.ornumber, d.height, d.weight, d.dateissued, d.expiry);
+    });
+
+    // PRINT button - event delegation
+    $('#dataTable tbody').on('click', '.btn-print-card', function() {
+        var d = $(this).data();
+        preparePrint(d.image, d.name, d.idnumber, d.address, d.dob, d.gender, d.ornumber, d.height, d.weight, d.dateissued, d.expiry, d.dmonate);
+    });
+
+    // Save Add ID Card
     document.getElementById("saveIdCardBtn").addEventListener("click", function () {
         let form = document.getElementById("idCardForm");
         let formData = new FormData(form);
@@ -1099,23 +1016,18 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("{% url 'add-idcard' %}", {
             method: "POST",
             body: formData,
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-            }
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
         })
         .then(response => {
             if (response.ok) {
                 $('#addIdCardModal').modal('hide');
-                setTimeout(() => {
-                    location.reload();
-                }, 300);
+                table.ajax.reload();
             }
         })
         .catch(err => console.error(err));
     });
 
-
-      // Add this new listener for Update button
+    // Save Update ID Card
     document.getElementById("updateIdCardBtn").addEventListener("click", function () {
         let form = document.getElementById("updateIdCardForm");
         let formData = new FormData(form);
@@ -1123,69 +1035,46 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("{% url 'update-idcard' %}", {
             method: "POST",
             body: formData,
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-            }
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
                 $('#updateIdCardModal').modal('hide');
-                setTimeout(() => {
-                    location.reload();
-                }, 300);
+                table.ajax.reload();
             } else {
                 alert('Error: ' + data.message);
             }
         })
-        .catch(err => {
-            console.error(err);
-            alert('An error occurred while updating the ID Card');
-        });
+        .catch(err => console.error(err));
     });
 
-    // Print ID 1 button listener// Print ID 1 button (with real data)
-document.getElementById("printId1Btn").addEventListener("click", function () {
-    executePrint(1);
+    // Print buttons
+    document.getElementById("printId1Btn").addEventListener("click", function () {
+        executePrint(1);
+    });
+    document.getElementById("printId2Btn").addEventListener("click", function () {
+        executePrint(2);
+    });
+
 });
 
-// Print ID 2 button (sample template)
-document.getElementById("printId2Btn").addEventListener("click", function () {
-    executePrint(2);
-});
-
-    
-});
-
-// 3. Global function for print (outside DOMContentLoaded since it's called from inline onclick)
-
-// Global variables to store print data temporarily
+// Print functions (global scope)
 let pendingPrintData = null;
 
 function preparePrint(photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate, dmOnate) {
-    // Store the print data
-    pendingPrintData = {
-        photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate, dmOnate
-    };
-    
-    // Update modal message with ID number
-    // document.getElementById('print-confirm-message').innerText = `Print ID ${idNum}?`;
-    
-    // Show confirmation modal
+    pendingPrintData = { photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate, dmOnate };
     $('#printConfirmModal').modal('show');
 }
 
 function executePrint(idType) {
     if (!pendingPrintData) return;
-    
     const data = pendingPrintData;
-    
-    // Remove active class from both print areas first
+
     document.getElementById('print-area').classList.remove('active');
     document.getElementById('print-area-2').classList.remove('active');
-    
+
     if (idType === 1) {
-        // Print ID 1 - With Real Data
         document.getElementById('print-photo').src = data.photoUrl;
         document.getElementById('print-name').innerText = data.fullName;
         document.getElementById('print-id-number').innerText = data.idNum;
@@ -1198,67 +1087,39 @@ function executePrint(idType) {
         document.getElementById('print-date-issued').innerText = data.dateIssued || '';
         document.getElementById('print-expiry-date').innerText = data.expiryDate || '';
         document.getElementById('print-dm-onate').innerText = data.dmOnate || '';
-
-        // Mark ID 1 as active for printing
         document.getElementById('print-area').classList.add('active');
-        
-        const photo = document.getElementById('print-photo');
-        triggerPrintAfterImageLoad(photo);
-       }else if (idType === 2) {
-        // Print ID 2 - ONLY Image, Name, ID Number, and Address (Real Data)
+        triggerPrintAfterImageLoad(document.getElementById('print-photo'));
+    } else if (idType === 2) {
         document.getElementById('print-photo-2').src = data.photoUrl;
         document.getElementById('print-name-2').innerText = data.fullName;
         document.getElementById('print-id-number-2').innerText = 'ID No: ' + data.idNum;
         document.getElementById('print-address-2').innerText = 'Address: ' + data.address;
-        
-        // Clear all other fields (leave them empty)
-        document.getElementById('print-dob-2').innerText = '';
-        document.getElementById('print-gender-2').innerText = '';
-        document.getElementById('print-or-number-2').innerText = '';
-        document.getElementById('print-height-2').innerText = '';
-        document.getElementById('print-weight-2').innerText = '';
-        document.getElementById('print-date-issued-2').innerText = '';
-        document.getElementById('print-expiry-date-2').innerText = '';
-        
-        // Mark ID 2 as active for printing
         document.getElementById('print-area-2').classList.add('active');
-        
-        const photo = document.getElementById('print-photo-2');
-        triggerPrintAfterImageLoad(photo);
+        triggerPrintAfterImageLoad(document.getElementById('print-photo-2'));
     }
 }
 
 function triggerPrintAfterImageLoad(photoElement) {
     let printed = false;
-
     const triggerPrint = () => {
         if (!printed) {
             printed = true;
-            // Hide modal before printing
             $('#printConfirmModal').modal('hide');
             setTimeout(() => {
                 window.print();
-                // Clean up after printing
                 document.getElementById('print-area').classList.remove('active');
                 document.getElementById('print-area-2').classList.remove('active');
                 pendingPrintData = null;
             }, 300);
         }
     };
-
     if (photoElement.complete && photoElement.naturalHeight !== 0) {
         triggerPrint();
     } else {
         photoElement.onload = triggerPrint;
-        // Add error handler in case image fails to load
-        photoElement.onerror = () => {
-            console.error('Image failed to load');
-            triggerPrint(); // Still trigger print even if image fails
-        };
+        photoElement.onerror = () => { triggerPrint(); };
     }
 }
-
 </script>
-
 
 {% endblock %}

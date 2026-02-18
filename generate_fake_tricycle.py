@@ -21,7 +21,7 @@ remarks_choices = [
 ] 
  
 # Total rows to generate 
-TOTAL_ROWS = 50 
+TOTAL_ROWS = 200
  
 # Output file 
 output_file = "tricycle_fake.csv" 

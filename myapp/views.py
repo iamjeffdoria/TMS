@@ -50,6 +50,7 @@ def superadmin_required(view_func):
 @require_http_methods(["POST"])
 
 
+
 def update_permit_tri(request, permit_id):
     # Only allow POST requests
     if request.method != 'POST':
@@ -435,6 +436,9 @@ def admin_login(request):
     return render(request, 'myapp/login.html', content)
 
 def dashboard(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
+    
     permit_count = MayorsPermit.objects.count()
     tricycle_count = MayorsPermitTricycle.objects.count() 
      
@@ -567,6 +571,8 @@ def dashboard(request):
 
 @superadmin_required
 def admin_management(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     # REMOVED .prefetch_related('permissions')
     admins = Admin.objects.all().select_related('created_by').order_by('-created_at')
     
@@ -653,7 +659,6 @@ def add_admin(request):
 
 #     return JsonResponse(data)
 
-
 @require_POST
 @superadmin_required
 def update_admin(request):
@@ -731,12 +736,16 @@ def admin_logout(request):
 
 
 def mayors_permit(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     permits = MayorsPermit.objects.all()
     return render(request, 'myapp/mayors-permit.html', {'permits': permits})
 
 
 
 def mayors_permit_datatable(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     """Server-side processing endpoint for DataTables"""
     
     # DataTables parameters
@@ -929,9 +938,152 @@ def add_mayors_permit(request):
 
 
 def id_cards(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     cards = IDCard.objects.all()
     return render(request, 'myapp/id-cards.html', {'cards': cards})
 
+
+def id_cards_datatable(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    draw = int(request.GET.get('draw', 1))
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 10))
+    search_value = request.GET.get('search[value]', '')
+
+    queryset = IDCard.objects.all()
+
+    # Global search
+    if search_value:
+        queryset = queryset.filter(
+            Q(name__icontains=search_value) |
+            Q(id_number__icontains=search_value) |
+            Q(address__icontains=search_value) |
+            Q(or_number__icontains=search_value)
+        )
+
+    # Column-specific search
+    column_map = {
+        0: None,          # Image - not searchable
+        1: 'id_number',
+        2: 'name',
+        3: 'gender',
+        4: 'date_of_birth',
+        5: 'address',
+        6: 'or_number',
+        7: 'height',
+        8: 'weight',
+        9: 'date_issued',
+        10: 'expiration_date',
+    }
+
+    for i, field in column_map.items():
+        if field is None:
+            continue
+        col_search = request.GET.get(f'columns[{i}][search][value]', '')
+        if col_search:
+            queryset = queryset.filter(**{f'{field}__icontains': col_search})
+
+    total_records = IDCard.objects.count()
+    filtered_records = queryset.count()
+
+    cards = queryset[start:start + length]
+
+    data = []
+    for card in cards:
+        image_html = ''
+        if card.image:
+            image_html = f'<img src="{card.image.url}" class="id-thumb" style="cursor:pointer;" onclick="showImagePreview(\'{card.image.url}\')">'
+        else:
+            image_html = '<span class="text-muted">-</span>'
+
+        image_url = card.image.url if card.image else ''
+        gender_display = card.get_gender_display()
+        dob = card.date_of_birth.strftime('%Y-%m-%d') if card.date_of_birth else ''
+        date_issued = card.date_issued.strftime('%Y-%m-%d') if card.date_issued else ''
+        expiry = card.expiration_date.strftime('%Y-%m-%d') if card.expiration_date else ''
+        height = str(card.height) if card.height else ''
+        weight = str(card.weight) if card.weight else ''
+        or_number = card.or_number or ''
+
+        action_html = f'''
+        <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-info btn-view-card"
+                data-image="{image_url}"
+                data-name="{card.name}"
+                data-idnumber="{card.id_number}"
+                data-gender="{gender_display}"
+                data-dob="{dob}"
+                data-address="{card.address}"
+                data-ornumber="{or_number}"
+                data-height="{height}"
+                data-weight="{weight}"
+                data-dateissued="{date_issued}"
+                data-expiry="{expiry}"
+                title="View">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button type="button" class="btn btn-warning btn-update-card"
+                data-id="{card.id}"
+                data-image="{image_url}"
+                data-name="{card.name}"
+                data-idnumber="{card.id_number}"
+                data-gender="{card.gender}"
+                data-dob="{dob}"
+                data-address="{card.address}"
+                data-ornumber="{or_number}"
+                data-height="{height}"
+                data-weight="{weight}"
+                data-dateissued="{date_issued}"
+                data-expiry="{expiry}"
+                title="Update">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button type="button" class="btn btn-danger btn-delete-card" data-id="{card.id}" title="Delete">
+                <i class="fas fa-trash"></i>
+            </button>
+            <button type="button" class="btn btn-secondary btn-print-card"
+                data-image="{image_url}"
+                data-name="{card.name}"
+                data-idnumber="{card.id_number}"
+                data-address="{card.address}"
+                data-dob="{dob}"
+                data-gender="{gender_display}"
+                data-ornumber="{or_number}"
+                data-height="{height}"
+                data-weight="{weight}"
+                data-dateissued="{date_issued}"
+                data-expiry="{expiry}"
+                data-dmonate="DM Onate"
+                title="Print">
+                <i class="fas fa-print"></i>
+            </button>
+        </div>
+        '''
+
+        data.append([
+            image_html,       # 0 - Image
+            card.id_number,   # 1
+            card.name,        # 2
+            gender_display,   # 3
+            dob,              # 4
+            card.address,     # 5
+            or_number,        # 6
+            height,           # 7
+            weight,           # 8
+            date_issued,      # 9
+            expiry,           # 10
+            action_html,      # 11
+        ])
+
+    return JsonResponse({
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': filtered_records,
+        'data': data,
+    })
 
 # ============ ID CARD IMPORT/EXPORT WITH IMAGES ============
 
@@ -1277,10 +1429,14 @@ def print_mayors_permit(request, pk):
 
 
 def mtop(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     mtops = Mtop.objects.all()
     return render(request, 'myapp/mtop.html', {'mtops': mtops})
 
 def mtop_datatable(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     """Server-side processing endpoint for MTOP DataTables"""
     
     # DataTables parameters
@@ -1861,15 +2017,21 @@ def export_franchise(request):
         return response
 
 def mtop_print(request, pk):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     mtop = Mtop.objects.get(pk=pk)
     return render(request, 'myapp/mtop-print.html', {'mtop': mtop})
 
 def franchise(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     franchises = Franchise.objects.all().order_by('-date')  # latest first
     return render(request, 'myapp/franchise.html', {'franchises': franchises}) 
 
 
 def franchise_datatable(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     """Server-side processing endpoint for Franchise DataTables"""
     
     # DataTables parameters
@@ -1988,6 +2150,8 @@ def franchise_datatable(request):
     })
 
 def mayors_permit_tricycle(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     permits = MayorsPermitTricycle.objects.all()
     return render(request, 'myapp/mayors-permit-tri.html', {'permits': permits})
 
@@ -2045,6 +2209,8 @@ def mayors_permit_tri_history_data(request, permit_id):
             'error': str(e)
         }, status=500)
 def mayors_permit_tricycle_datatable(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     """Server-side processing endpoint for DataTables"""
     
     # DataTables parameters
@@ -2805,8 +2971,12 @@ def mayors_permit_history(request, permit_id):
 
 
 def create_report_tri(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     return render(request, 'myapp/create-report-tri.html')
 def create_report_tri_datatable(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
     """Server-side processing endpoint for Create Report DataTables - SIMPLIFIED VERSION"""
     
     # DataTables parameters
@@ -2822,16 +2992,22 @@ def create_report_tri_datatable(request):
     # Base queryset
     queryset = Tricycle.objects.all()
     
-    # ✅ SIMPLE DATE FILTERING - Based on Tricycle's date_registered
+    # ✅ IMPROVED DATE FILTERING - Check BOTH date_registered AND date_expired
     if filter_start and filter_end:
         queryset = queryset.filter(
-            date_registered__gte=filter_start,
-            date_registered__lte=filter_end
+            Q(date_registered__gte=filter_start, date_registered__lte=filter_end) |
+            Q(date_expired__gte=filter_start, date_expired__lte=filter_end)
         )
     elif filter_start:
-        queryset = queryset.filter(date_registered__gte=filter_start)
+        queryset = queryset.filter(
+            Q(date_registered__gte=filter_start) |
+            Q(date_expired__gte=filter_start)
+        )
     elif filter_end:
-        queryset = queryset.filter(date_registered__lte=filter_end)
+        queryset = queryset.filter(
+            Q(date_registered__lte=filter_end) |
+            Q(date_expired__lte=filter_end)
+        )
     
     # Global search
     if search_value:

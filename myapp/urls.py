@@ -67,7 +67,8 @@ urlpatterns = [
     path('add-tricycle/', views.add_tricycle, name='add-tricycle'),
     path('update-tricycle/', views.update_tricycle, name='update-tricycle'),  # Add this line
     path('franchise/datatable/', views.franchise_datatable, name='franchise-datatable'),
-    
+    path('id-cards/datatable/', views.id_cards_datatable, name='id-cards-datatable'),
+
 
 
 ]
