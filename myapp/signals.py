@@ -2,7 +2,7 @@ from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from .models import (
     MayorsPermit, MayorsPermitTricycle, Admin, IDCard, 
-    Mtop, Franchise, ActivityLog
+    Mtop, Franchise, ActivityLog, Tricycle
 )
 
 # Helper function to get changed fields with exclusions
@@ -76,7 +76,6 @@ def log_potpot_activity(sender, instance, created, **kwargs):
         changed_fields = get_changed_fields(
             instance, 
             original, 
-            exclude_fields={'amount_paid'}  # Exclude amount_paid for potpot
         )
         
         if changed_fields:
@@ -180,9 +179,23 @@ def log_admin_activity(sender, instance, created, **kwargs):
         )
 
 
-# Track ID Card changes
+# Add pre_save to track original IDCard state
+@receiver(pre_save, sender=IDCard)
+def track_idcard_changes(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            original = IDCard.objects.get(pk=instance.pk)
+            instance._original = original
+        except IDCard.DoesNotExist:
+            instance._original = None
+    else:
+        instance._original = None
+
+# Replace the existing log_idcard_activity with this:
 @receiver(post_save, sender=IDCard)
 def log_idcard_activity(sender, instance, created, **kwargs):
+    user_info = getattr(instance, '_current_user', None)
+
     if created:
         ActivityLog.objects.create(
             action='create',
@@ -190,12 +203,69 @@ def log_idcard_activity(sender, instance, created, **kwargs):
             object_id=instance.id_number,
             object_name=instance.name,
             description=f'New ID card issued for {instance.name} (ID #{instance.id_number})',
+            user_type=user_info.get('type') if user_info else None,
+            user_id=user_info.get('id') if user_info else None,
+            user_name=user_info.get('name') if user_info else None,
+        )
+    else:
+        original = getattr(instance, '_original', None)
+        changed_fields = get_changed_fields(
+            instance,
+            original,
+            exclude_fields={'image'}  # Exclude image field (binary, not useful to log)
         )
 
+        if changed_fields:
+            descriptions = []
+            for change in changed_fields:
+                field = change['field']
+                old_val = change['old_value']
+                new_val = change['new_value']
+                descriptions.append(
+                    f"<strong>{field}:</strong> "
+                    f"<span class='text-danger'>{old_val}</span> → "
+                    f"<span class='text-success'>{new_val}</span>"
+                )
 
-# Track MTOP changes
+            # Check if image was also changed separately
+            if 'image' not in [c['field'] for c in changed_fields]:
+                orig_image = getattr(original, 'image', None)
+                new_image = getattr(instance, 'image', None)
+                if str(orig_image) != str(new_image):
+                    descriptions.append("<strong>image:</strong> <span class='text-success'>Updated</span>")
+
+            detail = ", ".join(descriptions)
+
+            ActivityLog.objects.create(
+                action='update',
+                model_type='idcard',
+                object_id=instance.id_number,
+                object_name=instance.name,
+                description=f"ID #{instance.id_number} - {detail}",
+                user_type=user_info.get('type') if user_info else None,
+                user_id=user_info.get('id') if user_info else None,
+                user_name=user_info.get('name') if user_info else None,
+            )
+
+
+# Add pre_save to track original Mtop state
+@receiver(pre_save, sender=Mtop)
+def track_mtop_changes(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            original = Mtop.objects.get(pk=instance.pk)
+            instance._original = original
+        except Mtop.DoesNotExist:
+            instance._original = None
+    else:
+        instance._original = None
+
+
+# Replace the existing log_mtop_activity with this:
 @receiver(post_save, sender=Mtop)
 def log_mtop_activity(sender, instance, created, **kwargs):
+    user_info = getattr(instance, '_current_user', None)
+
     if created:
         ActivityLog.objects.create(
             action='create',
@@ -203,12 +273,58 @@ def log_mtop_activity(sender, instance, created, **kwargs):
             object_id=instance.case_no,
             object_name=instance.name,
             description=f'New MTOP registered for {instance.name} (Case #{instance.case_no})',
+            user_type=user_info.get('type') if user_info else None,
+            user_id=user_info.get('id') if user_info else None,
+            user_name=user_info.get('name') if user_info else None,
         )
+    else:
+        original = getattr(instance, '_original', None)
+        changed_fields = get_changed_fields(instance, original)
+
+        if changed_fields:
+            descriptions = []
+            for change in changed_fields:
+                field = change['field']
+                old_val = change['old_value']
+                new_val = change['new_value']
+                descriptions.append(
+                    f"<strong>{field}:</strong> "
+                    f"<span class='text-danger'>{old_val}</span> → "
+                    f"<span class='text-success'>{new_val}</span>"
+                )
+
+            detail = ", ".join(descriptions)
+
+            ActivityLog.objects.create(
+                action='update',
+                model_type='mtop',
+                object_id=instance.case_no,
+                object_name=instance.name,
+                description=f"Case #{instance.case_no} - {detail}",
+                user_type=user_info.get('type') if user_info else None,
+                user_id=user_info.get('id') if user_info else None,
+                user_name=user_info.get('name') if user_info else None,
+            )
 
 
-# Track Franchise changes
+# Add pre_save to track original Franchise state
+@receiver(pre_save, sender=Franchise)
+def track_franchise_changes(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            original = Franchise.objects.get(pk=instance.pk)
+            instance._original = original
+        except Franchise.DoesNotExist:
+            instance._original = None
+    else:
+        instance._original = None
+
+
+# Replace the existing log_franchise_activity with this:
 @receiver(post_save, sender=Franchise)
 def log_franchise_activity(sender, instance, created, **kwargs):
+    user_info = getattr(instance, '_current_user', None)
+
     if created:
         ActivityLog.objects.create(
             action='create',
@@ -216,4 +332,82 @@ def log_franchise_activity(sender, instance, created, **kwargs):
             object_id=str(instance.id),
             object_name=instance.name,
             description=f'New franchise registered for {instance.name} (Plate #{instance.plate_no})',
+            user_type=user_info.get('type') if user_info else None,
+            user_id=user_info.get('id') if user_info else None,
+            user_name=user_info.get('name') if user_info else None,
         )
+    else:
+        original = getattr(instance, '_original', None)
+        changed_fields = get_changed_fields(instance, original)
+
+        if changed_fields:
+            descriptions = []
+            for change in changed_fields:
+                descriptions.append(
+                    f"<strong>{change['field']}:</strong> "
+                    f"<span class='text-danger'>{change['old_value']}</span> → "
+                    f"<span class='text-success'>{change['new_value']}</span>"
+                )
+
+            ActivityLog.objects.create(
+                action='update',
+                model_type='franchise',
+                object_id=str(instance.id),
+                object_name=instance.name,
+                description=f"Franchise #{instance.id} ({instance.plate_no}) - {', '.join(descriptions)}",
+                user_type=user_info.get('type') if user_info else None,
+                user_id=user_info.get('id') if user_info else None,
+                user_name=user_info.get('name') if user_info else None,
+            )
+
+
+@receiver(pre_save, sender=Tricycle)
+def track_tricycle_changes(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            original = Tricycle.objects.get(pk=instance.pk)
+            instance._original = original
+        except Tricycle.DoesNotExist:
+            instance._original = None
+    else:
+        instance._original = None
+
+
+@receiver(post_save, sender=Tricycle)
+def log_tricycle_activity(sender, instance, created, **kwargs):
+    user_info = getattr(instance, '_current_user', None)
+
+    if created:
+        ActivityLog.objects.create(
+            action='create',
+            model_type='tricycle',
+            object_id=instance.body_number,
+            object_name=instance.name,
+            description=f'New tricycle registered for {instance.name} (Body # {instance.body_number})',
+            user_type=user_info.get('type') if user_info else None,
+            user_id=user_info.get('id') if user_info else None,
+            user_name=user_info.get('name') if user_info else None,
+        )
+    else:
+        original = getattr(instance, '_original', None)
+        changed_fields = get_changed_fields(instance, original)
+
+        if changed_fields:
+            descriptions = []
+            for change in changed_fields:
+                descriptions.append(
+                    f"<strong>{change['field']}:</strong> "
+                    f"<span class='text-danger'>{change['old_value']}</span> → "
+                    f"<span class='text-success'>{change['new_value']}</span>"
+                )
+
+            ActivityLog.objects.create(
+                action='update',
+                model_type='tricycle',
+                object_id=instance.body_number,
+                object_name=instance.name,
+                description=f"Tricycle {instance.body_number} - {', '.join(descriptions)}",
+                user_type=user_info.get('type') if user_info else None,
+                user_id=user_info.get('id') if user_info else None,
+                user_name=user_info.get('name') if user_info else None,
+            )

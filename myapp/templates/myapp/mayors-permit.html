@@ -656,51 +656,6 @@
     });
 });
 
-
-        // SAVE UPDATE
-        document.getElementById("saveUpdateBtn").addEventListener("click", function () {
-
-            let id = document.getElementById("u_id").value;
-            let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-
-            let formData = new FormData();
-            formData.append("control_no", document.getElementById("u_control_no").value);
-            formData.append("status", document.getElementById("u_status").value);
-            formData.append("name", document.getElementById("u_name").value);
-            formData.append("address", document.getElementById("u_address").value);
-            formData.append("business_name", document.getElementById("u_business_name").value);
-            formData.append("motorized_operation", document.getElementById("u_motorized").value);
-            formData.append("or_no", document.getElementById("u_or_no").value);
-            formData.append("amount_paid", document.getElementById("u_amount_paid").value);
-            formData.append("issue_date", document.getElementById("u_issue_date").value);
-            formData.append("expiry_date", document.getElementById("u_expiry_date").value);
-            formData.append("issued_at", document.getElementById("u_issued_at").value);
-            formData.append("mayor", document.getElementById("u_mayor").value);
-            formData.append("quarter", document.getElementById("u_quarter").value);
-
-            fetch(`/mayors-permit/update/${id}/`, {
-                method: "POST",
-                body: formData,
-                headers: { "X-CSRFToken": csrftoken },
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    $("#updateModal").modal("hide");
-
-                    // Show success alert
-                    let alertBox = document.createElement("div");
-                    alertBox.className = "alert alert-success mt-3";
-                    alertBox.innerText = data.message;
-                    document.querySelector(".card-body").prepend(alertBox);
-
-                    setTimeout(() => alertBox.remove(), 3000);
-
-                    location.reload(); // Optional: refresh after update
-                }
-            });
-
-        });
   var table = $('#dataTable').DataTable({
         "processing": true,
         "serverSide": true,
@@ -894,7 +849,7 @@
                 document.querySelector(".card-body").prepend(alertBox);
 
                 setTimeout(() => alertBox.remove(), 3000);
-                table.ajax.reload();  // Reload table instead of page refresh
+                location.reload();  // Reload table instead of page refresh
             }
         });
     });

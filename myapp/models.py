@@ -311,8 +311,6 @@ class MayorsPermitTricycleHistory(models.Model):
         verbose_name_plural = "Tricycle Permit Histories"
 
 
-
-
 class ActivityLog(models.Model):
     ACTION_CHOICES = [
         ('create', 'Created'),
@@ -328,6 +326,7 @@ class ActivityLog(models.Model):
         ('idcard', 'ID Card'),
         ('mtop', 'MTOP'),
         ('franchise', 'Franchise'),
+        ('tricycle', 'Tricycle'), 
     ]
     
     # What happened

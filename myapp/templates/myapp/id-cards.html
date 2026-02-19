@@ -1021,7 +1021,8 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => {
             if (response.ok) {
                 $('#addIdCardModal').modal('hide');
-                table.ajax.reload();
+                 location.reload();
+                
             }
         })
         .catch(err => console.error(err));
@@ -1041,7 +1042,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
             if (data.status === 'success') {
                 $('#updateIdCardModal').modal('hide');
-                table.ajax.reload();
+                  location.reload(); 
             } else {
                 alert('Error: ' + data.message);
             }

@@ -36,7 +36,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.core.serializers import serialize
 from django.utils.timezone import localtime
-
+from decimal import Decimal
+import datetime
 
 def superadmin_required(view_func):
     @wraps(view_func)
@@ -279,21 +280,27 @@ def update_franchise(request):
                 'message': f'Authorized Number "{authorized_no}" already exists!'
             }, status=400)
 
-        # Update franchise record
         franchise.name = request.POST.get('name')
         franchise.denomination = request.POST.get('denomination')
         franchise.plate_no = plate_no
-        franchise.valid_until = request.POST.get('valid_until')
+        franchise.valid_until = datetime.date.fromisoformat(request.POST.get('valid_until'))
         franchise.motor_no = request.POST.get('motor_no')
         franchise.authorized_no = authorized_no
         franchise.chassis_no = request.POST.get('chassis_no')
         franchise.authorized_route = request.POST.get('authorized_route')
         franchise.purpose = request.POST.get('purpose')
         franchise.official_receipt_no = request.POST.get('official_receipt_no')
-        franchise.date = request.POST.get('date')
-        franchise.amount_paid = request.POST.get('amount_paid')
+        franchise.date = datetime.date.fromisoformat(request.POST.get('date'))
+        franchise.amount_paid = Decimal(request.POST.get('amount_paid'))
         franchise.municipal_treasurer = request.POST.get('municipal_treasurer')
-        
+
+        # Attach current user for the signal
+        franchise._current_user = {
+            'type': request.session.get('user_type'),
+            'id': request.session.get('admin_id') or request.session.get('superadmin_id'),
+            'name': request.session.get('full_name'),
+        }
+
         franchise.save()
 
         # Add success message
@@ -363,16 +370,25 @@ def update_mtop(request):
     mtop.name = request.POST.get("name")
     mtop.case_no = request.POST.get("case_no")
     mtop.address = request.POST.get("address")
-    mtop.no_of_units = request.POST.get("no_of_units")
+    mtop.no_of_units = int(request.POST.get("no_of_units"))
     mtop.route_operation = request.POST.get("route_operation")
     mtop.make = request.POST.get("make")
     mtop.motor_no = request.POST.get("motor_no")
     mtop.chasses_no = request.POST.get("chasses_no")
     mtop.plate_no = request.POST.get("plate_no")
-    mtop.date = request.POST.get("date")
+    mtop.date = datetime.date.fromisoformat(request.POST.get("date"))
     mtop.municipal_treasurer = request.POST.get("municipal_treasurer")
     mtop.officer_in_charge = request.POST.get("officer_in_charge")
     mtop.mayor = request.POST.get("mayor")
+
+    mtop.mayor = request.POST.get("mayor")
+
+    # Attach current user for the signal
+    mtop._current_user = {
+        'type': request.session.get('user_type'),
+        'id': request.session.get('admin_id') or request.session.get('superadmin_id'),
+        'name': request.session.get('full_name'),
+    }
     mtop.save()
 
     messages.success(request, f"{mtop.name} successfully updated.")
@@ -1258,15 +1274,12 @@ def import_idcards_with_images(request):
     except Exception as e:
         messages.error(request, f"Error importing ID Cards: {str(e)}")
         return redirect('id-cards')
-
+    
 def update_idcard(request):
     """Handle ID Card update"""
     if request.method == 'POST':
         try:
-            # Get the card ID from the form
             card_id = request.POST.get('card_id')
-            
-            # Get the existing card object
             card = get_object_or_404(IDCard, id=card_id)
             
             # Update fields
@@ -1275,31 +1288,40 @@ def update_idcard(request):
             card.address = request.POST.get('address')
             card.gender = request.POST.get('gender')
             card.or_number = request.POST.get('or_number', '')
-            
-            # Handle optional fields
+
+           
+
             if request.POST.get('date_of_birth'):
-                card.date_of_birth = request.POST.get('date_of_birth')
-            
+                card.date_of_birth = datetime.date.fromisoformat(request.POST.get('date_of_birth'))
+
             if request.POST.get('height'):
-                card.height = request.POST.get('height')
-            
+                card.height = Decimal(request.POST.get('height'))
+
             if request.POST.get('weight'):
-                card.weight = request.POST.get('weight')
-            
+                card.weight = Decimal(request.POST.get('weight'))
+
             if request.POST.get('date_issued'):
-                card.date_issued = request.POST.get('date_issued')
-            
+                card.date_issued = datetime.date.fromisoformat(request.POST.get('date_issued'))
+
             if request.POST.get('expiration_date'):
-                card.expiration_date = request.POST.get('expiration_date')
+                card.expiration_date = datetime.date.fromisoformat(request.POST.get('expiration_date'))
             
-            # Handle image upload (only if new image is provided)
             if request.FILES.get('image'):
-                # Delete old image if exists
                 if card.image:
                     card.image.delete(save=False)
                 card.image = request.FILES['image']
             
-            # Save the updated card
+            # Attach current user info for the signal to use
+            user_type = request.session.get('user_type')  # 'admin' or 'superadmin'
+            user_id = request.session.get('user_id')
+            user_name = request.session.get('full_name')  # or 'full_name', adjust to your session keys
+
+            card._current_user = {
+                'type': user_type,
+                'id': user_id,
+                'name': user_name,
+            }
+            
             card.save()
             
             messages.success(request, 'ID Card updated successfully!')
@@ -1310,7 +1332,6 @@ def update_idcard(request):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
-
 
 @csrf_exempt
 def add_idcard(request):
@@ -3407,6 +3428,18 @@ def add_tricycle(request):
             status=status,
             remarks=remarks
         )
+
+        # ✅ Manually log to ActivityLog
+        ActivityLog.objects.create(
+            action='create',
+            model_type='tricycle',
+            object_id=tricycle.body_number,
+            object_name=tricycle.name,
+            description=f'New tricycle registered for {tricycle.name} (Body # {tricycle.body_number})',
+            user_type=request.session.get('user_type'),
+            user_id=request.session.get('admin_id') or request.session.get('superadmin_id'),
+            user_name=request.session.get('full_name'),
+        )
         
         # ✅ Record creation history
         TricycleHistory.objects.create(
@@ -3483,10 +3516,18 @@ def update_tricycle(request):
         tricycle.engine_motor_no = engine_motor_no
         tricycle.chassis_no = chassis_no
         tricycle.plate_no = plate_no
-        tricycle.date_registered = date_registered
-        tricycle.date_expired = date_expired
+        tricycle.date_registered = datetime.date.fromisoformat(date_registered)  # ✅ fix
+        tricycle.date_expired = datetime.date.fromisoformat(date_expired)        # ✅ fix
         tricycle.status = status
         tricycle.remarks = remarks
+
+        # Attach current user for the signal
+        tricycle._current_user = {
+            'type': request.session.get('user_type'),
+            'id': request.session.get('admin_id') or request.session.get('superadmin_id'),
+            'name': request.session.get('full_name'),
+        }
+
         tricycle.save()
         
         # ✅ Determine what changed and record history
