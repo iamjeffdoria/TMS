@@ -36,8 +36,6 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.core.serializers import serialize
 from django.utils.timezone import localtime
-from decimal import Decimal
-import datetime
 
 def superadmin_required(view_func):
     @wraps(view_func)
@@ -49,11 +47,7 @@ def superadmin_required(view_func):
     return wrapper
 
 @require_http_methods(["POST"])
-
-
-
 def update_permit_tri(request, permit_id):
-    # Only allow POST requests
     if request.method != 'POST':
         return JsonResponse({
             'success': False,
@@ -62,11 +56,11 @@ def update_permit_tri(request, permit_id):
     
     try:
         permit = get_object_or_404(MayorsPermitTricycle, id=permit_id)
-
         data = json.loads(request.body)
 
-        # ✅ Save previous status BEFORE updating
+        # ✅ Save previous values BEFORE updating
         previous_status = permit.status
+        previous_expiry_date = permit.expiry_date
         new_status = data.get('status')
 
         # -------- Update fields --------
@@ -77,14 +71,12 @@ def update_permit_tri(request, permit_id):
         permit.business_name = data.get('business_name')
 
         if data.get('issue_date'):
-            permit.issue_date = datetime.strptime(
-                data.get('issue_date'), '%Y-%m-%d'
-            ).date()
+            permit.issue_date = datetime.strptime(data.get('issue_date'), '%Y-%m-%d').date()
 
+        new_expiry_date = None
         if data.get('expiry_date'):
-            permit.expiry_date = datetime.strptime(
-                data.get('expiry_date'), '%Y-%m-%d'
-            ).date()
+            new_expiry_date = datetime.strptime(data.get('expiry_date'), '%Y-%m-%d').date()
+            permit.expiry_date = new_expiry_date
 
         permit.amount_paid = int(data.get('amount_paid', 0))
         permit.or_no = data.get('or_no')
@@ -95,13 +87,13 @@ def update_permit_tri(request, permit_id):
 
         permit.save()
 
-        # -------- ✅ CREATE HISTORY WITH USER INFO IF STATUS CHANGED --------
+        # -------- User info --------
+        user_type = request.session.get('user_type')
+        user_id = request.session.get('superadmin_id') if user_type == 'superadmin' else request.session.get('admin_id')
+        user_name = request.session.get('full_name')
+
+        # -------- ✅ MayorsPermitTricycleHistory: status changed --------
         if previous_status != new_status:
-            # Get user info from session
-            user_type = request.session.get('user_type')
-            user_id = request.session.get('superadmin_id') if user_type == 'superadmin' else request.session.get('admin_id')
-            user_name = request.session.get('full_name')
-            
             MayorsPermitTricycleHistory.objects.create(
                 permit=permit,
                 previous_status=previous_status,
@@ -112,23 +104,56 @@ def update_permit_tri(request, permit_id):
                 updated_by_name=user_name
             )
 
-        messages.success(request, f'Permit for {permit.name} updated successfully!')
+        # -------- ✅ TricycleHistory: record renewal from permit --------
+        if permit.tricycle:
+            tricycle = permit.tricycle
 
-        return JsonResponse({
-            'success': True,
-            'message': 'Permit updated successfully'
-        })
+            is_renewal = (
+                new_status == 'active' and (
+                    previous_status != 'active' or
+                    (new_expiry_date and new_expiry_date != previous_expiry_date)
+                )
+            )
+            is_status_change = tricycle.status != {
+                'active': 'Renewed',
+                'inactive': 'Inactive',
+                'expired': 'Expired',
+            }.get(new_status, tricycle.status)
+
+            if is_renewal:
+                TricycleHistory.objects.create(
+                    tricycle=tricycle,
+                    action='renewed',
+                    previous_status=tricycle.status,
+                    new_status='Renewed',
+                    previous_date_expired=previous_expiry_date,
+                    new_date_expired=new_expiry_date or permit.expiry_date,
+                    remarks=f"Renewed via Mayor's Permit (Control No: {permit.control_no})",
+                    created_by=user_name or 'system'
+                )
+            elif is_status_change:
+                STATUS_MAP = {
+                    'active': 'Renewed',
+                    'inactive': 'Inactive',
+                    'expired': 'Expired',
+                }
+                new_tricycle_status = STATUS_MAP.get(new_status, tricycle.status)
+                TricycleHistory.objects.create(
+                    tricycle=tricycle,
+                    action='status_changed',
+                    previous_status=tricycle.status,
+                    new_status=new_tricycle_status,
+                    remarks=f"Status updated via Mayor's Permit (Control No: {permit.control_no})",
+                    created_by=user_name or 'system'
+                )
+
+        messages.success(request, f'Permit for {permit.name} updated successfully!')
+        return JsonResponse({'success': True, 'message': 'Permit updated successfully'})
 
     except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid JSON data'
-        }, status=400)
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'}, status=400)
     except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=400)
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
     
 
 @require_POST
@@ -279,7 +304,8 @@ def update_franchise(request):
                 'success': False,
                 'message': f'Authorized Number "{authorized_no}" already exists!'
             }, status=400)
-
+        import datetime
+        from decimal import Decimal
         franchise.name = request.POST.get('name')
         franchise.denomination = request.POST.get('denomination')
         franchise.plate_no = plate_no
@@ -351,6 +377,7 @@ def get_mtop(request, id):
 
 @require_POST
 def update_mtop(request):
+    import datetime
     mtop = get_object_or_404(Mtop, id=request.POST.get("id"))
 
     # UNIQUE FIELD CHECK (exclude self)
@@ -1276,6 +1303,8 @@ def import_idcards_with_images(request):
         return redirect('id-cards')
     
 def update_idcard(request):
+    import datetime
+    from decimal import Decimal
     """Handle ID Card update"""
     if request.method == 'POST':
         try:
@@ -2373,11 +2402,10 @@ def mayors_permit_tricycle_datatable(request):
         'recordsFiltered': filtered_records,
         'data': data
     })
-
+    
 def add_permit_tri(request):
     if request.method == 'POST':
         try:
-            # Get all form data
             control_no = request.POST.get('control_no')
             name = request.POST.get('name')
             address = request.POST.get('address')
@@ -2391,8 +2419,17 @@ def add_permit_tri(request):
             mayor = request.POST.get('mayor')
             quarter = request.POST.get('quarter')
             status = request.POST.get('status')
+            tricycle_body_number = request.POST.get('tricycle')  # ← NEW
 
-            # Create new permit
+            # Resolve tricycle FK
+            tricycle = None
+            if tricycle_body_number:
+                try:
+                    tricycle = Tricycle.objects.get(body_number=tricycle_body_number)
+                except Tricycle.DoesNotExist:
+                    messages.error(request, f"Tricycle with body number '{tricycle_body_number}' not found.")
+                    return redirect('mayors-permit-tricycle')
+
             permit = MayorsPermitTricycle.objects.create(
                 control_no=control_no,
                 name=name,
@@ -2406,18 +2443,28 @@ def add_permit_tri(request):
                 issued_at=issued_at,
                 mayor=mayor,
                 quarter=quarter,
-                status=status
+                status=status,
+                tricycle=tricycle,  # ← NEW
             )
 
             messages.success(request, f'Permit {control_no} has been successfully added!')
-            return redirect('mayors-permit-tricycle')  # Replace with your actual list view URL name
-        
+            return redirect('mayors-permit-tricycle')
+
         except Exception as e:
             messages.error(request, f'Error adding permit: {str(e)}')
-            return redirect('mayors-permit-tricycle')  # Replace with your actual list view URL name
-    
+            return redirect('mayors-permit-tricycle')
+
     messages.error(request, 'Invalid request method')
-    return redirect('mayors-permit-tricycle')  # Replace with your actual list view URL name
+    return redirect('mayors-permit-tricycle')
+
+def get_tricycles(request):
+    tricycles = Tricycle.objects.values(
+        'body_number',
+        'name',
+        'address',       # ← auto-fill address
+        'plate_no',
+    ).order_by('body_number')
+    return JsonResponse({"tricycles": list(tricycles)})
 
 def export_mayors_permit(request):
     export_format = request.GET.get('format', 'csv')
@@ -3132,7 +3179,7 @@ def create_report_tri_datatable(request):
         tricycle.chassis_no,                                    # 5
         tricycle.plate_no,                                      # 6
         tricycle.date_registered.strftime('%Y-%m-%d'),         # 7
-        tricycle.date_expired.strftime('%Y-%m-%d'),            # 8
+        tricycle.date_expired.strftime('%Y-%m-%d') if tricycle.date_expired else '',  # 8        # 8
         tricycle.status,                                        # 9
         tricycle.remarks or '-',                                # 10
         action_html,                                            # 11
@@ -3395,6 +3442,8 @@ def import_create_report_tri(request):
     messages.error(request, 'Invalid request method')
     return redirect('create-report-tri')
 
+
+
 @require_POST
 def add_tricycle(request):
     try:
@@ -3406,12 +3455,12 @@ def add_tricycle(request):
         chassis_no = request.POST.get('chassis_no')
         plate_no = request.POST.get('plate_no')
         date_registered = request.POST.get('date_registered')
-        date_expired = request.POST.get('date_expired')
+        date_expired = request.POST.get('date_expired') or None
         status = request.POST.get('status')
         remarks = request.POST.get('remarks', '')
 
         # Simple validation
-        if not all([body_number, name, address, make_kind, plate_no, date_registered, date_expired, status]):
+        if not all([body_number, name, address, make_kind, plate_no, date_registered,status]):
             messages.error(request, 'Please fill all required fields.')
             return JsonResponse({'success': False, 'error': 'Please fill all required fields.'})
 
@@ -3460,9 +3509,9 @@ def add_tricycle(request):
     except Exception as e:
         messages.error(request, f'An error occurred: {str(e)}')
         return JsonResponse({'success': False, 'error': str(e)})
-
 @require_http_methods(["POST"])
 def update_tricycle(request):
+    import datetime
     """Update an existing tricycle record"""
     try:
         tricycle_id = request.POST.get('tricycle_id')
@@ -3477,7 +3526,7 @@ def update_tricycle(request):
             messages.error(request, 'Tricycle not found')
             return JsonResponse({'success': False, 'error': 'Tricycle not found'})
         
-        # ✅ Store old values BEFORE updating
+        # Store old values BEFORE updating
         old_status = tricycle.status
         old_date_expired = tricycle.date_expired
         
@@ -3516,8 +3565,8 @@ def update_tricycle(request):
         tricycle.engine_motor_no = engine_motor_no
         tricycle.chassis_no = chassis_no
         tricycle.plate_no = plate_no
-        tricycle.date_registered = datetime.date.fromisoformat(date_registered)  # ✅ fix
-        tricycle.date_expired = datetime.date.fromisoformat(date_expired)        # ✅ fix
+        tricycle.date_registered = datetime.date.fromisoformat(date_registered)
+        tricycle.date_expired = datetime.date.fromisoformat(date_expired)
         tricycle.status = status
         tricycle.remarks = remarks
 
@@ -3529,13 +3578,41 @@ def update_tricycle(request):
         }
 
         tricycle.save()
-        
-        # ✅ Determine what changed and record history
+
+        # ✅ Compute what changed FIRST — right after save
         status_changed = old_status != status
         date_expired_changed = str(old_date_expired) != date_expired
-        
+
+        # ✅ Sync MayorsPermitTricycle when Tricycle status changes
+        if status_changed:
+            permit_status_map = {
+                'New': 'active',
+                'Renewed': 'active',
+                'Expired': 'expired',
+                'Inactive': 'inactive',
+            }
+            new_permit_status = permit_status_map.get(status)
+
+            if new_permit_status:
+                linked_permits = MayorsPermitTricycle.objects.filter(tricycle=tricycle)
+                for permit in linked_permits:
+                    old_permit_status = permit.status
+                    if old_permit_status != new_permit_status:
+                        permit.status = new_permit_status
+                        permit.save()
+
+                        MayorsPermitTricycleHistory.objects.create(
+                            permit=permit,
+                            previous_status=old_permit_status,
+                            new_status=new_permit_status,
+                            remarks=f'Auto-synced from Tricycle status change: {old_status} → {status}',
+                            updated_by_type=request.session.get('user_type'),
+                            updated_by_id=request.session.get('admin_id') or request.session.get('superadmin_id'),
+                            updated_by_name=request.session.get('full_name'),
+                        )
+
+        # ✅ Record Tricycle history if anything changed
         if status_changed or date_expired_changed:
-            # Determine action type
             if status == 'Renewed' and old_status != 'Renewed':
                 action = 'renewed'
                 history_remarks = f'Tricycle renewed from {old_status} to {status}'
@@ -3569,4 +3646,3 @@ def update_tricycle(request):
     except Exception as e:
         messages.error(request, f'An error occurred: {str(e)}')
         return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
-

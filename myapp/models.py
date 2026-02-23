@@ -163,6 +163,14 @@ class Franchise(models.Model):
 
 
 class MayorsPermitTricycle(models.Model):
+    tricycle = models.ForeignKey(
+        'Tricycle',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='mayors_permits',
+        to_field='body_number',  # Link via body_number
+    )
     control_no = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=500)
@@ -205,6 +213,11 @@ class Tricycle(models.Model):
         ('Expired', 'Expired'),
         ('Inactive', 'Inactive'),
     ]
+    REMARKS_CHOICES = [
+        ('with_mayors_permit', 'With Mayors Permit'),
+        ('without_mayors_permit', 'Without Mayors Permit'),
+    ]
+
     
     body_number = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=200)
@@ -214,9 +227,9 @@ class Tricycle(models.Model):
     chassis_no = models.CharField(max_length=100)
     plate_no = models.CharField(max_length=20, unique=True)
     date_registered = models.DateField()
-    date_expired = models.DateField()   
+    date_expired = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-    remarks = models.TextField(blank=True, null=True)
+    remarks = models.CharField(max_length=255, choices=REMARKS_CHOICES, blank=True, null=True)
     
     def __str__(self):
         return f"{self.body_number} - {self.name}"

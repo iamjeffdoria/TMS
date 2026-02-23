@@ -313,16 +313,15 @@
               </div>
             </div>
 
-            <div class="col-lg-4 col-md-6 mb-3">
-              <label class="font-weight-bold">Date Expired</label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
-                </div>
-                <input type="date" name="date_expired" class="form-control" required>
-              </div>
-            </div>
-
+          <div class="col-lg-4 col-md-6 mb-3">
+        <label class="font-weight-bold">Date Expired <small class="text-muted fw-normal">(set via Mayor's Permit)</small></label>
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+          </div>
+          <input type="date" name="date_expired" class="form-control bg-light" readonly>
+        </div>
+      </div>
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Status</label>
               <div class="input-group">
@@ -339,13 +338,17 @@
               </div>
             </div>
 
-         <div class="col-lg-6 col-md-6 mb-3">
+<div class="col-lg-6 col-md-6 mb-3">
   <label class="font-weight-bold">Remarks</label>
   <div class="input-group">
     <div class="input-group-prepend">
       <span class="input-group-text"><i class="fas fa-sticky-note"></i></span>
     </div>
-    <textarea name="remarks" class="form-control" rows="2" placeholder="Enter Remarks"></textarea>
+    <select name="remarks" class="form-control">
+      <option value="">-- Select Remarks --</option>
+      <option value="with_mayors_permit">With Mayor's Permit</option>
+      <option value="without_mayors_permit">Without Mayor's Permit</option>
+    </select>
   </div>
 </div>
 
@@ -507,14 +510,14 @@
             </div>
 
             <div class="col-lg-4 col-md-6 mb-3">
-              <label class="font-weight-bold">Date Expired</label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
-                </div>
-                <input type="date" name="date_expired" id="update_date_expired" class="form-control" required>
-              </div>
-            </div>
+  <label class="font-weight-bold">Date Expired <small class="text-muted fw-normal">(set via Mayor's Permit)</small></label>
+  <div class="input-group">
+    <div class="input-group-prepend">
+      <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+    </div>
+    <input type="date" name="date_expired" id="update_date_expired" class="form-control bg-light" readonly>
+  </div>
+</div>
 
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Status</label>
@@ -531,16 +534,19 @@
                 </select>
               </div>
             </div>
-
-            <div class="col-lg-6 col-md-6 mb-3">
-              <label class="font-weight-bold">Remarks</label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-sticky-note"></i></span>
-                </div>
-                <textarea name="remarks" id="update_remarks" class="form-control" rows="2" placeholder="Enter Remarks"></textarea>
-              </div>
-            </div>
+<div class="col-lg-6 col-md-6 mb-3">
+  <label class="font-weight-bold">Remarks</label>
+  <div class="input-group">
+    <div class="input-group-prepend">
+      <span class="input-group-text"><i class="fas fa-sticky-note"></i></span>
+    </div>
+    <select name="remarks" id="update_remarks" class="form-control">
+      <option value="">-- Select Remarks --</option>
+      <option value="with_mayors_permit">With Mayor's Permit</option>
+      <option value="without_mayors_permit">Without Mayor's Permit</option>
+    </select>
+  </div>
+</div>
 
           </div>
         </form>
@@ -684,7 +690,19 @@ $(document).on('click', '.btn-update', function() {
     $('#update_plate_no').val(plateNo);
     $('#update_date_registered').val(dateRegistered);
     $('#update_date_expired').val(dateExpired);
-    $('#update_status').val(status);
+     // ✅ Set status with date label on the matching option
+    var relevantDate = (status === 'Expired') ? dateExpired : dateRegistered;
+    var $statusSelect = $('#update_status');
+
+    // Reset all options to original text first
+    $statusSelect.find('option').each(function() {
+        var val = $(this).val();
+        if (val) $(this).text(val); // restore original label
+    });
+
+    // Add date next to the matching (pre-selected) option
+    $statusSelect.find('option[value="' + status + '"]').text(status + ' (' + relevantDate + ')');
+    $statusSelect.val(status);
     $('#update_remarks').val(remarks);
     
     $('#updatePermitModal').modal('show');
@@ -864,22 +882,49 @@ $('#confirmPrintBtn').on('click', function(e) {
 
 });
 function generateAndPrintReports(reportTypes) {
-    var printContent = '<div style="padding: 20px; font-family: Arial, sans-serif;">';
-    
     var currentDate = new Date().toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric'
     });
+
+    var filterStart = $('#filterStart').val();
+    var filterEnd = $('#filterEnd').val();
+
+    // Fetch ALL records (no pagination) from the server
+    $.ajax({
+        url: "{% url 'create-report-tri-datatable' %}",
+        type: "GET",
+        data: {
+            draw: 1,
+            start: 0,
+            length: 99999,  // Get all records
+            filter_start: filterStart,
+            filter_end: filterEnd,
+        },
+        success: function(json) {
+            var allData = json.data;
+            buildAndPrint(allData, reportTypes, currentDate, filterStart, filterEnd);
+        },
+        error: function() {
+            alert('Failed to fetch data for printing.');
+        }
+    });
+}
+
+function buildAndPrint(allData, reportTypes, currentDate, filterStart, filterEnd) {
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        var date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    var printContent = '<div style="padding: 20px; font-family: Arial, sans-serif;">';
 
     reportTypes.forEach(function(type, index) {
         if (index > 0) {
             printContent += '<div style="page-break-before: always;"></div>';
         }
-        
-        var reportTitle = '';
-        var table = $('#createReportTable').DataTable();
-        var allData = table.rows({ search: 'applied' }).data().toArray();
 
-        // Filter rows by report type based on the Status column (row[9]) which is hidden
+        var reportTitle = '';
         var filteredData = allData.filter(function(row) {
             var status = row[9].toLowerCase();
             if (type === 'renewed') return status.includes('renewed');
@@ -888,44 +933,30 @@ function generateAndPrintReports(reportTypes) {
             return false;
         });
 
-        // Set report title
         if (type === 'renewed') reportTitle = 'Renewed Permit Report';
         else if (type === 'registered') reportTitle = 'Registered Tricycle Report';
         else if (type === 'expired') reportTitle = 'Expired Permit Report';
 
-// Get date filter values and format them
-var filterStart = $('#filterStart').val();
-var filterEnd = $('#filterEnd').val();
-var dateRangeText = '';
+        var dateRangeText = '';
+        if (filterStart && filterEnd) {
+            dateRangeText = `<p style="margin: 5px 0; color: #666;">Date Range: ${formatDate(filterStart)} to ${formatDate(filterEnd)}</p>`;
+        } else if (filterStart) {
+            dateRangeText = `<p style="margin: 5px 0; color: #666;">From: ${formatDate(filterStart)}</p>`;
+        } else if (filterEnd) {
+            dateRangeText = `<p style="margin: 5px 0; color: #666;">Until: ${formatDate(filterEnd)}</p>`;
+        }
 
-// Function to format date as "Feb 12, 2026"
-function formatDate(dateString) {
-    if (!dateString) return '';
-    var date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
-if (filterStart && filterEnd) {
-    dateRangeText = `<p style="margin: 5px 0; color: #666;">Date Range: ${formatDate(filterStart)} to ${formatDate(filterEnd)}</p>`;
-} else if (filterStart) {
-    dateRangeText = `<p style="margin: 5px 0; color: #666;">From: ${formatDate(filterStart)}</p>`;
-} else if (filterEnd) {
-    dateRangeText = `<p style="margin: 5px 0; color: #666;">Until: ${formatDate(filterEnd)}</p>`;
-}
-printContent += `
-    <div style="position: relative; margin-bottom: 30px;">
-        <img src="${logoUrl}" 
-             alt="Logo"
-             style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; object-fit: contain;">
-        
-        <div style="text-align: center; padding-top: 10px;">
-            <h1 style="margin: 0; color: #333;">${reportTitle}</h1>
-            <p style="margin: 5px 0; color: #666;">Generated on ${currentDate}</p>
-            ${dateRangeText}
-            <p style="margin: 5px 0; color: #666;">Total Records: ${filteredData.length}</p>
-        </div>
-    </div>
-            
+        printContent += `
+            <div style="position: relative; margin-bottom: 30px;">
+                <img src="${logoUrl}" alt="Logo"
+                     style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; object-fit: contain;">
+                <div style="text-align: center; padding-top: 10px;">
+                    <h1 style="margin: 0; color: #333;">${reportTitle}</h1>
+                    <p style="margin: 5px 0; color: #666;">Generated on ${currentDate}</p>
+                    ${dateRangeText}
+                    <p style="margin: 5px 0; color: #666;">Total Records: ${filteredData.length}</p>
+                </div>
+            </div>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
                 <thead>
                     <tr style="background-color: #4e73df; color: white;">
@@ -939,8 +970,7 @@ printContent += `
                         <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Status</th>
                     </tr>
                 </thead>
-                <tbody>
-        `;
+                <tbody>`;
 
         filteredData.forEach(function(row, idx) {
             var rowColor = idx % 2 === 0 ? '#f8f9fc' : 'white';
@@ -954,57 +984,49 @@ printContent += `
                     <td style="border: 1px solid #ddd; padding: 10px;">${row[7]}</td>
                     <td style="border: 1px solid #ddd; padding: 10px;">${row[8]}</td>
                     <td style="border: 1px solid #ddd; padding: 10px;">${row[9]}</td>
-                </tr>
-            `;
+                </tr>`;
         });
 
-        printContent += `
-                </tbody>
-            </table>
-        `;
+        printContent += `</tbody></table>`;
     });
 
     printContent += '</div>';
 
-   // Create a hidden iframe
-var iframe = document.createElement('iframe');
-iframe.style.position = 'absolute';
-iframe.style.width = '0';
-iframe.style.height = '0';
-iframe.style.border = '0';
-document.body.appendChild(iframe);
+    var iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
 
-// Write content to iframe
-iframe.contentDocument.open();
-iframe.contentDocument.write('<html><head><title>Tricycle Report</title></head><body>');
-iframe.contentDocument.write(printContent);
-iframe.contentDocument.write('</body></html>');
-iframe.contentDocument.close();
+    iframe.contentDocument.open();
+    iframe.contentDocument.write('<html><head><title>Tricycle Report</title></head><body>');
+    iframe.contentDocument.write(printContent);
+    iframe.contentDocument.write('</body></html>');
+    iframe.contentDocument.close();
 
-var images = iframe.contentDocument.images;
-var totalImages = images.length;
-var loadedImages = 0;
+    var images = iframe.contentDocument.images;
+    var totalImages = images.length;
+    var loadedImages = 0;
 
-if (totalImages === 0) {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-} else {
-    for (var i = 0; i < totalImages; i++) {
-        images[i].onload = function () {
-            loadedImages++;
-            if (loadedImages === totalImages) {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-            }
-        };
+    if (totalImages === 0) {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+    } else {
+        for (var i = 0; i < totalImages; i++) {
+            images[i].onload = function() {
+                loadedImages++;
+                if (loadedImages === totalImages) {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                }
+            };
+        }
     }
-}
 
-// Remove iframe after printing
-setTimeout(function() {
-    document.body.removeChild(iframe);
-}, 1000);
-
+    setTimeout(function() {
+        document.body.removeChild(iframe);
+    }, 2000);
 }
 
 </script>

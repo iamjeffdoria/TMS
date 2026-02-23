@@ -876,7 +876,7 @@
                 document.querySelector(".card-body").prepend(alertBox);
 
                 setTimeout(() => alertBox.remove(), 3000);
-                table.ajax.reload();  // Reload table instead of page refresh
+                location.reload();  // Reload table instead of page refresh
             } else {
                 alert(data.error || "Failed to add permit.");
             }

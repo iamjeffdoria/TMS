@@ -895,6 +895,56 @@
   </div>
 </div>
 
+<!-- Print Preview Modal -->
+<div class="modal fade" id="printPreviewModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 420px;">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title"><i class="fas fa-eye mr-2"></i> Print Preview</h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+<div class="modal-body text-center p-2" style="background: #eae4e4; overflow: hidden;">
+    <div style="width: 100%; height: 560px; display: flex; justify-content: center; align-items: flex-start; overflow: hidden;">
+    <div id="preview-card-container" style="
+        transform: scale(0.55);
+        transform-origin: top center;
+        width: 640px;
+        height: 1000px;
+        position: relative;
+        flex-shrink: 0;
+    ">
+          <img id="preview-template-bg" src="" style="width: 100%; height: auto; display: block;">
+          <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+            <img id="preview-dyn-photo" src="" style="position: absolute; object-fit: cover;">
+            <div id="preview-dyn-name"   style="position: absolute;"></div>
+            <div id="preview-dyn-id"     style="position: absolute;"></div>
+            <div id="preview-dyn-addr"   style="position: absolute;"></div>
+            <div id="preview-dyn-dob"    style="position: absolute;"></div>
+            <div id="preview-dyn-gender" style="position: absolute;"></div>
+            <div id="preview-dyn-or"     style="position: absolute;"></div>
+            <div id="preview-dyn-height" style="position: absolute;"></div>
+            <div id="preview-dyn-weight" style="position: absolute;"></div>
+            <div id="preview-dyn-issued" style="position: absolute;"></div>
+            <div id="preview-dyn-expiry" style="position: absolute;"></div>
+            <div id="preview-dyn-mayor"  style="position: absolute;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-success" id="confirmPrintBtn">
+          <i class="fas fa-print"></i> Print
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
 <script>
 document.getElementById("importIdCardZipBtn").addEventListener("click", function () {
     document.getElementById("importIdCardZipForm").submit();
@@ -1067,38 +1117,122 @@ function preparePrint(photoUrl, fullName, idNum, address, dob, gender, orNumber,
     pendingPrintData = { photoUrl, fullName, idNum, address, dob, gender, orNumber, height, weight, dateIssued, expiryDate, dmOnate };
     $('#printConfirmModal').modal('show');
 }
+let currentPrintType = 1;
 
 function executePrint(idType) {
     if (!pendingPrintData) return;
+    currentPrintType = idType;
     const data = pendingPrintData;
+
+      // ✅ ADD THIS: Reset all preview elements before applying template styles
+    ['preview-dyn-photo','preview-dyn-name','preview-dyn-id','preview-dyn-addr',
+     'preview-dyn-dob','preview-dyn-gender','preview-dyn-or','preview-dyn-height',
+     'preview-dyn-weight','preview-dyn-issued','preview-dyn-expiry','preview-dyn-mayor'
+    ].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.cssText = ''; // Clear ALL inline styles
+        el.style.position = 'absolute'; // Restore base style
+    });
+
+    // Close the selection modal
+    $('#printConfirmModal').modal('hide');
+
+    // --- Populate the preview ---
+    const container = document.getElementById('preview-card-container');
+
+    if (idType === 1) {
+        // Template 1 styles
+        document.getElementById('preview-template-bg').src = "{% static 'assets/img/potpotfinal.png' %}";
+
+        applyPreviewStyle('preview-dyn-photo',  { top:'26.4%', left:'21.2%', width:'238px', height:'218px', transform:'translateX(-50%)' });
+        applyPreviewStyle('preview-dyn-name',   { top:'28.5%', left:'69%', transform:'translateX(-50%)', fontSize:'24px', fontWeight:'bold', textTransform:'uppercase', borderBottom:'2px solid black', display:'inline-block' });
+        applyPreviewStyle('preview-dyn-id',     { top:'48.8%', left:'13%', fontSize:'24px', fontWeight:'bold' });
+        applyPreviewStyle('preview-dyn-addr',   { top:'57.8%', left:'21%', width:'50%', fontSize:'24px', fontWeight:'bold', lineHeight:'1.1' });
+        applyPreviewStyle('preview-dyn-dob',    { top:'71.8%', left:'2%',  fontSize:'24px', fontWeight:'bold' });
+        applyPreviewStyle('preview-dyn-gender', { top:'71.8%', left:'36%', fontSize:'24px', fontWeight:'bold' });
+        applyPreviewStyle('preview-dyn-or',     { top:'82.7%', left:'2%',  fontSize:'24px', fontWeight:'bold' });
+        applyPreviewStyle('preview-dyn-height', { top:'71.8%', left:'55%', fontSize:'24px', fontWeight:'bold' });
+        applyPreviewStyle('preview-dyn-weight', { top:'71.8%', left:'83%', fontSize:'24px', fontWeight:'bold' });
+        applyPreviewStyle('preview-dyn-issued', { top:'82.7%', left:'32.5%', fontSize:'24px', fontWeight:'bold' });
+        applyPreviewStyle('preview-dyn-expiry', { top:'82.7%', left:'70%', fontSize:'24px', fontWeight:'bold' });
+        applyPreviewStyle('preview-dyn-mayor',  { top:'92%',   left:'50%', transform:'translateX(-50%)', fontSize:'24px', fontWeight:'bold', borderBottom:'1px solid black', paddingLeft:'50px', paddingRight:'50px', display:'inline-block' });
+
+        document.getElementById('preview-dyn-photo').src    = data.photoUrl;
+        document.getElementById('preview-dyn-name').innerText   = data.fullName;
+        document.getElementById('preview-dyn-id').innerText     = data.idNum;
+        document.getElementById('preview-dyn-addr').innerText   = data.address;
+        document.getElementById('preview-dyn-dob').innerText    = data.dob;
+        document.getElementById('preview-dyn-gender').innerText = data.gender || '';
+        document.getElementById('preview-dyn-or').innerText     = data.orNumber || '';
+        document.getElementById('preview-dyn-height').innerText = data.height ? data.height + ' cm' : '';
+        document.getElementById('preview-dyn-weight').innerText = data.weight ? data.weight + ' kg' : '';
+        document.getElementById('preview-dyn-issued').innerText = data.dateIssued || '';
+        document.getElementById('preview-dyn-expiry').innerText = data.expiryDate || '';
+        document.getElementById('preview-dyn-mayor').innerText  = data.dmOnate || '';
+
+    } else {
+        // Template 2 styles
+        document.getElementById('preview-template-bg').src = "{% static 'assets/img/modernid7.png' %}";
+
+        applyPreviewStyle('preview-dyn-photo',  { top:'16%', left:'50%', transform:'translateX(-50%)', width:'257px', height:'257px', borderRadius:'8px' });
+        applyPreviewStyle('preview-dyn-name',   { top:'59.1%', left:'50%', transform:'translateX(-50%)', fontSize:'35px', fontWeight:'bold', textTransform:'uppercase', backgroundColor:'#F5F5F0', border:'2px solid #141414', borderRadius:'8px', padding:'8px 20px', whiteSpace:'nowrap' });
+        applyPreviewStyle('preview-dyn-id',     { top:'43%', left:'50%', transform:'translateX(-50%)', fontSize:'30px', backgroundColor:'#F5F5F0', border:'2px solid #fff', borderRadius:'5px', padding:'6px', width:'270px', textAlign:'center' });
+        applyPreviewStyle('preview-dyn-addr',   { top:'75%', left:'50%', transform:'translateX(-50%)', width:'85%', textAlign:'center', fontSize:'20px', fontWeight:'bold', backgroundColor:'#F5F5F0', border:'2px solid #505050', borderRadius:'8px', padding:'12px 16px' });
+        // hide unused
+        ['preview-dyn-dob','preview-dyn-gender','preview-dyn-or','preview-dyn-height','preview-dyn-weight','preview-dyn-issued','preview-dyn-expiry','preview-dyn-mayor'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+
+        document.getElementById('preview-dyn-photo').src       = data.photoUrl;
+        document.getElementById('preview-dyn-name').innerText  = data.fullName;
+        document.getElementById('preview-dyn-id').innerText    = 'ID No: ' + data.idNum;
+        document.getElementById('preview-dyn-addr').innerText  = 'Address: ' + data.address;
+    }
+
+    setTimeout(() => $('#printPreviewModal').modal('show'), 400);
+}
+
+function applyPreviewStyle(id, styles) {
+    const el = document.getElementById(id);
+    // Reset display first
+    el.style.display = '';
+    Object.assign(el.style, styles);
+}
+
+// Confirm print button
+document.getElementById('confirmPrintBtn').addEventListener('click', function () {
+    $('#printPreviewModal').modal('hide');
+
+    const data = pendingPrintData;
+    const idType = currentPrintType;
 
     document.getElementById('print-area').classList.remove('active');
     document.getElementById('print-area-2').classList.remove('active');
 
     if (idType === 1) {
-        document.getElementById('print-photo').src = data.photoUrl;
-        document.getElementById('print-name').innerText = data.fullName;
-        document.getElementById('print-id-number').innerText = data.idNum;
-        document.getElementById('print-address').innerText = data.address;
-        document.getElementById('print-dob').innerText = data.dob;
-        document.getElementById('print-gender').innerText = data.gender || '';
-        document.getElementById('print-or-number').innerText = data.orNumber || '';
-        document.getElementById('print-height').innerText = data.height ? data.height + ' cm' : '';
-        document.getElementById('print-weight').innerText = data.weight ? data.weight + ' kg' : '';
-        document.getElementById('print-date-issued').innerText = data.dateIssued || '';
-        document.getElementById('print-expiry-date').innerText = data.expiryDate || '';
-        document.getElementById('print-dm-onate').innerText = data.dmOnate || '';
+        document.getElementById('print-photo').src              = data.photoUrl;
+        document.getElementById('print-name').innerText         = data.fullName;
+        document.getElementById('print-id-number').innerText    = data.idNum;
+        document.getElementById('print-address').innerText      = data.address;
+        document.getElementById('print-dob').innerText          = data.dob;
+        document.getElementById('print-gender').innerText       = data.gender || '';
+        document.getElementById('print-or-number').innerText    = data.orNumber || '';
+        document.getElementById('print-height').innerText       = data.height ? data.height + ' cm' : '';
+        document.getElementById('print-weight').innerText       = data.weight ? data.weight + ' kg' : '';
+        document.getElementById('print-date-issued').innerText  = data.dateIssued || '';
+        document.getElementById('print-expiry-date').innerText  = data.expiryDate || '';
+        document.getElementById('print-dm-onate').innerText     = data.dmOnate || '';
         document.getElementById('print-area').classList.add('active');
         triggerPrintAfterImageLoad(document.getElementById('print-photo'));
-    } else if (idType === 2) {
-        document.getElementById('print-photo-2').src = data.photoUrl;
-        document.getElementById('print-name-2').innerText = data.fullName;
-        document.getElementById('print-id-number-2').innerText = 'ID No: ' + data.idNum;
-        document.getElementById('print-address-2').innerText = 'Address: ' + data.address;
+    } else {
+        document.getElementById('print-photo-2').src            = data.photoUrl;
+        document.getElementById('print-name-2').innerText       = data.fullName;
+        document.getElementById('print-id-number-2').innerText  = 'ID No: ' + data.idNum;
+        document.getElementById('print-address-2').innerText    = 'Address: ' + data.address;
         document.getElementById('print-area-2').classList.add('active');
         triggerPrintAfterImageLoad(document.getElementById('print-photo-2'));
     }
-}
+});
 
 function triggerPrintAfterImageLoad(photoElement) {
     let printed = false;

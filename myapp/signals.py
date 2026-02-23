@@ -377,18 +377,7 @@ def track_tricycle_changes(sender, instance, **kwargs):
 def log_tricycle_activity(sender, instance, created, **kwargs):
     user_info = getattr(instance, '_current_user', None)
 
-    if created:
-        ActivityLog.objects.create(
-            action='create',
-            model_type='tricycle',
-            object_id=instance.body_number,
-            object_name=instance.name,
-            description=f'New tricycle registered for {instance.name} (Body # {instance.body_number})',
-            user_type=user_info.get('type') if user_info else None,
-            user_id=user_info.get('id') if user_info else None,
-            user_name=user_info.get('name') if user_info else None,
-        )
-    else:
+    if not created:  # Only handle updates, not creates
         original = getattr(instance, '_original', None)
         changed_fields = get_changed_fields(instance, original)
 
@@ -411,3 +400,19 @@ def log_tricycle_activity(sender, instance, created, **kwargs):
                 user_id=user_info.get('id') if user_info else None,
                 user_name=user_info.get('name') if user_info else None,
             )
+
+@receiver(post_save, sender=MayorsPermitTricycle)
+def sync_tricycle_expiry_from_permit(sender, instance, **kwargs):
+    if instance.tricycle:
+        STATUS_MAP = {
+            'active': 'Renewed',
+            'inactive': 'Inactive',
+            'expired': 'Expired',
+        }
+        tricycle_status = STATUS_MAP.get(instance.status, 'New')
+
+        Tricycle.objects.filter(body_number=instance.tricycle.body_number).update(
+            date_expired=instance.expiry_date,
+            remarks='with_mayors_permit',
+            status=tricycle_status
+        )

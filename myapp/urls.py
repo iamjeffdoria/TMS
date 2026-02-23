@@ -1,8 +1,14 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import export_mayors_permit, import_mayors_permit
+from rest_framework.routers import DefaultRouter
+from .api import TricycleViewSet
+
+
+router = DefaultRouter()
+router.register(r'api/tricycles', TricycleViewSet)
 
 urlpatterns = [
     path('', views.admin_login, name='login'),
@@ -69,7 +75,8 @@ urlpatterns = [
     path('franchise/datatable/', views.franchise_datatable, name='franchise-datatable'),
     path('id-cards/datatable/', views.id_cards_datatable, name='id-cards-datatable'),
 
-
+    path('tricycles/list/', views.get_tricycles, name='get-tricycles'),
+    path('', include(router.urls))
 
 ]
 

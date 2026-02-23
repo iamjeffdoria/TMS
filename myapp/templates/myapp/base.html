@@ -23,6 +23,7 @@
     <!-- print-js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/print-js/1.6.0/print.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/print-js/1.6.0/print.min.css"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 
     
     <!-- Enhanced Messages Styling -->
@@ -540,11 +541,12 @@ a.text-primary:focus {
                 <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities"
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-               
+                        
+                        <a class="collapse-item" href="{% url 'create-report-tri' %}">Tricycle List</a>
                         <a class="collapse-item" href="{% url 'mayors-permit-tricycle' %}">Mayor's Permit- Tricyle</a>
                         <a class="collapse-item" href="{% url 'mtop' %}">MTOP</a>
                         <a class="collapse-item" href="{% url 'franchise' %}">Franchise</a>
-                        <a class="collapse-item" href="{% url 'create-report-tri' %}">Tricycle List</a>
+                        
                         <!-- <a class="collapse-item" href="#">Animations</a>
                         <a class="collapse-item" href="utilities-other.html">Other</a> -->
                     </div>
@@ -890,6 +892,7 @@ a.text-primary:focus {
     <script src="{% static 'assets/vendor/chart.js/Chart.min.js' %}"></script>
     <script src="{% static 'assets/vendor/datatables/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'assets/vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
     <!-- Page level custom scripts -->
  
@@ -912,14 +915,17 @@ a.text-primary:focus {
             });
 
             // Real-time clock
+           
+            // Replace with:
             function updateClock() {
+                const clockEl = document.getElementById('real-time-clock');
+                if (!clockEl) return; // ✅ login page doesn't have this element
                 const now = new Date();
                 const hours = now.getHours().toString().padStart(2, '0');
                 const minutes = now.getMinutes().toString().padStart(2, '0');
                 const seconds = now.getSeconds().toString().padStart(2, '0');
                 const day = now.toLocaleDateString();
-                const timeString = `${day} ${hours}:${minutes}:${seconds}`;
-                document.getElementById('real-time-clock').textContent = timeString;
+                clockEl.textContent = `${day} ${hours}:${minutes}:${seconds}`;
             }
 
             setInterval(updateClock, 1000);

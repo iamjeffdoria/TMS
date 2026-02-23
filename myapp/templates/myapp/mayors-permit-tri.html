@@ -126,6 +126,12 @@
                 <div class="modal-body py-4">
                   <div class="container-fluid">
                     <div class="form-row">
+<div class="col-md-4 col-sm-6 mb-3">
+  <label class="font-weight-bold" for="tricycle_select">Body Number (Tricycle)</label>
+  <select class="form-control select2-tricycle" id="tricycle_select" name="tricycle" style="width:100%;">
+    <option value="">-- Search Body Number --</option>
+  </select>
+</div>
                       <div class="col-md-4 col-sm-6 mb-3">
                         <label class="font-weight-bold" for="control_no">Control No <span class="text-danger">*</span></label>
                         <div class="input-group">
@@ -630,6 +636,75 @@ function toInputDate(dateStr) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+
+$('#addPermitModal').on('show.bs.modal', function () {
+    fetch("{% url 'get-tricycles' %}")
+        .then(res => res.json())
+        .then(data => {
+            let select = $('#tricycle_select');
+            select.empty().append('<option value="">-- Search Body Number --</option>');
+
+            // Store full tricycle data for auto-fill
+            window.tricycleData = {};
+
+            data.tricycles.forEach(t => {
+                select.append(new Option(
+                    `${t.body_number} — ${t.name} (${t.plate_no})`,
+                    t.body_number
+                ));
+                // Store each tricycle by body_number for quick lookup
+                window.tricycleData[t.body_number] = t;
+            });
+
+            select.select2({
+                placeholder: "Search body number...",
+                allowClear: true,
+                dropdownParent: $('#addPermitModal'),
+                width: '100%'
+            });
+        })
+        .catch(err => console.error('Failed to load tricycles:', err));
+});
+
+// Auto-fill fields when a tricycle is selected
+$('#tricycle_select').on('change', function () {
+    const bodyNumber = $(this).val();
+
+    if (bodyNumber && window.tricycleData && window.tricycleData[bodyNumber]) {
+        const t = window.tricycleData[bodyNumber];
+
+        // Auto-fill matching fields
+        document.getElementById('name').value         = t.name        || '';
+        document.getElementById('address').value      = t.address     || '';
+         // Make fields read-only
+            ['name', 'address'].forEach(id => {
+                const el = document.getElementById(id);
+                el.setAttribute('readonly', true);
+                el.classList.add('bg-light');
+            });
+    } else {
+        // Clear fields if selection is cleared
+        document.getElementById('name').value         = '';
+        document.getElementById('address').value      = '';
+    }
+});
+
+ // ✅ BLOCK 3 — Cleanup when modal closes
+    $('#addPermitModal').on('hidden.bs.modal', function () {
+        $('#tricycle_select').select2('destroy');
+
+        ['name', 'address'].forEach(id => {
+            const el = document.getElementById(id);
+            el.removeAttribute('readonly');
+            el.classList.remove('bg-light');
+            el.value = '';
+        });
+    });
+
+// Destroy Select2 when modal closes
+$('#addPermitModal').on('hidden.bs.modal', function () {
+    $('#tricycle_select').select2('destroy');
+});
 
     // Initialize DataTable with server-side processing
     var table = $('#dataTable').DataTable({

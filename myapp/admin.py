@@ -15,4 +15,10 @@ admin.site.register(MayorsPermitTricycleHistory)
 admin.site.register(ActivityLog)
 admin.site.register(Task)
 admin.site.register(Tricycle)
-admin.site.register(TricycleHistory)
+
+
+@admin.register(TricycleHistory)
+class TricycleHistoryAdmin(admin.ModelAdmin):
+    list_display = ['tricycle', 'action', 'previous_status', 'new_status', 'created_at', 'created_by']
+    list_filter = ['action', 'created_at']
+    readonly_fields = ['created_at']  # can't edit auto_now_add fields
