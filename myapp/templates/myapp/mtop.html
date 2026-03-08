@@ -445,30 +445,82 @@ document.addEventListener("DOMContentLoaded", function () {
         "lengthChange": false,
         "ordering": false,
         "searching": true,
-        "dom": 'lrtip',
-        "columns": [
-            { "data": 0 },   // Name
-            { "data": 1 },   // Case No
-            { "data": 2 },   // Address
-            { "data": 3 },   // No. of Units
-            { "data": 4 },   // Route Operation
-            { "data": 5 },   // Make
-            { "data": 6 },   // Motor No
-            { "data": 7 },   // Chassis No
-            { "data": 8 },   // Plate No
-            { "data": 9 },   // Date
-            { "data": 10 },  // Municipal Treasurer
-            { "data": 11 },  // Officer in Charge
-            { "data": 12 },  // Mayor
-            { "data": 13, "orderable": false }  // Action
+        "dom": 'frtip',
+       "columns": [
+            { 
+                "data": 0,  // Name + Date badge
+                "render": function(data, type, row) {
+                    var date = row[9];
+                    var dateBadge = '';
+                    if (date) {
+                        dateBadge = '<br><span class="badge badge-info badge-sm"><i class="fas fa-calendar"></i> ' + date + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + dateBadge;
+                }
+            },
+            { 
+                "data": 1,  // Case No + Mayor badge
+                "render": function(data, type, row) {
+                    var mayor = row[12];
+                    var mayorBadge = '';
+                    if (mayor) {
+                        mayorBadge = '<br><span class="badge badge-dark badge-sm"><i class="fas fa-landmark"></i> ' + mayor + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + mayorBadge;
+                }
+            },
+            { 
+                "data": 2,  // Address + Municipal Treasurer badge
+                "render": function(data, type, row) {
+                    var treasurer = row[10];
+                    var treasurerBadge = '';
+                    if (treasurer) {
+                        treasurerBadge = '<br><span class="badge badge-warning badge-sm"><i class="fas fa-user-tie"></i> ' + treasurer + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + treasurerBadge;
+                }
+            },
+            { "data": 3 },  // No. of Units
+            { 
+                "data": 4,  // Route Operation + Officer in Charge badge
+                "render": function(data, type, row) {
+                    var officer = row[11];
+                    var officerBadge = '';
+                    if (officer) {
+                        officerBadge = '<br><span class="badge badge-secondary badge-sm"><i class="fas fa-user-shield"></i> ' + officer + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + officerBadge;
+                }
+            },
+            { 
+                "data": 5,  // Make + Motor No + Chassis No + Plate No badges
+                "render": function(data, type, row) {
+                    var motorNo = row[6];
+                    var chassisNo = row[7];
+                    var plateNo = row[8];
+                    var badges = '';
+                    if (motorNo) {
+                        badges += '<br><span class="badge badge-info badge-sm"><i class="fas fa-cog"></i> ' + motorNo + '</span>';
+                    }
+                    if (chassisNo) {
+                        badges += ' <span class="badge badge-success badge-sm"><i class="fas fa-car"></i> ' + chassisNo + '</span>';
+                    }
+                    if (plateNo) {
+                        badges += ' <span class="badge badge-dark badge-sm"><i class="fas fa-id-card"></i> ' + plateNo + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + badges;
+                }
+            },
+            { "data": 6, "visible": false, "searchable": true },   // Motor No (hidden)
+            { "data": 7, "visible": false, "searchable": true },   // Chassis No (hidden)
+            { "data": 8, "visible": false, "searchable": true },   // Plate No (hidden)
+            { "data": 9, "visible": false, "searchable": true },   // Date (hidden)
+            { "data": 10, "visible": false, "searchable": true },  // Municipal Treasurer (hidden)
+            { "data": 11, "visible": false, "searchable": true },  // Officer in Charge (hidden)
+            { "data": 12, "visible": false, "searchable": true },  // Mayor (hidden)
+            { "data": 13, "orderable": false }                     // Action
         ],
-        "columnDefs": [
-            {
-                "targets": [6, 7, 8, 9,  10, 11, 12],
-                "visible": false,
-                "searchable": true
-            }
-        ]
+        "columnDefs": []  // All visibility handled above
     });
 
     // Clone header row for column search
@@ -478,20 +530,15 @@ document.addEventListener("DOMContentLoaded", function () {
  // Apply column search from header inputs
 $('#dataTable thead tr:eq(1) th').each(function(i) {
     var column = table.column(i);
-    
-    // Define which columns should have search inputs (visible columns)
-    var searchableColumns = [0, 1, 2, 3, 4, 5]; // Name, Case No, Address, Units, Route, Date
-    
-    // Skip action column and hidden columns
-    if (i === 13 || !searchableColumns.includes(i)) {
+
+    // Only show search inputs for visible columns, skip hidden and action
+    if (i === 13 || !column.visible()) {
         $(this).html('');
         return;
     }
 
-    // Add input field
     $(this).html('<input type="text" class="form-control form-control-sm border-secondary" />');
-    
-    // Apply search on input
+
     $('input', this).on('keyup change', function() {
         if (column.search() !== this.value) {
             column.search(this.value).draw();

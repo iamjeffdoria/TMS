@@ -76,21 +76,21 @@
     <div class="dropdown-divider"></div>
 
     <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left; cursor: pointer;">
-        <input class="form-check-input" type="checkbox" value="renewed" id="checkRenewed">
+        <input class="form-check-input" type="radio" name="reportType" value="renewed" id="checkRenewed">
         <label class="form-check-label fs-6" for="checkRenewed" style="cursor: pointer;">
             <i class="fas fa-sync"></i> Renewed Permit
         </label>
     </div>
 
     <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left; cursor: pointer;">
-        <input class="form-check-input" type="checkbox" value="registered" id="checkRegistered">
+        <input class="form-check-input" type="radio" name="reportType" value="registered" id="checkRegistered">
         <label class="form-check-label fs-6" for="checkRegistered" style="cursor: pointer;">
             <i class="fas fa-file-alt"></i> Registered Tricycle
         </label>
     </div>
 
     <div class="form-check mb-2" style="transform: scale(1.15); transform-origin: top left; cursor: pointer;">
-        <input class="form-check-input" type="checkbox" value="expired" id="checkExpired">
+        <input class="form-check-input" type="radio" name="reportType" value="expired" id="checkExpired">
         <label class="form-check-label fs-6" for="checkExpired" style="cursor: pointer;">
             <i class="fas fa-exclamation-triangle"></i> Expired Permit
         </label>
@@ -108,25 +108,36 @@
 </div>
         </div>
 
-        <!-- Summary Counts -->
-        <div class="row text-center small fw-bold mb-4">
-            <div class="col-md">
-                <div class="border rounded p-2">
-                    Renewed Permit<br><span id="countRenewed">0</span>
-                </div>
-            </div>
-            <div class="col-md">
-                <div class="border rounded p-2">
-                    Registered Tricyle<br><span id="countRegistered">0</span>
-                </div>
-            </div>
-            <div class="col-md">
-                <div class="border rounded p-2">
-                    Expired Permit<br><span id="countExpired">0</span>
-                </div>
+   <!-- Summary Counts -->
+<div class="row g-3 mb-4">
+    <div class="col-md">
+        <div class="rounded-3 px-4 py-3 border-start border-4 border-primary bg-light">
+            <div class="text-muted small mb-1">Renewed Permit</div>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="fw-bold fs-4 text-info" id="countRenewed">0</span>
+                <i class="fas fa-sync text-info opacity-50 fs-5"></i>
             </div>
         </div>
-
+    </div>
+    <div class="col-md">
+        <div class="rounded-3 px-4 py-3 border-start border-4 border-success bg-light">
+            <div class="text-muted small mb-1">Registered Tricycle</div>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="fw-bold fs-4 text-success" id="countRegistered">0</span>
+                <i class="fas fa-file-alt text-success opacity-50 fs-5"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md">
+        <div class="rounded-3 px-4 py-3 border-start border-4 border-danger bg-light">
+            <div class="text-muted small mb-1">Expired Permit</div>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="fw-bold fs-4 text-danger" id="countExpired">0</span>
+                <i class="fas fa-exclamation-triangle text-danger opacity-50 fs-5"></i>
+            </div>
+        </div>
+    </div>
+</div>
         <!-- Table -->
         <div class="table-responsive">
             <table class="table table-bordered table-hover" id="createReportTable" width="100%" cellspacing="0">
@@ -767,54 +778,69 @@ $('#saveUpdatePermitBtn').on('click', function () {
         "lengthMenu": [5, 10, 25, 50, 100],
         "ordering": false,
         "searching": true,
-        "dom": 'lrtip',
+        "dom": 'frtip',
         "columns": [
-            { "data": 0 },
-            { "data": 1 },
-            { "data": 2 },
-            { 
-                "data": 3,
-                "render": function(data, type, row) {
-                    var status = row[9];
-                    var statusBadge = '';
-                    
-                    if (status) {
-                        var badgeClass = '';
-                        var statusText = status;
-                        
-                        if (status.toLowerCase().includes('active') || status.toLowerCase().includes('registered')) {
-                            badgeClass = 'badge-success';
-                        } else if (status.toLowerCase().includes('expired')) {
-                            badgeClass = 'badge-danger';
-                        } else if (status.toLowerCase().includes('renewed')) {
-                            badgeClass = 'badge-info';
-                        } else if (status.toLowerCase().includes('pending')) {
-                            badgeClass = 'badge-warning';
-                        } else {
-                            badgeClass = 'badge-secondary';
-                        }
-                        
-                        statusBadge = '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
-                    }
-                    
-                    return '<span>' + data + '</span>' + statusBadge;
-                }
-            },
-            { "data": 4 },
-            { "data": 5 },
-            { "data": 6 },
-            { "data": 7 },
-            { "data": 8 },
-            { "data": 9, "visible": false, "searchable": true },
-            { "data": 10 },
-            { "data": 11, "orderable": false }
-        ],
+              { 
+                  "data": 0,  // Body Number + Remarks badge
+                  "render": function(data, type, row) {
+                      var remarks = row[10];
+                      var remarksBadge = '';
+                      if (remarks && remarks !== '-') {
+                          var remarksText = remarks === 'with_mayors_permit' ? "W/ Mayor's Permit" : "W/O Mayor's Permit";
+                          var remarksColor = remarks === 'with_mayors_permit' ? 'badge-success' : 'badge-danger';
+                          remarksBadge = '<br><span class="badge ' + remarksColor + ' badge-sm"><i class="fas fa-sticky-note"></i> ' + remarksText + '</span>';
+                      }
+                      return '<span>' + data + '</span>' + remarksBadge;
+                  }
+              },
+              { "data": 1 },  // Name
+              { "data": 2 },  // Address
+              { 
+                  "data": 3,  // Make/Kind + Status badge
+                  "render": function(data, type, row) {
+                      var status = row[9];
+                      var statusBadge = '';
+                      if (status) {
+                          var badgeClass = 'badge-secondary';
+                          if (status.toLowerCase().includes('active') || status.toLowerCase() === 'new' || status.toLowerCase().includes('registered')) {
+                              badgeClass = 'badge-success';
+                          } else if (status.toLowerCase().includes('expired')) {
+                              badgeClass = 'badge-danger';
+                          } else if (status.toLowerCase().includes('renewed')) {
+                              badgeClass = 'badge-info';
+                          } else if (status.toLowerCase().includes('inactive')) {
+                              badgeClass = 'badge-warning';
+                          }
+                          statusBadge = '<br><span class="badge ' + badgeClass + ' badge-sm">' + status + '</span>';
+                      }
+                      return '<span>' + data + '</span>' + statusBadge;
+                  }
+              },
+              { "data": 4 },  // Engine/Motor No
+              { "data": 5 },  // Chassis No
+              { 
+                  "data": 6,  // Plate No + Date Registered + Date Expired badges
+                  "render": function(data, type, row) {
+                      var dateRegistered = row[7];
+                      var dateExpired = row[8];
+                      var dateBadges = '';
+                      if (dateRegistered) {
+                          dateBadges += '<br><span class="badge badge-success badge-sm"><i class="fas fa-calendar-plus"></i> ' + dateRegistered + '</span>';
+                      }
+                      if (dateExpired) {
+                          dateBadges += ' <span class="badge badge-danger badge-sm"><i class="fas fa-calendar-times"></i> ' + dateExpired + '</span>';
+                      }
+                      return '<span>' + data + '</span>' + dateBadges;
+                  }
+              },
+              { "data": 7, "visible": false, "searchable": true },   // Date Registered (hidden)
+              { "data": 8, "visible": false, "searchable": true },   // Date Expired (hidden)
+              { "data": 9, "visible": false, "searchable": true },   // Status (hidden)
+              { "data": 10, "visible": false, "searchable": true },  // Remarks (hidden)
+              { "data": 11, "orderable": false },                    // Action
+              { "data": 12, "visible": false, "searchable": false }  // Hidden ID
+          ],
         "columnDefs": [
-            {
-                "targets": [7,8,9,10],
-                "visible": false,
-                "searchable": true,
-            }
         ]
     });
 
@@ -853,62 +879,53 @@ $('#confirmPrintBtn').on('click', function(e) {
     e.stopPropagation();
     
     // Get selected checkboxes
-    var selectedReports = [];
-    
-    if ($('#checkRenewed').is(':checked')) {
-        selectedReports.push('renewed');
-    }
-    if ($('#checkRegistered').is(':checked')) {
-        selectedReports.push('registered');
-    }
-    if ($('#checkExpired').is(':checked')) {
-        selectedReports.push('expired');
-    }
-    
-    // Check if at least one report is selected
-    if (selectedReports.length === 0) {
-        alert('Please select at least one report to print.');
+    var selectedValue = $('input[name="reportType"]:checked').val();
+
+    if (!selectedValue) {
+        alert('Please select a report to print.');
         return;
     }
-    
-    // Close dropdown properly using Bootstrap's method
-    $('#printReportBtn').dropdown('toggle');
-    
-    // Small delay to ensure dropdown closes before print dialog
-    setTimeout(function() {
-        generateAndPrintReports(selectedReports);
-    }, 150);
-});
 
-});
-function generateAndPrintReports(reportTypes) {
-    var currentDate = new Date().toLocaleDateString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric'
+    var selectedReports = [selectedValue];
+        
+        // Close dropdown properly using Bootstrap's method
+        $('#printReportBtn').dropdown('toggle');
+        
+        // Small delay to ensure dropdown closes before print dialog
+        setTimeout(function() {
+            generateAndPrintReports(selectedReports);
+        }, 150);
     });
 
-    var filterStart = $('#filterStart').val();
-    var filterEnd = $('#filterEnd').val();
+});
+    function generateAndPrintReports(reportTypes) {
+        var currentDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
 
-    // Fetch ALL records (no pagination) from the server
-    $.ajax({
-        url: "{% url 'create-report-tri-datatable' %}",
-        type: "GET",
-        data: {
-            draw: 1,
-            start: 0,
-            length: 99999,  // Get all records
-            filter_start: filterStart,
-            filter_end: filterEnd,
-        },
-        success: function(json) {
-            var allData = json.data;
-            buildAndPrint(allData, reportTypes, currentDate, filterStart, filterEnd);
-        },
-        error: function() {
-            alert('Failed to fetch data for printing.');
-        }
-    });
-}
+        var filterStart = $('#filterStart').val();
+        var filterEnd = $('#filterEnd').val();
+
+        // Fetch ALL records (no pagination) from the server
+        $.ajax({
+            url: "{% url 'create-report-tri-datatable' %}",
+            type: "GET",
+            data: {
+                draw: 1,
+                start: 0,
+                length: 99999,  // Get all records
+                filter_start: filterStart,
+                filter_end: filterEnd,
+            },
+            success: function(json) {
+                var allData = json.data;
+                buildAndPrint(allData, reportTypes, currentDate, filterStart, filterEnd);
+            },
+            error: function() {
+                alert('Failed to fetch data for printing.');
+            }
+        });
+    }
 
 function buildAndPrint(allData, reportTypes, currentDate, filterStart, filterEnd) {
     function formatDate(dateString) {

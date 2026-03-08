@@ -64,22 +64,22 @@
                         <th>Quarter</th>
                         <th>Action</th>
                     </tr>
-                    <tr>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
-                        <th></th>
-                    </tr>
+                 <tr>
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Control No -->
+                    <th></th> <!-- Status (hidden) -->
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Name -->
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Address -->
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Motorized Operation -->
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Business Name -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Expiry Date -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Amount Paid -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- OR No -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Issue Date -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Issued At -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Mayor -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Quarter -->
+                    <th></th> <!-- Action -->
+                </tr>
                 </thead>
                 <tfoot>
                 <tr>
@@ -718,67 +718,95 @@ $('#addPermitModal').on('hidden.bs.modal', function () {
         "lengthChange": false,
         "ordering": false,
         "searching": true,
-        "dom": 'lrtip',
+        "dom": 'frtip',
         "columns": [
-            { "data": 0 },  // Control No
-            { "data": 1, "visible": false, "searchable": true },  // Status (hidden)
-            { "data": 2 },  // Name
-            { "data": 3 },  // Address
             { 
-                "data": 4,   // Motorized Operation (merged with Status)
+                "data": 0,  // Control No + Issued At badge
                 "render": function(data, type, row) {
-                    var status = row[1];  // Status column
-                    var statusBadge = '';
-                    
-                    if (status) {
-                        var badgeClass = '';
-                        var statusText = status.charAt(0).toUpperCase() + status.slice(1);
-                        
-                        if (status.toLowerCase() === 'active') {
-                            badgeClass = 'badge-success';
-                        } else if (status.toLowerCase() === 'inactive') {
-                            badgeClass = 'badge-warning';
-                        } else if (status.toLowerCase() === 'expired') {
-                            badgeClass = 'badge-danger';
-                        } else {
-                            badgeClass = 'badge-secondary';
-                        }
-                        
-                        statusBadge = '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
+                    var issuedAt = row[10];
+                    var issuedBadge = '';
+                    if (issuedAt) {
+                        issuedBadge = '<br><span class="badge badge-info badge-sm"><i class="fas fa-map-pin"></i> ' + issuedAt + '</span>';
                     }
-                    
-                    return '<span>' + data + '</span>' + statusBadge;
+                    return '<span>' + data + '</span>' + issuedBadge;
                 }
             },
-            { "data": 5 },  // Business Name
-            { "data": 6 },  // Expiry Date (hidden)
-            { "data": 7 },  // Amount Paid (hidden)
-            { "data": 8 },  // OR No (hidden)
-            { "data": 9 },  // Issue Date (hidden)
-            { "data": 10 }, // Issued At (hidden)
-            { "data": 11 }, // Mayor (hidden)
-            { "data": 12 }, // Quarter (hidden)
-            { "data": 13, "orderable": false },  // Action
-            { "data": 14 },  // Hidden ID
-            { "data": 15 }   // Hidden raw status
+            { "data": 1, "visible": false, "searchable": true },  // Status (hidden)
+            { 
+                "data": 2,  // Name + Mayor badge
+                "render": function(data, type, row) {
+                    var mayor = row[11];
+                    var mayorBadge = '';
+                    if (mayor) {
+                        mayorBadge = '<br><span class="badge badge-dark badge-sm"><i class="fas fa-user-tie"></i> ' + mayor + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + mayorBadge;
+                }
+            },
+            { 
+                "data": 3,  // Address + Quarter badge
+                "render": function(data, type, row) {
+                    var quarter = row[12];
+                    var quarterBadge = '';
+                    if (quarter) {
+                        quarterBadge = '<br><span class="badge badge-secondary badge-sm"><i class="fas fa-chart-line"></i> ' + quarter + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + quarterBadge;
+                }
+            },
+            { 
+                "data": 4,  // Motorized Operation + Status + OR No + Amount Paid badges
+                "render": function(data, type, row) {
+                    var status = row[1];
+                    var orNo = row[8];
+                    var amountPaid = row[7];
+                    var badges = '';
+
+                    if (status) {
+                        var badgeClass = 'badge-secondary';
+                        var statusText = status.charAt(0).toUpperCase() + status.slice(1);
+                        if (status.toLowerCase() === 'active') badgeClass = 'badge-success';
+                        else if (status.toLowerCase() === 'inactive') badgeClass = 'badge-warning';
+                        else if (status.toLowerCase() === 'expired') badgeClass = 'badge-danger';
+                        badges += '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
+                    }
+                    if (orNo) {
+                        badges += ' <span class="badge badge-secondary badge-sm"><i class="fas fa-receipt"></i> ' + orNo + '</span>';
+                    }
+                    if (amountPaid) {
+                        badges += ' <span class="badge badge-warning badge-sm">₱ ' + amountPaid + '</span>';
+                    }
+
+                    return '<span>' + data + '</span>' + badges;
+                }
+            },
+            { 
+                "data": 5,  // Business Name + Issue Date + Expiry Date badges
+                "render": function(data, type, row) {
+                    var issueDate = row[9];
+                    var expiryDate = row[6];
+                    var dateBadges = '';
+                    if (issueDate) {
+                        dateBadges += '<br><span class="badge badge-success badge-sm"><i class="fas fa-calendar-plus"></i> ' + issueDate + '</span>';
+                    }
+                    if (expiryDate) {
+                        dateBadges += ' <span class="badge badge-danger badge-sm"><i class="fas fa-calendar-times"></i> ' + expiryDate + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + dateBadges;
+                }
+            },
+            { "data": 6, "visible": false, "searchable": true },   // Expiry Date (hidden)
+            { "data": 7, "visible": false, "searchable": true },   // Amount Paid (hidden)
+            { "data": 8, "visible": false, "searchable": true },   // OR No (hidden)
+            { "data": 9, "visible": false, "searchable": true },   // Issue Date (hidden)
+            { "data": 10, "visible": false, "searchable": true },  // Issued At (hidden)
+            { "data": 11, "visible": false, "searchable": true },  // Mayor (hidden)
+            { "data": 12, "visible": false, "searchable": true },  // Quarter (hidden)
+            { "data": 13, "orderable": false },                    // Action
+            { "data": 14, "visible": false, "searchable": false }, // Hidden ID
+            { "data": 15, "visible": false, "searchable": false }  // Hidden raw status
         ],
-        "columnDefs": [
-            {
-                "targets": [7,8,9,10,11,12],  // Hidden columns
-                "visible": false,
-                "searchable": true
-            },
-            {
-                "targets": 14,  // ID column
-                "visible": false,
-                "searchable": false
-            },
-            {
-                "targets": 15,  // Raw status column
-                "visible": false,
-                "searchable": false
-            }
-        ]
+        "columnDefs": []  // All visibility handled above
     });
 
     // Column search for text inputs

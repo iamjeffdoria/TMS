@@ -807,7 +807,15 @@ def mayors_permit_datatable(request):
             Q(name__icontains=search_value) |
             Q(address__icontains=search_value) |
             Q(business_name__icontains=search_value) |
-            Q(or_no__icontains=search_value)
+            Q(or_no__icontains=search_value) |
+            Q(motorized_operation__icontains=search_value) |
+            Q(issue_date__icontains=search_value) |
+            Q(expiry_date__icontains=search_value) |
+            Q(issued_at__icontains=search_value) |
+            Q(mayor__icontains=search_value) |
+            Q(quarter__icontains=search_value) |
+            Q(status__icontains=search_value) |
+            Q(amount_paid__icontains=search_value)
         )
     
     # Column-specific search
@@ -1000,11 +1008,21 @@ def id_cards_datatable(request):
 
     # Global search
     if search_value:
+        # Map display text to stored gender code
+        gender_map = {'male': 'M', 'female': 'F', 'other': 'O'}
+        gender_code = gender_map.get(search_value.lower(), search_value)
+
         queryset = queryset.filter(
             Q(name__icontains=search_value) |
             Q(id_number__icontains=search_value) |
             Q(address__icontains=search_value) |
-            Q(or_number__icontains=search_value)
+            Q(or_number__icontains=search_value) |
+            Q(gender__icontains=gender_code) |        # ← use gender_code here
+            Q(date_of_birth__icontains=search_value) |
+            Q(height__icontains=search_value) |
+            Q(weight__icontains=search_value) |
+            Q(date_issued__icontains=search_value) |
+            Q(expiration_date__icontains=search_value)
         )
 
     # Column-specific search
@@ -1027,6 +1045,10 @@ def id_cards_datatable(request):
             continue
         col_search = request.GET.get(f'columns[{i}][search][value]', '')
         if col_search:
+            # Remap gender display value to stored code
+            if field == 'gender':
+                gender_map = {'male': 'M', 'female': 'F', 'other': 'O'}
+                col_search = gender_map.get(col_search.lower(), col_search)
             queryset = queryset.filter(**{f'{field}__icontains': col_search})
 
     total_records = IDCard.objects.count()
@@ -1511,7 +1533,8 @@ def mtop_datatable(request):
             Q(plate_no__icontains=search_value) |
             Q(municipal_treasurer__icontains=search_value) |
             Q(officer_in_charge__icontains=search_value) |
-            Q(mayor__icontains=search_value)
+            Q(mayor__icontains=search_value) |
+            Q(date__icontains=search_value)
         )
     
     # Column-specific search (matching your 14 columns)
@@ -2078,22 +2101,18 @@ def franchise(request):
     franchises = Franchise.objects.all().order_by('-date')  # latest first
     return render(request, 'myapp/franchise.html', {'franchises': franchises}) 
 
-
 def franchise_datatable(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
         return redirect('login')
     """Server-side processing endpoint for Franchise DataTables"""
     
-    # DataTables parameters
     draw = int(request.GET.get('draw', 1))
     start = int(request.GET.get('start', 0))
     length = int(request.GET.get('length', 10))
     search_value = request.GET.get('search[value]', '')
     
-    # Base queryset
     queryset = Franchise.objects.all().order_by('-date')
     
-    # Global search
     if search_value:
         queryset = queryset.filter(
             Q(name__icontains=search_value) |
@@ -2105,48 +2124,34 @@ def franchise_datatable(request):
             Q(authorized_route__icontains=search_value) |
             Q(purpose__icontains=search_value) |
             Q(official_receipt_no__icontains=search_value) |
-            Q(municipal_treasurer__icontains=search_value)
+            Q(municipal_treasurer__icontains=search_value) |
+            Q(valid_until__icontains=search_value) |
+            Q(date__icontains=search_value) |
+            Q(amount_paid__icontains=search_value)
         )
     
-    # Column-specific search (matching your 14 columns)
     for i in range(14):
         column_search = request.GET.get(f'columns[{i}][search][value]', '')
         if column_search:
-            if i == 0:  # Name
-                queryset = queryset.filter(name__icontains=column_search)
-            elif i == 1:  # Denomination
-                queryset = queryset.filter(denomination__icontains=column_search)
-            elif i == 2:  # Plate No
-                queryset = queryset.filter(plate_no__icontains=column_search)
-            elif i == 3:  # Valid Until
-                queryset = queryset.filter(valid_until__icontains=column_search)
-            elif i == 4:  # Motor No
-                queryset = queryset.filter(motor_no__icontains=column_search)
-            elif i == 5:  # Authorized No
-                queryset = queryset.filter(authorized_no__icontains=column_search)
-            elif i == 6:  # Chassis No
-                queryset = queryset.filter(chassis_no__icontains=column_search)
-            elif i == 7:  # Authorized Route
-                queryset = queryset.filter(authorized_route__icontains=column_search)
-            elif i == 8:  # Purpose
-                queryset = queryset.filter(purpose__icontains=column_search)
-            elif i == 9:  # Official Receipt No
-                queryset = queryset.filter(official_receipt_no__icontains=column_search)
-            elif i == 10:  # Date
-                queryset = queryset.filter(date__icontains=column_search)
-            elif i == 11:  # Amount Paid
-                queryset = queryset.filter(amount_paid__icontains=column_search)
-            elif i == 12:  # Municipal Treasurer
-                queryset = queryset.filter(municipal_treasurer__icontains=column_search)
+            if i == 0:   queryset = queryset.filter(name__icontains=column_search)
+            elif i == 1: queryset = queryset.filter(denomination__icontains=column_search)
+            elif i == 2: queryset = queryset.filter(plate_no__icontains=column_search)
+            elif i == 3: queryset = queryset.filter(valid_until__icontains=column_search)
+            elif i == 4: queryset = queryset.filter(motor_no__icontains=column_search)
+            elif i == 5: queryset = queryset.filter(authorized_no__icontains=column_search)
+            elif i == 6: queryset = queryset.filter(chassis_no__icontains=column_search)
+            elif i == 7: queryset = queryset.filter(authorized_route__icontains=column_search)
+            elif i == 8: queryset = queryset.filter(purpose__icontains=column_search)
+            elif i == 9: queryset = queryset.filter(official_receipt_no__icontains=column_search)
+            elif i == 10: queryset = queryset.filter(date__icontains=column_search)
+            elif i == 11: queryset = queryset.filter(amount_paid__icontains=column_search)
+            elif i == 12: queryset = queryset.filter(municipal_treasurer__icontains=column_search)
     
-    # Total records
     total_records = Franchise.objects.count()
     filtered_records = queryset.count()
     
-    # Pagination
     franchises = queryset[start:start + length]
     
-    # Format data
     data = []
     for f in franchises:
         action_html = f'''
@@ -2176,20 +2181,21 @@ def franchise_datatable(request):
         '''
         
         data.append([
-            f.name,                                      # 0
-            f.denomination,                              # 1
-            f.plate_no,                                  # 2
-            f.valid_until.strftime('%Y-%m-%d'),         # 3
-            f.motor_no,                                  # 4
-            f.authorized_no,                             # 5
-            f.chassis_no,                                # 6
-            f.authorized_route,                          # 7
-            f.purpose,                                   # 8
-            f.official_receipt_no,                       # 9
-            f.date.strftime('%Y-%m-%d'),                # 10
-            str(f.amount_paid),                          # 11
-            f.municipal_treasurer,                       # 12
-            action_html                                  # 13
+            f.name,                                     # 0  - Name
+            f.denomination,                             # 1  - Denomination
+            f.plate_no,                                 # 2  - Plate No
+            f.valid_until.strftime('%Y-%m-%d'),         # 3  - Valid Until
+            f.motor_no,                                 # 4  - Motor No
+            f.authorized_no,                            # 5  - Authorized No
+            f.chassis_no,                               # 6  - Chassis No
+            f.authorized_route,                         # 7  - Authorized Route (hidden)
+            f.purpose,                                  # 8  - Purpose (hidden)
+            f.official_receipt_no,                      # 9  - Official Receipt No (hidden)
+            f.date.strftime('%Y-%m-%d'),                # 10 - Date (hidden)
+            str(f.amount_paid),                         # 11 - Amount Paid (hidden)
+            f.municipal_treasurer,                      # 12 - Municipal Treasurer (hidden)
+            action_html,                                # 13 - Action
+            f.id,                                       # 14 - Hidden ID (NEW)
         ])
     
     return JsonResponse({
@@ -2258,6 +2264,7 @@ def mayors_permit_tri_history_data(request, permit_id):
             'success': False,
             'error': str(e)
         }, status=500)
+    
 def mayors_permit_tricycle_datatable(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
         return redirect('login')
@@ -2281,7 +2288,10 @@ def mayors_permit_tricycle_datatable(request):
             Q(business_name__icontains=search_value) |
             Q(motorized_operation__icontains=search_value) |
             Q(or_no__icontains=search_value) |
-            Q(status__icontains=search_value)
+            Q(status__icontains=search_value) |
+            Q(issued_at__icontains=search_value) |      # ← was missing
+            Q(mayor__icontains=search_value) |          # ← was missing
+            Q(quarter__icontains=search_value)          # ← was missing
         )
     
     # Column-specific search with exact mapping

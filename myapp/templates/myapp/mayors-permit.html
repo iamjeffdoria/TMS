@@ -61,27 +61,27 @@
                                       <th>Amount Paid</th>
                                       <th>Issue Date</th>
                                       <th>Expiry Date</th>
-                                      <th>Issued At</th>
+                                      <th style="display:none;">Issued At</th>
                                       <th>Mayor</th>
                                       <th>Quarter</th>
                                       <th>Action</th>
                                   </tr>
-                                  <tr>
-                                      <th><input type="text"  class="form-control form-control-sm border-secondary" /></th>
-                                      <th></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>
-                                      <th></th>
-                                  </tr>
+                           <tr>
+                              <th><input type="text" class="form-control form-control-sm border-secondary" /></th>  <!-- Control No -->
+                              <th></th>  <!-- Status (hidden) -->
+                              <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- Name -->
+                              <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- Address -->
+                              <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- Business Name -->
+                              <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- Motorized Operation -->
+                              <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- OR No -->
+                              <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- Amount Paid -->
+                              <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- Issue Date -->
+                              <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- Expiry Date -->
+                              <th style="display:none;"><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- Issued At (HIDDEN) -->
+                              <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- Mayor -->
+                              <th><input type="text" class="form-control form-control-sm border border-secondary" /></th>  <!-- Quarter -->
+                              <th></th>  <!-- Action -->
+                          </tr>
                                 </thead>
 
                                         <tfoot>
@@ -96,7 +96,7 @@
                                                 <th>Amount Paid</th>
                                                 <th>Issue Date</th>
                                                 <th>Expiry Date</th>
-                                                <th>Issued At</th>
+                                                <th style="display:none;">Issued At</th>
                                                 <th>Mayor</th>
                                                 <th>Quarter</th>
                                                 <th>Action</th>
@@ -667,67 +667,112 @@
         "lengthChange": false,
         "ordering": false,
         "searching": true,
-        "dom": 'lrtip',
-        "columns": [
-            { "data": 0 },  // Control No
-            { "data": 1, "visible": false, "searchable": true },  // Status
-            { "data": 2 },  // Name
-            { "data": 3 },  // Address
-            { "data": 4 },  // Business Name
-            { 
-              "data": 5,   // Motorized Operation (merged with Status)
-                "render": function(data, type, row) {
-                    var status = row[1];  // Status column
-                    var statusBadge = '';
-                    
-                    if (status) {
-                        var badgeClass = '';
-                        var statusText = status.charAt(0).toUpperCase() + status.slice(1);
-                        
-                        if (status.toLowerCase() === 'active') {
-                            badgeClass = 'badge-success';
-                        } else if (status.toLowerCase() === 'inactive') {
-                            badgeClass = 'badge-warning';
-                        } else if (status.toLowerCase() === 'expired') {
-                            badgeClass = 'badge-danger';
-                        } else {
-                            badgeClass = 'badge-secondary';
-                        }
-                        
-                        statusBadge = '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
-                    }
-                    
-                    return '<span>' + data + '</span>' + statusBadge;
-                }
-            },
-            { "data": 6 },  // OR No
-            { "data": 7 },  // Amount Paid
-            { "data": 8 },  // Issue Date
-            { "data": 9 },  // Expiry Date
-            { "data": 10 }, // Issued At
-            { "data": 11 }, // Mayor
-            { "data": 12 }, // Quarter
-            { "data": 13, "orderable": false },  // Action
-            { "data": 14 },  // Hidden ID
-            { "data": 15 }   // Hidden raw status
-        ],
-        "columnDefs": [
-            {
-                "targets": [7, 8, 9, 10, 11, 12],  // Hidden columns
-                "visible": false,
-                "searchable": true
-            },
-            {
-                "targets": 14,  // ID column
-                "visible": false,
-                "searchable": false
-            },
-            {
-                "targets": 15,  // Raw status column
-                "visible": false,
-                "searchable": false
+        "dom": 'frtip',
+  "columns": [
+    { 
+        "data": 0,  // Control No + Issued At badge
+        "render": function(data, type, row) {
+            var issuedAt = row[10];
+            var issuedBadge = '';
+            if (issuedAt) {
+                issuedBadge = '<br><span class="badge badge-info badge-sm"><i class="fas fa-map-pin"></i> ' + issuedAt + '</span>';
             }
-        ]
+            return '<span>' + data + '</span>' + issuedBadge;
+        }
+    },
+    { "data": 1, "visible": false, "searchable": true },  // Status (hidden)
+    { 
+        "data": 2,  // Name + Mayor badge
+        "render": function(data, type, row) {
+            var mayor = row[11];
+            var mayorBadge = '';
+            if (mayor) {
+                mayorBadge = '<br><span class="badge badge-dark badge-sm"><i class="fas fa-user-tie"></i> ' + mayor + '</span>';
+            }
+            return '<span>' + data + '</span>' + mayorBadge;
+        }
+    },
+    { 
+        "data": 3,  // Address + Quarter badge
+        "render": function(data, type, row) {
+            var quarter = row[12];
+            var quarterBadge = '';
+            if (quarter) {
+                quarterBadge = '<br><span class="badge badge-secondary badge-sm"><i class="fas fa-chart-line"></i> ' + quarter + '</span>';
+            }
+            return '<span>' + data + '</span>' + quarterBadge;
+        }
+    },
+    { 
+        "data": 4,  // Business Name + Issue Date + Expiry Date badges
+        "render": function(data, type, row) {
+            var issueDate = row[8];
+            var expiryDate = row[9];
+            var dateBadges = '';
+            if (issueDate) {
+                dateBadges += '<br><span class="badge badge-success badge-sm"><i class="fas fa-calendar-plus"></i> ' + issueDate + '</span>';
+            }
+            if (expiryDate) {
+                dateBadges += ' <span class="badge badge-danger badge-sm"><i class="fas fa-calendar-times"></i> ' + expiryDate + '</span>';
+            }
+            return '<span>' + data + '</span>' + dateBadges;
+        }
+    },
+    { 
+        "data": 5,  // Motorized Operation + Status badge
+        "render": function(data, type, row) {
+            var status = row[1];
+            var statusBadge = '';
+            if (status) {
+                var badgeClass = '';
+                var statusText = status.charAt(0).toUpperCase() + status.slice(1);
+                if (status.toLowerCase() === 'active') badgeClass = 'badge-success';
+                else if (status.toLowerCase() === 'inactive') badgeClass = 'badge-warning';
+                else if (status.toLowerCase() === 'expired') badgeClass = 'badge-danger';
+                else badgeClass = 'badge-secondary';
+                statusBadge = '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
+            }
+            return '<span>' + data + '</span>' + statusBadge;
+        }
+    },
+    { 
+        "data": 6,  // OR No + Amount Paid badge
+        "render": function(data, type, row) {
+            var amountPaid = row[7];
+            var amountBadge = '';
+            if (amountPaid) {
+                amountBadge = '<br><span class="badge badge-warning badge-sm">₱ ' + amountPaid + '</span>';
+            }
+            return '<span>' + data + '</span>' + amountBadge;
+        }
+    },
+    { "data": 7 },   // Amount Paid (hidden)
+    { "data": 8 },   // Issue Date (hidden)
+    { "data": 9 },   // Expiry Date (hidden)
+    { "data": 10 },  // Issued At (hidden)
+    { "data": 11 },  // Mayor (hidden)
+    { "data": 12 },  // Quarter (hidden)
+    { "data": 13, "orderable": false },  // Action
+    { "data": 14 },  // Hidden ID
+    { "data": 15 }   // Hidden raw status
+],
+"columnDefs": [
+    {
+        "targets": [7, 8, 9, 10, 11, 12],  // All hidden data columns
+        "visible": false,
+        "searchable": true
+    },
+    {
+        "targets": 14,
+        "visible": false,
+        "searchable": false
+    },
+    {
+        "targets": 15,
+        "visible": false,
+        "searchable": false
+    }
+]
     });
 
     // Column search for text inputs

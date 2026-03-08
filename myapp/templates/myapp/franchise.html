@@ -3,12 +3,8 @@
 
 {% block content %}
 
-
 <div class="card shadow mb-4">
-
-
-    <div class="card-body">
-         <div class="card-header py-3 d-flex justify-content-between align-items-center">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-dark">Franchise Records</h6>
         <div class="btn-group">
             <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#importModal">
@@ -33,25 +29,39 @@
         </div>
     </div>
 
+    <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
-                
+
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Denomination</th>
+                        <th>Name</th>               <!-- col 0: Name + Denomination badge (merged) -->
+                        <th>Denomination</th>        <!-- col 1: hidden, searchable -->
                         <th>Plate No</th>
                         <th>Valid Until</th>
                         <th>Motor No</th>
                         <th>Authorized No</th>
                         <th>Chassis No</th>
-                        <th>Authorized Route</th>
-                        <th>Purpose</th>
-                        <th>Official Receipt No</th>
-                        <th>Date</th>
-                        <th>Amount Paid</th>
-                        <th>Municipal Treasurer</th>
+                        <th>Authorized Route</th>    <!-- hidden -->
+                        <th>Purpose</th>             <!-- hidden -->
+                        <th>Official Receipt No</th> <!-- hidden -->
+                        <th>Date</th>                <!-- hidden -->
+                        <th>Amount Paid</th>         <!-- hidden -->
+                        <th>Municipal Treasurer</th> <!-- hidden -->
                         <th>Action</th>
+                    </tr>
+
+                    <!-- Column search row (visible columns only) -->
+                    <tr>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th></th> <!-- Denomination: hidden, no input needed -->
+                        <th><input type="text" class="form-control form-control-sm border-secondary"  /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary"  /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th></th><th></th><th></th><th></th><th></th><th></th>
+                        <th></th>
                     </tr>
                 </thead>
 
@@ -75,56 +85,7 @@
                 </tfoot>
 
                 <tbody>
-                    {% for f in franchises %}
-                    <tr>
-                        <td>{{ f.name }}</td>
-                        <td>{{ f.denomination }}</td>
-                        <td>{{ f.plate_no }}</td>
-                        <td>{{ f.valid_until }}</td>
-                        <td>{{ f.motor_no }}</td>
-                        <td>{{ f.authorized_no }}</td>
-                        <td>{{ f.chassis_no }}</td>
-                        <td>{{ f.authorized_route }}</td>
-                        <td>{{ f.purpose }}</td>
-                        <td>{{ f.official_receipt_no }}</td>
-                        <td>{{ f.date }}</td>
-                        <td>{{ f.amount_paid }}</td>
-                        <td>{{ f.municipal_treasurer }}</td>
-
-                        <td class="text-center">
-                            <div class="btn-group" role="group" aria-label="actions">
-                                <!-- PRINT BUTTON -->
-                                <button class="btn btn-sm btn-primary print-btn" 
-                                        data-permit-id="{{ f.id }}"
-                                        data-name="{{ f.name }}"
-                                        data-denomination="{{ f.denomination }}"
-                                        data-plate="{{ f.plate_no }}"
-                                        data-valid="{{ f.valid_until }}"
-                                        data-motor="{{ f.motor_no }}"
-                                        data-authorized="{{ f.authorized_no }}"
-                                        data-chassis="{{ f.chassis_no }}"
-                                        data-route="{{ f.authorized_route }}"
-                                        data-purpose="{{ f.purpose }}"
-                                        data-receipt="{{ f.official_receipt_no }}"
-                                        data-date="{{ f.date }}"
-                                        data-amount="{{ f.amount_paid }}"
-                                        data-treasurer="{{ f.municipal_treasurer }}"
-                                        title="Print">
-                                    <i class="fas fa-print"></i>
-                                </button>
-
-                                <!-- UPDATE BUTTON -->
-                                <a href="#" class="btn btn-sm btn-warning btn-franchise-update" data-id="{{ f.id }}" title="Update">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="14" class="text-center text-muted">No franchise records found</td>
-                    </tr>
-                    {% endfor %}
+                    <!-- Populated by DataTables AJAX -->
                 </tbody>
 
             </table>
@@ -132,197 +93,147 @@
     </div>
 </div>
 
-<!-- Import Franchise Modal -->
+
+<!-- ===================== IMPORT MODAL ===================== -->
 <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-
       <div class="modal-header bg-success text-white">
         <h5 class="modal-title"><i class="fas fa-file-import"></i> Import File</h5>
         <button class="close text-white" data-dismiss="modal">&times;</button>
       </div>
-
       <form method="POST" enctype="multipart/form-data" action="{% url 'import-franchise' %}">
         {% csrf_token %}
-
         <div class="modal-body">
           <label><strong>Select CSV or Excel File</strong></label>
           <input type="file" name="import_file" accept=".csv,.xlsx,.xls" class="form-control" required>
           <small class="form-text text-muted">Supported formats: .csv, .xlsx, .xls</small>
         </div>
-
         <div class="modal-footer">
-          <button type="submit" class="btn btn-success">
-            <i class="fas fa-upload"></i> Upload
-          </button>
+          <button type="submit" class="btn btn-success"><i class="fas fa-upload"></i> Upload</button>
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         </div>
-
       </form>
-
     </div>
   </div>
 </div>
 
-<!-- Add New Franchise Record Modal -->
+
+<!-- ===================== ADD MODAL ===================== -->
 <div class="modal fade" id="addRecordModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
     <div class="modal-content shadow-lg border-0">
-
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title font-weight-bold">
           <i class="fas fa-plus-circle mr-2"></i> Add Franchise Record
         </h5>
-        <button type="button" class="close text-white" data-dismiss="modal">
-          <span>&times;</span>
-        </button>
+        <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
       </div>
-
       <div class="modal-body">
         <form id="addFranchiseForm">
           {% csrf_token %}
-
           <div class="form-row">
 
-            <!-- Name -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Name *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-user"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-user"></i></span></div>
                 <input type="text" class="form-control" name="name" required>
               </div>
             </div>
 
-            <!-- Denomination -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Denomination</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-id-card"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-id-card"></i></span></div>
                 <input type="text" class="form-control" name="denomination">
               </div>
             </div>
 
-            <!-- Plate No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Plate No *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-car"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-car"></i></span></div>
                 <input type="text" class="form-control" name="plate_no" required>
               </div>
             </div>
 
-            <!-- Valid Until -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Valid Until *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-calendar-check"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-calendar-check"></i></span></div>
                 <input type="date" class="form-control" name="valid_until" required>
               </div>
             </div>
 
-            <!-- Motor No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Motor No *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-cogs"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-cogs"></i></span></div>
                 <input type="text" class="form-control" name="motor_no" required>
               </div>
             </div>
 
-            <!-- Authorized No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Authorized No *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-file-contract"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-file-contract"></i></span></div>
                 <input type="text" class="form-control" name="authorized_no" required>
               </div>
             </div>
 
-            <!-- Chassis No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Chassis No *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-barcode"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-barcode"></i></span></div>
                 <input type="text" class="form-control" name="chassis_no" required>
               </div>
             </div>
 
-            <!-- Authorized Route -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Authorized Route *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-route"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-route"></i></span></div>
                 <textarea class="form-control" name="authorized_route" rows="2" required></textarea>
               </div>
             </div>
 
-            <!-- Purpose -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Purpose</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-bullseye"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-bullseye"></i></span></div>
                 <textarea class="form-control" name="purpose" rows="2"></textarea>
               </div>
             </div>
 
-            <!-- Official Receipt No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Official Receipt No *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-receipt"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-receipt"></i></span></div>
                 <input type="text" class="form-control" name="official_receipt_no" required>
               </div>
             </div>
 
-            <!-- Date -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Date *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span></div>
                 <input type="date" class="form-control" name="date" required>
               </div>
             </div>
 
-            <!-- Amount Paid -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Amount Paid *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span></div>
                 <input type="number" class="form-control" name="amount_paid" step="0.01" min="0" required>
               </div>
             </div>
 
-            <!-- Municipal Treasurer -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Municipal Treasurer *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-user-tie"></i></span></div>
                 <input type="text" class="form-control" name="municipal_treasurer" required>
               </div>
             </div>
@@ -330,181 +241,131 @@
           </div>
         </form>
       </div>
-
       <div class="modal-footer bg-light">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-          <i class="fas fa-times"></i> Cancel
-        </button>
-        <button type="button" class="btn btn-success" id="saveFranchiseBtn">
-          <i class="fas fa-save"></i> Save Record
-        </button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> Cancel</button>
+        <button type="button" class="btn btn-success" id="saveFranchiseBtn"><i class="fas fa-save"></i> Save Record</button>
       </div>
-
     </div>
   </div>
 </div>
 
 
-<!-- Update Franchise Record Modal -->
+<!-- ===================== UPDATE MODAL ===================== -->
 <div class="modal fade" id="updateRecordModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
     <div class="modal-content shadow-lg border-0">
-
-      <div class="modal-header bg-primary text-white">
+      <div class="modal-header bg-warning text-dark">
         <h5 class="modal-title font-weight-bold">
           <i class="fas fa-edit mr-2"></i> Update Franchise Record
         </h5>
-        <button type="button" class="close text-white" data-dismiss="modal">
-          <span>&times;</span>
-        </button>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
       </div>
-
       <div class="modal-body">
         <form id="updateFranchiseForm">
           {% csrf_token %}
           <input type="hidden" id="update-id" name="id">
-
           <div class="form-row">
 
-            <!-- Name -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Name *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-user"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-user"></i></span></div>
                 <input type="text" class="form-control" id="update-name" name="name" required>
               </div>
             </div>
 
-            <!-- Denomination -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Denomination</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-id-card"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-id-card"></i></span></div>
                 <input type="text" class="form-control" id="update-denomination" name="denomination">
               </div>
             </div>
 
-            <!-- Plate No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Plate No *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-car"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-car"></i></span></div>
                 <input type="text" class="form-control" id="update-plate-no" name="plate_no" required>
               </div>
             </div>
 
-            <!-- Valid Until -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Valid Until *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-calendar-check"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-calendar-check"></i></span></div>
                 <input type="date" class="form-control" id="update-valid-until" name="valid_until" required>
               </div>
             </div>
 
-            <!-- Motor No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Motor No *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-cogs"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-cogs"></i></span></div>
                 <input type="text" class="form-control" id="update-motor-no" name="motor_no" required>
               </div>
             </div>
 
-            <!-- Authorized No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Authorized No *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-file-contract"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-file-contract"></i></span></div>
                 <input type="text" class="form-control" id="update-authorized-no" name="authorized_no" required>
               </div>
             </div>
 
-            <!-- Chassis No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Chassis No *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-barcode"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-barcode"></i></span></div>
                 <input type="text" class="form-control" id="update-chassis-no" name="chassis_no" required>
               </div>
             </div>
 
-            <!-- Authorized Route -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Authorized Route *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-route"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-route"></i></span></div>
                 <textarea class="form-control" id="update-authorized-route" name="authorized_route" rows="2" required></textarea>
               </div>
             </div>
 
-            <!-- Purpose -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Purpose</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-bullseye"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-bullseye"></i></span></div>
                 <textarea class="form-control" id="update-purpose" name="purpose" rows="2"></textarea>
               </div>
             </div>
 
-            <!-- Official Receipt No -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Official Receipt No *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-receipt"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-receipt"></i></span></div>
                 <input type="text" class="form-control" id="update-official-receipt-no" name="official_receipt_no" required>
               </div>
             </div>
 
-            <!-- Date -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Date *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span></div>
                 <input type="date" class="form-control" id="update-date" name="date" required>
               </div>
             </div>
 
-            <!-- Amount Paid -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Amount Paid *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span></div>
                 <input type="number" class="form-control" id="update-amount-paid" name="amount_paid" step="0.01" min="0" required>
               </div>
             </div>
 
-            <!-- Municipal Treasurer -->
             <div class="col-lg-4 col-md-6 mb-3">
               <label class="font-weight-bold">Municipal Treasurer *</label>
               <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
-                </div>
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-user-tie"></i></span></div>
                 <input type="text" class="form-control" id="update-municipal-treasurer" name="municipal_treasurer" required>
               </div>
             </div>
@@ -512,25 +373,20 @@
           </div>
         </form>
       </div>
-
       <div class="modal-footer bg-light">
-        <button type="button" class="btn btn-danger" data-dismiss="modal">
-          <i class="fas fa-times"></i> Cancel
-        </button>
-        <button type="button" class="btn btn-success text-white" id="updateFranchiseBtn">
-          <i class="fas fa-save"></i> Update Record
-        </button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fas fa-times"></i> Cancel</button>
+        <button type="button" class="btn btn-success" id="updateFranchiseBtn"><i class="fas fa-save"></i> Update Record</button>
       </div>
-
     </div>
   </div>
 </div>
+
 
 <script>
 const logoURL = "{% static 'assets/img/lgu.png' %}";
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Helper function to convert date to input format
+
     function toInputDate(dateStr) {
         if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
         let d = new Date(dateStr);
@@ -540,7 +396,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return `${d.getFullYear()}-${m}-${day}`;
     }
 
-    // Initialize DataTable with server-side processing
+    // ── Initialize DataTable ──────────────────────────────────────────
     var table = $('#dataTable').DataTable({
         "processing": true,
         "serverSide": true,
@@ -553,114 +409,93 @@ document.addEventListener("DOMContentLoaded", function () {
         "lengthChange": false,
         "ordering": false,
         "searching": true,
-        "scrollCollapse": true,
-        "dom": 'lrtip',
+        "dom": 'frtip',   // ← matches Mayor's Permit (no 'l')
         "columns": [
-            { "data": 0 },   // Name
-            { "data": 1 },   // Denomination
-            { "data": 2 },   // Plate No
-            { "data": 3 },   // Valid Until
-            { "data": 4 },   // Motor No
-            { "data": 5 },   // Authorized No
-            { "data": 6 },   // Chassis No
-            { "data": 7 },   // Authorized Route
-            { "data": 8 },   // Purpose
-            { "data": 9 },   // Official Receipt No
-            { "data": 10 },  // Date
-            { "data": 11 },  // Amount Paid
-            { "data": 12 },  // Municipal Treasurer
-            { "data": 13, "orderable": false }  // Action
-        ],
-        "columnDefs": [
             {
-                "targets": [7, 8,9, 10, 11, 12],
-                "visible": false,
-                "searchable": true
-            }
+                // col 0: Name — renders Denomination as a badge below
+                "data": 0,
+                "render": function(data, type, row) {
+                    var denomination = row[1];
+                    var denomBadge = denomination
+                        ? '<br><span class="badge badge-success badge-sm"><i class="fas fa-id-card"></i> ' + denomination + '</span>'
+                        : '';
+                    return '<span>' + data + '</span>' + denomBadge;
+                }
+            },
+            { "data": 1, "visible": false, "searchable": true },   // col 1: Denomination (hidden, searchable)
+            { "data": 2 },   // col 2: Plate No
+            {
+                // col 3: Valid Until + Authorized Route badge
+                "data": 3,
+                "render": function(data, type, row) {
+                    var route = row[7];
+                    var routeBadge = route
+                        ? '<br><span class="badge badge-info badge-sm"><i class="fas fa-route"></i> ' + route + '</span>'
+                        : '';
+                    return '<span>' + data + '</span>' + routeBadge;
+                }
+            },
+            { "data": 4 },   // col 4: Motor No
+            {
+                // col 5: Authorized No + Official Receipt badge
+                "data": 5,
+                "render": function(data, type, row) {
+                    var receipt = row[9];
+                    var receiptBadge = receipt
+                        ? '<br><span class="badge badge-secondary badge-sm"><i class="fas fa-receipt"></i> ' + receipt + '</span>'
+                        : '';
+                    return '<span>' + data + '</span>' + receiptBadge;
+                }
+            },
+            {
+                // col 6: Chassis No + Amount Paid + Treasurer badges
+                "data": 6,
+                "render": function(data, type, row) {
+                    var amount = row[11];
+                    var treasurer = row[12];
+                    var badges = '';
+                    if (amount)
+                        badges += '<br><span class="badge badge-warning badge-sm"><i class="fas fa-money-bill-wave"></i> ₱' + amount + '</span>';
+                    if (treasurer)
+                        badges += ' <span class="badge badge-dark badge-sm"><i class="fas fa-user-tie"></i> ' + treasurer + '</span>';
+                    return '<span>' + data + '</span>' + badges;
+                }
+            },
+            { "data": 7,  "visible": false, "searchable": true },  // Authorized Route
+            { "data": 8,  "visible": false, "searchable": true },  // Purpose
+            { "data": 9,  "visible": false, "searchable": true },  // Official Receipt No
+            { "data": 10, "visible": false, "searchable": true },  // Date
+            { "data": 11, "visible": false, "searchable": true },  // Amount Paid
+            { "data": 12, "visible": false, "searchable": true },  // Municipal Treasurer
+            { "data": 13, "orderable": false },                    // Action
+            { "data": 14, "visible": false, "searchable": false }  // Hidden ID
         ]
     });
 
-    // Clone header row for column search
-    $('#dataTable thead tr').clone(true).appendTo('#dataTable thead');
-    
-    // Apply column search from header inputs
-    $('#dataTable thead tr:eq(1) th').each(function(i) {
-        var column = table.column(i);
-        
-        // Define which columns should have search inputs (visible columns)
-        var searchableColumns = [0, 1, 2, 3, 4, 5,6]; // Name, Denomination, Plate No, Valid Until, Authorized Route, Purpose
-        
-        // Skip action column and hidden columns
-        if (i === 13 || !searchableColumns.includes(i)) {
-            $(this).html('');
-            return;
-        }
-
-        // Add input field
-        $(this).html('<input type="text" class="form-control form-control-sm border-secondary" />');
-        
-        // Apply search on input
-        $('input', this).on('keyup change', function() {
-            if (column.search() !== this.value) {
-                column.search(this.value).draw();
+    // Column search — skip Denomination (hidden) + all other hidden cols + action
+    table.columns().every(function(index) {
+        var that = this;
+        if ([1, 7, 8, 9, 10, 11, 12, 13, 14].includes(index)) return;
+        $('input', this.header()).on('keyup change clear', function() {
+            if (that.search() !== this.value) {
+                that.search(this.value).draw();
             }
         });
     });
 
-    // PRINT BUTTON - Using the same pattern as the working template
-    $(document).on('click', '.print-btn', function() {
-        const permitId = $(this).data('permit-id');
-        printFranchise(permitId);
+    // ── PRINT — event delegation (works after AJAX load) ─────────────
+    $('#dataTable tbody').on('click', '.print-btn', function() {
+        printFranchise($(this).data('permit-id'));
     });
 
-    // Save Franchise Record button
-    document.getElementById("saveFranchiseBtn").addEventListener("click", function () {
-        let form = document.getElementById("addFranchiseForm");
-        
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        let formData = new FormData(form);
-
-        fetch("{% url 'add-franchise' %}", {
-            method: "POST",
-            body: formData,
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                $('#addRecordModal').modal('hide');
-                form.reset();
-                
-                // Small delay to ensure modal closes smoothly before reload
-                setTimeout(function() {
-                    location.reload();
-                }, 300);
-            } else {
-                location.reload();
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            location.reload();
-        });
-    });
-
-    // UPDATE BUTTON - Get data from server-side DataTables
-    $(document).on("click", ".btn-franchise-update", function (e) {
+    // ── UPDATE — event delegation, reads ID from hidden column ────────
+    $('#dataTable tbody').on('click', '.btn-franchise-update', function(e) {
         e.preventDefault();
-        
-        let $tr = $(this).closest("tr");
-        let row = table.row($tr);
+        let row = table.row($(this).closest('tr'));
         let data = row.data();
 
-        // Fill the update form with data from the table
-        document.getElementById("update-id").value = this.dataset.id;
+        // Use hidden column 14 for the ID (reliable, not data-id from HTML)
+        document.getElementById("update-id").value = data[14];
         document.getElementById("update-name").value = data[0] || '';
         document.getElementById("update-denomination").value = data[1] || '';
         document.getElementById("update-plate-no").value = data[2] || '';
@@ -678,231 +513,132 @@ document.addEventListener("DOMContentLoaded", function () {
         $("#updateRecordModal").modal("show");
     });
 
-    // Update Franchise Record button
+    // ── SAVE NEW RECORD ───────────────────────────────────────────────
+    document.getElementById("saveFranchiseBtn").addEventListener("click", function () {
+        let form = document.getElementById("addFranchiseForm");
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+
+        fetch("{% url 'add-franchise' %}", {
+            method: "POST",
+            body: new FormData(form),
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(r => r.json())
+        .then(data => {
+            $('#addRecordModal').modal('hide');
+            form.reset();
+            setTimeout(() => location.reload(), 300);
+        })
+        .catch(() => location.reload());
+    });
+
+    // ── SAVE UPDATE ───────────────────────────────────────────────────
     document.getElementById("updateFranchiseBtn").addEventListener("click", function () {
         let form = document.getElementById("updateFranchiseForm");
-        
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        let formData = new FormData(form);
+        if (!form.checkValidity()) { form.reportValidity(); return; }
 
         fetch("{% url 'update-franchise' %}", {
             method: "POST",
-            body: formData,
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-            }
+            body: new FormData(form),
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
             if (data.success) {
                 $('#updateRecordModal').modal('hide');
-                
-                // Small delay to ensure modal closes smoothly before reload
-                setTimeout(function() {
-                    location.reload();
-                }, 300);
+                setTimeout(() => location.reload(), 300);
             } else {
                 location.reload();
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            location.reload();
-        });
+        .catch(() => location.reload());
     });
+
 });
-// PRINT FUNCTION - Colon style format
+
+// ── PRINT FUNCTION ────────────────────────────────────────────────────
 function printFranchise(permitId) {
     const button = document.querySelector(`[data-permit-id="${permitId}"]`);
     if (!button) return alert('Button not found');
 
-    // Extract data from data attributes
-    const name = button.dataset.name || '';
+    const name         = button.dataset.name || '';
     const denomination = button.dataset.denomination || '';
-    const plateNo = button.dataset.plate || '';
-    const validUntil = button.dataset.valid || '';
-    const motorNo = button.dataset.motor || '';
+    const plateNo      = button.dataset.plate || '';
+    const validUntil   = button.dataset.valid || '';
+    const motorNo      = button.dataset.motor || '';
     const authorizedNo = button.dataset.authorized || '';
-    const chassisNo = button.dataset.chassis || '';
+    const chassisNo    = button.dataset.chassis || '';
     const authorizedRoute = button.dataset.route || '';
-    const purpose = button.dataset.purpose || '';
-    const receiptNo = button.dataset.receipt || '';
-    const date = button.dataset.date || '';
-    const amountPaid = button.dataset.amount || '';
-    const treasurer = button.dataset.treasurer || '';
-    
+    const purpose      = button.dataset.purpose || '';
+    const receiptNo    = button.dataset.receipt || '';
+    const date         = button.dataset.date || '';
+    const amountPaid   = button.dataset.amount || '';
+    const treasurer    = button.dataset.treasurer || '';
+
     const contentHTML = `
     <div style="position: relative; margin-bottom: 10px; height: 140px;">
-        <!-- LEFT: LOGO -->
         <div style="position: absolute; left: 0; top: 0;">
             <img src="${typeof logoURL !== 'undefined' ? logoURL : ''}" alt="Logo" style="height:120px;">
         </div>
-
-        <!-- CENTER: GOV HEADER -->
-        <div style="
-            position: absolute;
-            left: 50%;
-            top: 25px;
-            transform: translateX(-50%);
-            text-align: center;
-            font-size: 16px;
-            line-height: 1.3;
-            width: max-content;
-        ">
+        <div style="position: absolute; left: 50%; top: 25px; transform: translateX(-50%);
+                    text-align: center; font-size: 16px; line-height: 1.3; width: max-content;">
             <div style="font-weight:bold;">Republic of the Philippines</div>
             <div>Province of Leyte</div>
             <div>Municipality of Palompon</div>
         </div>
     </div>
-
-    <!-- TITLE -->
     <div style="text-align:center; margin-bottom:30px; font-size:22px;">
         <div style="letter-spacing:1px; font-weight: bold">FRANCHISE CONFIRMATION/ VERIFICATION</div>
     </div>
-
-    <!-- CONTENT - COLON STYLE -->
     <div style="font-size: 14px; line-height: 2; max-width: 700px; margin: 0 auto;">
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Name:</span>
-            <span style="flex: 1;">${name}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Denomination:</span>
-            <span style="flex: 1;">${denomination}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Plate No:</span>
-            <span style="flex: 1;">${plateNo}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Valid Until:</span>
-            <span style="flex: 1;">${validUntil}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Motor No:</span>
-            <span style="flex: 1;">${motorNo}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Authorized No:</span>
-            <span style="flex: 1;">${authorizedNo}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Chassis No:</span>
-            <span style="flex: 1;">${chassisNo}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Authorized Route:</span>
-            <span style="flex: 1;">${authorizedRoute}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Purpose:</span>
-            <span style="flex: 1;">${purpose}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Official Receipt No:</span>
-            <span style="flex: 1;">${receiptNo}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Date:</span>
-            <span style="flex: 1;">${date}</span>
-        </div>
-        <div style="display: flex; margin-bottom: 5px;">
-            <span style="font-weight: bold; min-width: 180px;">Amount Paid:</span>
-            <span style="flex: 1;">${amountPaid}</span>
-        </div>
+        ${[
+            ['Name', name], ['Denomination', denomination], ['Plate No', plateNo],
+            ['Valid Until', validUntil], ['Motor No', motorNo], ['Authorized No', authorizedNo],
+            ['Chassis No', chassisNo], ['Authorized Route', authorizedRoute], ['Purpose', purpose],
+            ['Official Receipt No', receiptNo], ['Date', date], ['Amount Paid', amountPaid]
+        ].map(([label, val]) => `
+            <div style="display: flex; margin-bottom: 5px;">
+                <span style="font-weight: bold; min-width: 180px;">${label}:</span>
+                <span style="flex: 1;">${val}</span>
+            </div>`).join('')}
     </div>
-
-    <!-- MUNICIPAL TREASURER SIGNATURE -->
     <div style="margin-top: 60px; text-align: right; font-size: 13px;">
         <div style="display: inline-block; text-align: center;">
-            <div style="border-bottom: 1px solid black; padding-bottom: 2px; width: 250px; font-weight: bold; text-transform: uppercase;">
-                ${treasurer || '&nbsp;'}
-            </div>
-            <div style="margin-top: 3px; text-transform: uppercase;">
-                MUNICIPAL TREASURER
-            </div>
+            <div style="border-bottom: 1px solid black; padding-bottom: 2px; width: 250px;
+                        font-weight: bold; text-transform: uppercase;">${treasurer || '&nbsp;'}</div>
+            <div style="margin-top: 3px; text-transform: uppercase;">MUNICIPAL TREASURER</div>
         </div>
     </div>
-
     <div style="margin-top: 30px; text-align: center; color: #666; font-size: 12px;">
         <p>This is an official franchise record</p>
         <p>Printed on: ${new Date().toLocaleString()}</p>
-    </div>
-    `;
+    </div>`;
 
-    // Create iframe for printing
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
     const doc = iframe.contentWindow.document;
     doc.open();
     doc.write(`
-        <html>
-        <head>
-            <title>Print Franchise Record</title>
-            <style>
-                * {
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }
-                
-                body {
-                    margin: 0;
-                    font-family: "Times New Roman", Times, serif;
-                    font-size: 16px;
-                }
-                
-                .print-container {
-                    padding: 40px;
-                    width: 210mm;
-                    min-height: 297mm;
-                    margin: 0 auto;
-                }
-                
-                @media print {
-                    @page {
-                        size: A4;
-                        margin: 0;
-                    }
-                    
-                    body, html {
-                        width: 210mm;
-                        height: 297mm;
-                        margin: 0;
-                        padding: 0;
-                    }
-
-                    .print-container {
-                        page-break-after: avoid;
-                        page-break-before: avoid;
-                        page-break-inside: avoid;
-                        break-inside: avoid;
-                    }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="print-container">
-                ${contentHTML}
-            </div>
-        </body>
-        </html>
-    `);
-
+        <html><head><title>Print Franchise Record</title>
+        <style>
+            * { margin:0; padding:0; box-sizing:border-box; }
+            body { font-family: "Times New Roman", Times, serif; font-size: 16px; }
+            .print-container { padding: 40px; width: 210mm; min-height: 297mm; margin: 0 auto; }
+            @media print {
+                @page { size: A4; margin: 0; }
+                body, html { width: 210mm; height: 297mm; margin: 0; padding: 0; }
+                .print-container { page-break-inside: avoid; }
+            }
+        </style>
+        </head><body>
+        <div class="print-container">${contentHTML}</div>
+        </body></html>`);
     doc.close();
-    
-    // Wait for content to load before printing
     iframe.contentWindow.onload = function() {
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
-        setTimeout(() => {
-            document.body.removeChild(iframe);
-        }, 100);
+        setTimeout(() => document.body.removeChild(iframe), 100);
     };
 }
 </script>
