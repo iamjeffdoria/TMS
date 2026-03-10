@@ -2268,18 +2268,14 @@ def mayors_permit_tri_history_data(request, permit_id):
 def mayors_permit_tricycle_datatable(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
         return redirect('login')
-    """Server-side processing endpoint for DataTables"""
     
-    # DataTables parameters
     draw = int(request.GET.get('draw', 1))
     start = int(request.GET.get('start', 0))
     length = int(request.GET.get('length', 10))
     search_value = request.GET.get('search[value]', '')
     
-    # Base queryset
-    queryset = MayorsPermitTricycle.objects.all()
+    queryset = MayorsPermitTricycle.objects.select_related('tricycle').all()  # ✅ add select_related
     
-    # Global search
     if search_value:
         queryset = queryset.filter(
             Q(control_no__icontains=search_value) |
@@ -2289,46 +2285,44 @@ def mayors_permit_tricycle_datatable(request):
             Q(motorized_operation__icontains=search_value) |
             Q(or_no__icontains=search_value) |
             Q(status__icontains=search_value) |
-            Q(issued_at__icontains=search_value) |      # ← was missing
-            Q(mayor__icontains=search_value) |          # ← was missing
-            Q(quarter__icontains=search_value)          # ← was missing
+            Q(issued_at__icontains=search_value) |
+            Q(mayor__icontains=search_value) |
+            Q(quarter__icontains=search_value) |
+            Q(tricycle__body_number__icontains=search_value)  # ✅ ADD THIS
         )
     
-    # Column-specific search with exact mapping
-    # Only process searchable columns
     column_filters = {
-        0: 'control_no',           # Control No
-        1: 'status',                # Status (hidden but searchable)
-        2: 'name',                  # Name
-        3: 'address',               # Address
-        4: 'motorized_operation',   # Motorized Operation
-        5: 'business_name',         # Business Name
-        6: 'expiry_date',           # Expiry Date (hidden)
-        7: 'amount_paid',           # Amount Paid (hidden)
-        8: 'or_no',                 # OR No (hidden)
-        9: 'issue_date',            # Issue Date (hidden)
-        10: 'issued_at',            # Issued At (hidden)
-        11: 'mayor',                # Mayor (hidden)
-        12: 'quarter',              # Quarter (hidden)
+        0: 'control_no',
+        1: 'status',
+        2: 'name',
+        3: 'address',
+        4: 'motorized_operation',
+        5: 'business_name',
+        6: 'expiry_date',
+        7: 'amount_paid',
+        8: 'or_no',
+        9: 'issue_date',
+        10: 'issued_at',
+        11: 'mayor',
+        12: 'quarter',
+        13: 'tricycle__body_number',  # ✅ ADD THIS (new column index 13)
     }
     
     for col_idx, field_name in column_filters.items():
         column_search = request.GET.get(f'columns[{col_idx}][search][value]', '').strip()
         if column_search:
-            # Use icontains for text fields
             filter_kwargs = {f'{field_name}__icontains': column_search}
             queryset = queryset.filter(**filter_kwargs)
     
-    # Total records
     total_records = MayorsPermitTricycle.objects.count()
     filtered_records = queryset.count()
     
-    # Pagination
     permits = queryset[start:start + length]
     
-    # Format data
     data = []
     for permit in permits:
+        body_number = permit.tricycle.body_number if permit.tricycle else ''  # ✅ safe FK access
+        
         action_html = f'''
         <div class="btn-group" role="group">
              <button class="btn btn-sm btn-info btn-view" title="View Details" 
@@ -2345,7 +2339,8 @@ def mayors_permit_tricycle_datatable(request):
                 data-issue_date="{permit.issue_date}"
                 data-issued_at="{permit.issued_at or ''}"
                 data-mayor="{permit.mayor or ''}"
-                data-quarter="{permit.get_quarter_display()}">
+                data-quarter="{permit.get_quarter_display()}"
+                data-body_number="{body_number}">
                 <i class="fas fa-eye"></i>
             </button>
             <button class="btn btn-sm btn-primary btn-print" title="Print" 
@@ -2401,9 +2396,10 @@ def mayors_permit_tricycle_datatable(request):
             permit.issued_at or '',                     # 10 - Issued At (hidden)
             permit.mayor or '',                         # 11 - Mayor (hidden)
             permit.get_quarter_display(),               # 12 - Quarter (hidden)
-            action_html,                                # 13 - Action
-            permit.id,                                  # 14 - Hidden ID
-            permit.status                               # 15 - Hidden raw status
+            action_html,                                # 13 - Action  ← shifted
+            permit.id,                                  # 14 - Hidden ID  ← shifted
+            permit.status,                              # 15 - Hidden raw status  ← shifted
+            body_number,                                # 16 - Body Number (new) ✅
         ])
     
     return JsonResponse({
@@ -3052,6 +3048,7 @@ def create_report_tri(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
         return redirect('login')
     return render(request, 'myapp/create-report-tri.html')
+
 def create_report_tri_datatable(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
         return redirect('login')
@@ -3098,7 +3095,9 @@ def create_report_tri_datatable(request):
             Q(chassis_no__icontains=search_value) |
             Q(plate_no__icontains=search_value) |
             Q(status__icontains=search_value) |
-            Q(remarks__icontains=search_value)
+            Q(remarks__icontains=search_value) |
+            Q(date_registered__icontains=search_value) |
+            Q(date_expired__icontains=search_value)
         )
     
     # Column-specific search
@@ -3130,7 +3129,7 @@ def create_report_tri_datatable(request):
     
     # ✅ SIMPLE COUNTS - Based on current status in the FILTERED queryset
     renewed_count = queryset.filter(status='Renewed').count()
-    registered_count = queryset.filter(Q(status='New') | Q(status='Registered')).count()
+    registered_count = queryset.exclude(status='Inactive').count()
     expired_count = queryset.filter(status='Expired').count()
     
     # Total records

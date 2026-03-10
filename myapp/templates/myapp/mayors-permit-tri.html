@@ -62,6 +62,7 @@
                         <th>Issued At</th>
                         <th>Mayor</th>
                         <th>Quarter</th>
+                        <th>Body Number</th>
                         <th>Action</th>
                     </tr>
                  <tr>
@@ -78,6 +79,7 @@
                     <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Issued At -->
                     <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Mayor -->
                     <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Quarter -->
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Body Number ✅ -->
                     <th></th> <!-- Action -->
                 </tr>
                 </thead>
@@ -96,6 +98,7 @@
                     <th>Issued At</th>
                     <th>Mayor</th>
                     <th>Quarter</th>
+                    <th>Body Number</th> 
                     <th>Action</th>
                 </tr>
                 </tfoot>
@@ -720,101 +723,99 @@ $('#addPermitModal').on('hidden.bs.modal', function () {
         "searching": true,
         "dom": 'frtip',
         "columns": [
-            { 
-                "data": 0,  // Control No + Issued At badge
-                "render": function(data, type, row) {
-                    var issuedAt = row[10];
-                    var issuedBadge = '';
-                    if (issuedAt) {
-                        issuedBadge = '<br><span class="badge badge-info badge-sm"><i class="fas fa-map-pin"></i> ' + issuedAt + '</span>';
-                    }
-                    return '<span>' + data + '</span>' + issuedBadge;
+        { 
+            "data": 0,  // Control No + Issued At badge
+            "render": function(data, type, row) {
+                var issuedAt = row[10];
+                var issuedBadge = '';
+                if (issuedAt) {
+                    issuedBadge = '<br><span class="badge badge-info badge-sm"><i class="fas fa-map-pin"></i> ' + issuedAt + '</span>';
                 }
-            },
-            { "data": 1, "visible": false, "searchable": true },  // Status (hidden)
-            { 
-                "data": 2,  // Name + Mayor badge
-                "render": function(data, type, row) {
-                    var mayor = row[11];
-                    var mayorBadge = '';
-                    if (mayor) {
-                        mayorBadge = '<br><span class="badge badge-dark badge-sm"><i class="fas fa-user-tie"></i> ' + mayor + '</span>';
-                    }
-                    return '<span>' + data + '</span>' + mayorBadge;
+                return '<span>' + data + '</span>' + issuedBadge;
+            }
+        },
+        { "data": 1, "visible": false, "searchable": true },   // Status (hidden)
+        { 
+            "data": 2,  // Name + Mayor badge
+            "render": function(data, type, row) {
+                var mayor = row[11];
+                var mayorBadge = '';
+                if (mayor) {
+                    mayorBadge = '<br><span class="badge badge-dark badge-sm"><i class="fas fa-user-tie"></i> ' + mayor + '</span>';
                 }
-            },
-            { 
-                "data": 3,  // Address + Quarter badge
-                "render": function(data, type, row) {
-                    var quarter = row[12];
-                    var quarterBadge = '';
-                    if (quarter) {
-                        quarterBadge = '<br><span class="badge badge-secondary badge-sm"><i class="fas fa-chart-line"></i> ' + quarter + '</span>';
-                    }
-                    return '<span>' + data + '</span>' + quarterBadge;
+                return '<span>' + data + '</span>' + mayorBadge;
+            }
+        },
+        { 
+            "data": 3,  // Address + Quarter badge
+            "render": function(data, type, row) {
+                var quarter = row[12];
+                var quarterBadge = '';
+                if (quarter) {
+                    quarterBadge = '<br><span class="badge badge-secondary badge-sm"><i class="fas fa-chart-line"></i> ' + quarter + '</span>';
                 }
-            },
-            { 
-                "data": 4,  // Motorized Operation + Status + OR No + Amount Paid badges
-                "render": function(data, type, row) {
-                    var status = row[1];
-                    var orNo = row[8];
-                    var amountPaid = row[7];
-                    var badges = '';
-
-                    if (status) {
-                        var badgeClass = 'badge-secondary';
-                        var statusText = status.charAt(0).toUpperCase() + status.slice(1);
-                        if (status.toLowerCase() === 'active') badgeClass = 'badge-success';
-                        else if (status.toLowerCase() === 'inactive') badgeClass = 'badge-warning';
-                        else if (status.toLowerCase() === 'expired') badgeClass = 'badge-danger';
-                        badges += '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
-                    }
-                    if (orNo) {
-                        badges += ' <span class="badge badge-secondary badge-sm"><i class="fas fa-receipt"></i> ' + orNo + '</span>';
-                    }
-                    if (amountPaid) {
-                        badges += ' <span class="badge badge-warning badge-sm">₱ ' + amountPaid + '</span>';
-                    }
-
-                    return '<span>' + data + '</span>' + badges;
+                return '<span>' + data + '</span>' + quarterBadge;
+            }
+        },
+        { 
+            "data": 4,  // Motorized Operation + Status + OR No + Amount Paid badges
+            "render": function(data, type, row) {
+                var status = row[1];
+                var orNo = row[8];
+                var amountPaid = row[7];
+                var badges = '';
+                if (status) {
+                    var badgeClass = 'badge-secondary';
+                    var statusText = status.charAt(0).toUpperCase() + status.slice(1);
+                    if (status.toLowerCase() === 'active') badgeClass = 'badge-success';
+                    else if (status.toLowerCase() === 'inactive') badgeClass = 'badge-warning';
+                    else if (status.toLowerCase() === 'expired') badgeClass = 'badge-danger';
+                    badges += '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
                 }
-            },
-            { 
-                "data": 5,  // Business Name + Issue Date + Expiry Date badges
-                "render": function(data, type, row) {
-                    var issueDate = row[9];
-                    var expiryDate = row[6];
-                    var dateBadges = '';
-                    if (issueDate) {
-                        dateBadges += '<br><span class="badge badge-success badge-sm"><i class="fas fa-calendar-plus"></i> ' + issueDate + '</span>';
-                    }
-                    if (expiryDate) {
-                        dateBadges += ' <span class="badge badge-danger badge-sm"><i class="fas fa-calendar-times"></i> ' + expiryDate + '</span>';
-                    }
-                    return '<span>' + data + '</span>' + dateBadges;
+                if (orNo) {
+                    badges += ' <span class="badge badge-secondary badge-sm"><i class="fas fa-receipt"></i> ' + orNo + '</span>';
                 }
-            },
-            { "data": 6, "visible": false, "searchable": true },   // Expiry Date (hidden)
-            { "data": 7, "visible": false, "searchable": true },   // Amount Paid (hidden)
-            { "data": 8, "visible": false, "searchable": true },   // OR No (hidden)
-            { "data": 9, "visible": false, "searchable": true },   // Issue Date (hidden)
-            { "data": 10, "visible": false, "searchable": true },  // Issued At (hidden)
-            { "data": 11, "visible": false, "searchable": true },  // Mayor (hidden)
-            { "data": 12, "visible": false, "searchable": true },  // Quarter (hidden)
-            { "data": 13, "orderable": false },                    // Action
-            { "data": 14, "visible": false, "searchable": false }, // Hidden ID
-            { "data": 15, "visible": false, "searchable": false }  // Hidden raw status
-        ],
+                if (amountPaid) {
+                    badges += ' <span class="badge badge-warning badge-sm">₱ ' + amountPaid + '</span>';
+                }
+                return '<span>' + data + '</span>' + badges;
+            }
+        },
+        { 
+            "data": 5,  // Business Name + Issue Date + Expiry Date badges
+            "render": function(data, type, row) {
+                var issueDate = row[9];
+                var expiryDate = row[6];
+                var dateBadges = '';
+                if (issueDate) {
+                    dateBadges += '<br><span class="badge badge-success badge-sm"><i class="fas fa-calendar-plus"></i> ' + issueDate + '</span>';
+                }
+                if (expiryDate) {
+                    dateBadges += ' <span class="badge badge-danger badge-sm"><i class="fas fa-calendar-times"></i> ' + expiryDate + '</span>';
+                }
+                return '<span>' + data + '</span>' + dateBadges;
+            }
+        },
+        { "data": 6,  "visible": false, "searchable": true },   // Expiry Date (hidden)
+        { "data": 7,  "visible": false, "searchable": true },   // Amount Paid (hidden)
+        { "data": 8,  "visible": false, "searchable": true },   // OR No (hidden)
+        { "data": 9,  "visible": false, "searchable": true },   // Issue Date (hidden)
+        { "data": 10, "visible": false, "searchable": true },   // Issued At (hidden)
+        { "data": 11, "visible": false, "searchable": true },   // Mayor (hidden)
+        { "data": 12, "visible": false, "searchable": true },   // Quarter (hidden)
+        { "data": 16, "visible": true,  "searchable": true },   // ✅ Body Number (new, col 13 in DOM)
+        { "data": 13, "orderable": false },                     // Action (col 14 in DOM)
+        { "data": 14, "visible": false, "searchable": false },  // Hidden ID
+        { "data": 15, "visible": false, "searchable": false }   // Hidden raw status
+    ],
         "columnDefs": []  // All visibility handled above
     });
 
-    // Column search for text inputs
+// FIXED - skip Status(1), Action(14), ID(15), raw status(16)
     table.columns().every(function(index) {
         var that = this;
         
-        // Skip Status (1), Action (13), ID (14), Raw Status (15)
-        if (index === 1 || index === 13 || index === 14 || index === 15) {
+        if (index === 1 || index === 14 || index === 15 || index === 16) {
             return;
         }
         
@@ -834,6 +835,7 @@ $('#addPermitModal').on('hidden.bs.modal', function () {
         
         // Define fields with their labels and values
         const fields = [
+            { label: "Body Number", value: data.body_number },
             { label: "Control No", value: data.control_no },
             { label: "Status", value: data.status, isBadge: true },
             { label: "Name", value: data.name },
