@@ -3,55 +3,54 @@
 
 {% block content %}
 
+
 <div class="card shadow mb-4">
     <!-- Card Header with Buttons -->
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+   <div class="card-header py-3 d-flex flex-wrap justify-content-between align-items-center" style="gap: 8px;">
         <h6 class="m-0 font-weight-bold text-dark">Tricycle List</h6>
-        
-        <!-- Button Group -->
-        <div class="btn-group">
-            <!-- IMPORT -->
-            <button
-                type="button"
-                class="btn btn-success btn-sm"
-                data-toggle="modal"
-                data-target="#importTriModal"
-            >
-                <i class="fas fa-file-import"></i> Import File
-            </button>
+<!-- Button Group -->
+<div class="btn-group flex-wrap">
+    <!-- IMPORT -->
+    <button
+        type="button"
+        class="btn btn-success btn-sm"
+        data-toggle="modal"
+        data-target="#importTriModal"
+    >
+        <i class="fas fa-file-import"></i> Import File
+    </button>
 
-            <!-- EXPORT DROPDOWN -->
-            <div class="btn-group">
-                <button
-                    type="button"
-                    class="btn btn-danger btn-sm dropdown-toggle"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                >
-                    <i class="fas fa-file-export"></i> Export File
-                </button>
-
-              <div class="dropdown-menu">
-                    <a class="dropdown-item" href="{% url 'export-create-report-tri' %}?format=csv">
-                        <i class="fas fa-file-csv"></i> Export CSV
-                    </a>
-                    <a class="dropdown-item" href="{% url 'export-create-report-tri' %}?format=excel">
-                        <i class="fas fa-file-excel"></i> Export Excel
-                    </a>
-                </div>
-            </div>
-
-            <!-- ADD -->
-            <button
-                type="button"
-                class="btn btn-info btn-sm"
-                data-toggle="modal"
-                data-target="#addPermitModal"
-            >
-                <i class="fas fa-plus"></i> Add Tricycle
-            </button>
+    <!-- EXPORT DROPDOWN -->
+    <div class="btn-group">
+        <button
+            type="button"
+            class="btn btn-danger btn-sm dropdown-toggle"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+        >
+            <i class="fas fa-file-export"></i> Export File
+        </button>
+        <div class="dropdown-menu dropdown-menu-right">
+            <a class="dropdown-item" href="{% url 'export-create-report-tri' %}?format=csv">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+            <a class="dropdown-item" href="{% url 'export-create-report-tri' %}?format=excel">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
         </div>
+    </div>
+
+    <!-- ADD -->
+    <button
+        type="button"
+        class="btn btn-info btn-sm"
+        data-toggle="modal"
+        data-target="#addPermitModal"
+    >
+        <i class="fas fa-plus"></i> Add Tricycle
+    </button>
+</div>
     </div>
 
     <!-- Frontend Filter & Summary -->
@@ -138,41 +137,57 @@
         </div>
     </div>
 </div>
-        <!-- Table -->
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover" id="createReportTable" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>Body Number</th>
-                        <th>Name</th>
-                        <th>Address</th>
-                        <th>Make/Kind</th>
-                        <th>Engine/Motor No</th>
-                        <th>Chassis No</th>
-                        <th>Plate No</th>
-                        <th>Date Registered</th>
-                        <th>Date Expired</th>
-                        <th style="display:none;">Status</th>
-                        <th>Remarks</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tfoot>
-                    <tr>
-                        <th>Body Number</th>
-                        <th>Name</th>
-                        <th>Address</th>
-                        <th>Make/Kind</th>
-                        <th>Engine/Motor No</th>
-                        <th>Chassis No</th>
-                        <th>Plate No</th>
-                        <th>Date Registered</th>
-                        <th>Date Expired</th>
-                        <th style="display:none;">Status</th>
-                        <th>Remarks</th>
-                        <th>Action</th>
-                    </tr>
-                </tfoot>
+<!-- Add this div above the table-responsive div -->
+<div class="d-flex align-items-center justify-content-between mb-0" style="gap: 8px;">
+    <select id="todaFilter" class="form-control form-control-sm" style="max-width: 200px;">
+        <option value="">All TODA</option>
+        <option value="PTL 001-A">PTL 001-A</option>
+        <option value="PSMTL 001-B">PSMTL 001-B</option>
+        <option value="PST 001-C">PST 001-C</option>
+        <option value="PCRT-001-D">PCRT-001-D</option>
+        <option value="PHC 001-E">PHC 001-E</option>
+    </select>
+    <div id="globalSearchWrapper"></div>
+</div>
+   <!-- Table -->
+    <div class="table-responsive">
+   <table class="table table-bordered table-hover" id="createReportTable" width="100%" cellspacing="0">
+    <thead>
+    <tr>
+        <th>Body Number</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Make/Kind</th>
+        <th>Engine/Motor No</th>
+        <th>Chassis No</th>
+        <th>Plate No</th>
+        <th style="display:none;">Date Registered</th>
+        <th style="display:none;">Date Expired</th>
+        <th style="display:none;">Status</th>
+        <th style="display:none;">Remarks</th>
+        <th style="display:none;">TODA</th>
+        <th>Action</th>
+        <th style="display:none;">ID</th>
+    </tr>
+</thead>
+<tfoot>
+    <tr>
+        <th>Body Number</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Make/Kind</th>
+        <th>Engine/Motor No</th>
+        <th>Chassis No</th>
+        <th>Plate No</th>
+        <th style="display:none;">Date Registered</th>
+        <th style="display:none;">Date Expired</th>
+        <th style="display:none;">Status</th>
+        <th style="display:none;">Remarks</th>
+        <th style="display:none;">TODA</th>
+        <th>Action</th>
+        <th style="display:none;">ID</th>
+    </tr>
+</tfoot>
                 <tbody>
                     <!-- Data will be loaded via AJAX -->
                 </tbody>
@@ -325,7 +340,7 @@
             </div>
 
           <div class="col-lg-4 col-md-6 mb-3">
-        <label class="font-weight-bold">Date Expired <small class="text-muted fw-normal">(set via Mayor's Permit)</small></label>
+        <label class="font-weight-bold">Date Expired <small class="text-muted fw-normal">(set via Franchise)</small></label>
         <div class="input-group">
           <div class="input-group-prepend">
             <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
@@ -363,6 +378,23 @@
   </div>
 </div>
 
+<div class="col-lg-6 col-md-6 mb-3">
+  <label class="font-weight-bold">TODA <small class="text-muted">(optional)</small></label>
+  <div class="input-group">
+    <div class="input-group-prepend">
+      <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
+    </div>
+    <select name="toda" class="form-control">
+      <option value="">-- Select TODA --</option>
+      <option value="PTL 001-A">PTL 001-A</option>
+      <option value="PSMTL 001-B">PSMTL 001-B</option>
+      <option value="PST 001-C">PST 001-C</option>
+      <option value="PCRT-001-D">PCRT-001-D</option>
+      <option value="PHC 001-E">PHC 001-E</option>
+    </select>
+  </div>
+</div>
+
           </div>
         </form>
       </div>
@@ -381,7 +413,7 @@
 <!-- View Tricycle Modal -->
 
 <div class="modal fade" id="viewPermitModal" tabindex="-1"
-     aria-labelledby="viewPermitModalLabel" aria-hidden="true">
+     aria-labelledby="viewPermitModalLabel">
 
   <div class="modal-dialog modal-lg modal-dialog-centered">
 
@@ -521,7 +553,7 @@
             </div>
 
             <div class="col-lg-4 col-md-6 mb-3">
-  <label class="font-weight-bold">Date Expired <small class="text-muted fw-normal">(set via Mayor's Permit)</small></label>
+  <label class="font-weight-bold">Date Expired <small class="text-muted fw-normal">(set via Franchise)</small></label>
   <div class="input-group">
     <div class="input-group-prepend">
       <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
@@ -544,6 +576,9 @@
                   <option value="Inactive">Inactive</option>
                 </select>
               </div>
+                <small id="franchiseDateHint" class="text-muted mt-1 d-none">
+              <i class="fas fa-calendar-alt text-success"></i> Date Renewed: <strong id="franchiseDateValue"></strong>
+            </small>
             </div>
 <div class="col-lg-6 col-md-6 mb-3">
   <label class="font-weight-bold">Remarks</label>
@@ -555,6 +590,23 @@
       <option value="">-- Select Remarks --</option>
       <option value="with_mayors_permit">With Mayor's Permit</option>
       <option value="without_mayors_permit">Without Mayor's Permit</option>
+    </select>
+  </div>
+</div>
+
+<div class="col-lg-6 col-md-6 mb-3">
+  <label class="font-weight-bold">TODA <small class="text-muted">(optional)</small></label>
+  <div class="input-group">
+    <div class="input-group-prepend">
+      <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
+    </div>
+    <select name="toda" id="update_toda" class="form-control">
+      <option value="">-- Select TODA --</option>
+      <option value="PTL 001-A">PTL 001-A</option>
+      <option value="PSMTL 001-B">PSMTL 001-B</option>
+      <option value="PST 001-C">PST 001-C</option>
+      <option value="PCRT-001-D">PCRT-001-D</option>
+      <option value="PHC 001-E">PHC 001-E</option>
     </select>
   </div>
 </div>
@@ -576,9 +628,27 @@
 </div>
 <script>
 
+function formatTriDate(dateStr) {
+    if (!dateStr) return '—';
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const month = months[parseInt(parts[1]) - 1];
+    const day = parseInt(parts[2]);
+    const year = parts[0];
+    return month + '-' + day + '-' + year;
+}
+
   var logoUrl = "{% static 'assets/img/lgu.png' %}";
     
 document.addEventListener("DOMContentLoaded", function () {
+
+  // Fix aria-hidden focus warning for ALL modals
+$('.modal').on('hide.bs.modal', function () {
+    if (document.activeElement) {
+        document.activeElement.blur();
+    }
+});
 
 $('#saveAddPermitBtn').on('click', function () {
     var form = $('#addPermitForm');
@@ -615,6 +685,7 @@ $(document).on('click', '.btn-view', function() {
     var dateExpired = $(this).data('date-expired');
     var status = $(this).data('status');
     var remarks = $(this).data('remarks');
+    var toda = $(this).data('toda');
     
     var statusBadgeClass = 'badge-soft-secondary';
     var statusBadgeStyle = 'background: #e2e8f0; color: #64748b;';
@@ -656,26 +727,35 @@ $(document).on('click', '.btn-view', function() {
             <td class="py-3 text-muted font-weight-medium">Plate No</td>
             <td class="py-3 font-weight-bold text-dark">${plateNo}</td>
             <td class="py-3 text-muted font-weight-medium">Date Registered</td>
-            <td class="py-3 font-weight-bold text-dark">${dateRegistered}</td>
+            <td class="py-3 font-weight-bold text-dark">${formatTriDate(dateRegistered)}</td>
         </tr>
         <tr class="border-bottom">
             <td class="py-3 text-muted font-weight-medium">Date Expired</td>
-            <td class="py-3 font-weight-bold text-dark">${dateExpired}</td>
+            <td class="py-3 font-weight-bold text-dark">${formatTriDate(dateExpired)}</td>
             <td class="py-3 text-muted font-weight-medium">Status</td>
             <td class="py-3">
                 <span class="badge badge-pill ${statusBadgeClass}" style="${statusBadgeStyle}">${status}</span>
             </td>
         </tr>
-        <tr>
+      <tr class="border-bottom">
             <td class="py-3 text-muted font-weight-medium">Remarks</td>
             <td class="py-3 font-weight-bold text-dark" colspan="3">${remarks || 'No remarks'}</td>
+        </tr>
+        <tr>
+            <td class="py-3 text-muted font-weight-medium">TODA</td>
+            <td class="py-3 font-weight-bold text-dark" colspan="3">${toda || '—'}</td>
         </tr>
     `;
     
     $('#viewModalContent').html(modalHTML);
     $('#viewPermitModal').modal('show');
 });
-
+// Fix aria-hidden focus warning on view modal close
+$('#viewPermitModal').on('hide.bs.modal', function () {
+    if (document.activeElement) {
+        document.activeElement.blur();
+    }
+});
 // Handle Update button click
 $(document).on('click', '.btn-update', function() {
     var id = $(this).data('id');
@@ -701,21 +781,16 @@ $(document).on('click', '.btn-update', function() {
     $('#update_plate_no').val(plateNo);
     $('#update_date_registered').val(dateRegistered);
     $('#update_date_expired').val(dateExpired);
-     // ✅ Set status with date label on the matching option
-    var relevantDate = (status === 'Expired') ? dateExpired : dateRegistered;
-    var $statusSelect = $('#update_status');
-
-    // Reset all options to original text first
-    $statusSelect.find('option').each(function() {
-        var val = $(this).val();
-        if (val) $(this).text(val); // restore original label
-    });
-
-    // Add date next to the matching (pre-selected) option
-    $statusSelect.find('option[value="' + status + '"]').text(status + ' (' + relevantDate + ')');
-    $statusSelect.val(status);
+    $('#update_status').val(status);
     $('#update_remarks').val(remarks);
-    
+    $('#update_toda').val($(this).data('toda') || '');
+    var franchiseDate = $(this).data('latest-franchise-date') || '';
+    if (franchiseDate) {
+        $('#franchiseDateValue').text(franchiseDate);
+        $('#franchiseDateHint').removeClass('d-none');
+    } else {
+        $('#franchiseDateHint').addClass('d-none');
+    }
     $('#updatePermitModal').modal('show');
 });
 
@@ -780,73 +855,110 @@ $('#saveUpdatePermitBtn').on('click', function () {
         "searching": true,
         "dom": 'frtip',
         "columns": [
-              { 
-                  "data": 0,  // Body Number + Remarks badge
-                  "render": function(data, type, row) {
-                      var remarks = row[10];
-                      var remarksBadge = '';
-                      if (remarks && remarks !== '-') {
-                          var remarksText = remarks === 'with_mayors_permit' ? "W/ Mayor's Permit" : "W/O Mayor's Permit";
-                          var remarksColor = remarks === 'with_mayors_permit' ? 'badge-success' : 'badge-danger';
-                          remarksBadge = '<br><span class="badge ' + remarksColor + ' badge-sm"><i class="fas fa-sticky-note"></i> ' + remarksText + '</span>';
-                      }
-                      return '<span>' + data + '</span>' + remarksBadge;
-                  }
-              },
-              { "data": 1 },  // Name
-              { "data": 2 },  // Address
-              { 
-                  "data": 3,  // Make/Kind + Status badge
-                  "render": function(data, type, row) {
-                      var status = row[9];
-                      var statusBadge = '';
-                      if (status) {
-                          var badgeClass = 'badge-secondary';
-                          if (status.toLowerCase().includes('active') || status.toLowerCase() === 'new' || status.toLowerCase().includes('registered')) {
-                              badgeClass = 'badge-success';
-                          } else if (status.toLowerCase().includes('expired')) {
-                              badgeClass = 'badge-danger';
-                          } else if (status.toLowerCase().includes('renewed')) {
-                              badgeClass = 'badge-info';
-                          } else if (status.toLowerCase().includes('inactive')) {
-                              badgeClass = 'badge-warning';
-                          }
-                          statusBadge = '<br><span class="badge ' + badgeClass + ' badge-sm">' + status + '</span>';
-                      }
-                      return '<span>' + data + '</span>' + statusBadge;
-                  }
-              },
-              { "data": 4 },  // Engine/Motor No
-              { "data": 5 },  // Chassis No
-              { 
-                  "data": 6,  // Plate No + Date Registered + Date Expired badges
-                  "render": function(data, type, row) {
-                      var dateRegistered = row[7];
-                      var dateExpired = row[8];
-                      var dateBadges = '';
-                      if (dateRegistered) {
-                          dateBadges += '<br><span class="badge badge-success badge-sm"><i class="fas fa-calendar-plus"></i> ' + dateRegistered + '</span>';
-                      }
-                      if (dateExpired) {
-                          dateBadges += ' <span class="badge badge-danger badge-sm"><i class="fas fa-calendar-times"></i> ' + dateExpired + '</span>';
-                      }
-                      return '<span>' + data + '</span>' + dateBadges;
-                  }
-              },
-              { "data": 7, "visible": false, "searchable": true },   // Date Registered (hidden)
-              { "data": 8, "visible": false, "searchable": true },   // Date Expired (hidden)
-              { "data": 9, "visible": false, "searchable": true },   // Status (hidden)
-              { "data": 10, "visible": false, "searchable": true },  // Remarks (hidden)
-              { "data": 11, "orderable": false },                    // Action
-              { "data": 12, "visible": false, "searchable": false }  // Hidden ID
-          ],
+            { 
+                "data": 0,  // Body Number + Remarks badge
+                "render": function(data, type, row) {
+                    var remarks = row[10];
+                    var remarksBadge = '';
+                    if (remarks && remarks !== '-') {
+                        var remarksText = remarks === 'with_mayors_permit' ? "W/ Mayor's Permit" : "W/O Mayor's Permit";
+                        var remarksColor = remarks === 'with_mayors_permit' ? 'badge-success' : 'badge-danger';
+                      remarksBadge = '<br><span class="badge ' + remarksColor + ' badge-sm" style="white-space:normal;word-break:break-word;display:inline-block;max-width:100%;"><i class="fas fa-sticky-note"></i> ' + remarksText + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + remarksBadge;
+                }
+            },
+            { 
+                "data": 1,  // Name + TODA badge
+                "render": function(data, type, row) {
+                    var toda = row[11];
+                    var todaBadge = '';
+                    if (toda) {
+                       todaBadge = '<br><span class="badge badge-warning badge-sm" style="white-space:normal;word-break:break-word;display:inline-block;max-width:100%;"><i class="fas fa-map-pin"></i> ' + toda + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + todaBadge;
+                }
+            },
+            { "data": 2 },  // Address
+            { 
+                "data": 3,  // Make/Kind + Status badge
+                "render": function(data, type, row) {
+                    var status = row[9];
+                    var statusBadge = '';
+                    if (status) {
+                        var badgeClass = 'badge-secondary';
+                        if (status.toLowerCase().includes('active') || status.toLowerCase() === 'new' || status.toLowerCase().includes('registered')) {
+                            badgeClass = 'badge-success';
+                        } else if (status.toLowerCase().includes('expired')) {
+                            badgeClass = 'badge-danger';
+                        } else if (status.toLowerCase().includes('renewed')) {
+                            badgeClass = 'badge-info';
+                        } else if (status.toLowerCase().includes('inactive')) {
+                            badgeClass = 'badge-warning';
+                        }
+                        statusBadge = '<br><span class="badge ' + badgeClass + ' badge-sm">' + status + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + statusBadge;
+                }
+            },
+            { "data": 4 },  // Engine/Motor No
+            { "data": 5 },  // Chassis No
+            { 
+                "data": 6,  // Plate No + Date badges
+                "render": function(data, type, row) {
+                    var dateRegistered = row[7];
+                    var dateExpired = row[8];
+                    var dateBadges = '';
+                    if (dateRegistered) {
+                        dateBadges += '<br><span class="badge badge-success badge-sm"><i class="fas fa-calendar-plus"></i> ' + dateRegistered + '</span>';
+                    }
+                    if (dateExpired) {
+                        dateBadges += ' <span class="badge badge-danger badge-sm"><i class="fas fa-calendar-times"></i> ' + dateExpired + '</span>';
+                    }
+                    return '<span>' + data + '</span>' + dateBadges;
+                }
+            },
+            { "data": 7,  "visible": false, "searchable": true },   // Date Registered (hidden)
+            { "data": 8,  "visible": false, "searchable": true },   // Date Expired (hidden)
+            { "data": 9,  "visible": false, "searchable": true },   // Status (hidden)
+            { "data": 10, "visible": false, "searchable": true },   // Remarks (hidden)
+            { "data": 11, "visible": false, "searchable": true },   // TODA (hidden, globally searchable)
+            { "data": 12, "orderable": false },                     // Action
+            { "data": 13, "visible": false, "searchable": false }   // Hidden ID
+        ],
         "columnDefs": [
         ]
     });
 
+    // Move DataTable global search into our custom row
+// Move DataTable global search into our custom row
+$('#globalSearchWrapper').append($('#createReportTable_filter'));
+$('#createReportTable_filter').css({
+    'margin': '0',
+    'float': 'none',
+    'display': 'flex',
+    'align-items': 'center',
+    'gap': '6px'
+});
+$('#createReportTable_filter label').css({
+    'margin': '0',
+    'display': 'flex',
+    'align-items': 'center',
+    'gap': '6px',
+    'white-space': 'nowrap'
+});
+$('#createReportTable_filter input').css({
+    'margin': '0',
+    'width': '180px'
+});
+
     // Real-time date filtering
     $('#filterStart, #filterEnd').on('change', function() {
         table.ajax.reload();
+    });
+        // TODA dropdown filter (column 11)
+    $('#todaFilter').on('change', function() {
+        table.column(11).search($(this).val()).draw();
     });
 
     $('#createReportTable thead tr').clone(true).appendTo('#createReportTable thead');
@@ -854,7 +966,7 @@ $('#saveUpdatePermitBtn').on('click', function () {
     $('#createReportTable thead tr:eq(1) th').each(function (i) {
         var column = table.column(i);
         
-        if (i === 11) {
+        if (i === 12) {
             $(this).html('');
             return;
         }
@@ -864,7 +976,7 @@ $('#saveUpdatePermitBtn').on('click', function () {
             return;
         }
 
-        $(this).html('<input type="text" class="form-control form-control-sm border-secondary"" />');
+       $(this).html('<input type="text" class="form-control form-control-sm border-secondary" />');
         
         $('input', this).on('keyup change', function () {
             if (column.search() !== this.value) {
@@ -911,13 +1023,14 @@ $('#confirmPrintBtn').on('click', function(e) {
             url: "{% url 'create-report-tri-datatable' %}",
             type: "GET",
             data: {
-                draw: 1,
-                start: 0,
-                length: 99999,  // Get all records
-                filter_start: filterStart,
-                filter_end: filterEnd,
+            draw: 1,
+            start: 0,
+            length: 99999,
+            filter_start: filterStart,
+            filter_end: filterEnd,
+            'columns[11][search][value]': $('#todaFilter').val(),  // ✅ pass TODA filter
             },
-            success: function(json) {
+                success: function(json) {
                 var allData = json.data;
                 buildAndPrint(allData, reportTypes, currentDate, filterStart, filterEnd);
             },
@@ -953,7 +1066,8 @@ function buildAndPrint(allData, reportTypes, currentDate, filterStart, filterEnd
         if (type === 'renewed') reportTitle = 'Renewed Permit Report';
         else if (type === 'registered') reportTitle = 'Registered Tricycle Report';
         else if (type === 'expired') reportTitle = 'Expired Permit Report';
-
+        var todaFilterVal = $('#todaFilter').val();
+        var todaText = todaFilterVal ? `<p style="margin: 5px 0; color: #666;">TODA: ${todaFilterVal}</p>` : '';
         var dateRangeText = '';
         if (filterStart && filterEnd) {
             dateRangeText = `<p style="margin: 5px 0; color: #666;">Date Range: ${formatDate(filterStart)} to ${formatDate(filterEnd)}</p>`;
@@ -971,6 +1085,7 @@ function buildAndPrint(allData, reportTypes, currentDate, filterStart, filterEnd
                     <h1 style="margin: 0; color: #333;">${reportTitle}</h1>
                     <p style="margin: 5px 0; color: #666;">Generated on ${currentDate}</p>
                     ${dateRangeText}
+                    ${todaText}
                     <p style="margin: 5px 0; color: #666;">Total Records: ${filteredData.length}</p>
                 </div>
             </div>

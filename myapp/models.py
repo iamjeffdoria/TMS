@@ -25,47 +25,34 @@ class SuperAdmin(models.Model):
         verbose_name_plural = "Super Admins"
 
 class Admin(models.Model):
+    ROLE_CHOICES = [
+        ('potpot_admin', 'Potpot Admin'),
+        ('tricycle_admin', 'Tricycle Admin'),
+        ('both', 'Both'),
+    ]
+
     username = models.CharField(max_length=255, unique=True)
     full_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
-    is_active = models.BooleanField(default=True)  # ADD THIS if missing
+    is_active = models.BooleanField(default=True)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='potpot_admin')  # ← NEW FIELD
     created_by = models.ForeignKey(SuperAdmin, on_delete=models.SET_NULL, null=True, blank=True, related_name='admins')
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    # ← NEW PROPERTIES (replaces AdminPermission booleans)
+    @property
+    def can_access_potpot_registration(self):
+        return self.role in ('potpot_admin', 'both')
+
+    @property
+    def can_access_motorcycle_registration(self):
+        return self.role in ('tricycle_admin', 'both')
 
     def __str__(self):
         return self.full_name
 
-
-class AdminPermission(models.Model):
-    admin = models.OneToOneField(
-        Admin,
-        on_delete=models.CASCADE,
-        related_name="permissions"
-    )
-
-    # Permissions
-    can_access_potpot_registration = models.BooleanField(default=False)
-    can_access_motorcycle_registration = models.BooleanField(default=False)
-
-    # Who last edited this permission
-    updated_by = models.ForeignKey(
-        SuperAdmin,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="updated_admin_permissions"
-    )
-
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Permissions for {self.admin.full_name}"
-
-    class Meta:
-        verbose_name = "Admin Permission"
-        verbose_name_plural = "Admin Permissions"
-
+# ← DELETE the entire AdminPermission class
 
 class MayorsPermit(models.Model):
     control_no = models.CharField(max_length=100, unique=True)
@@ -143,6 +130,14 @@ class Mtop(models.Model):
 
 
 class Franchise(models.Model):
+    tricycle = models.ForeignKey(
+        'Tricycle',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='franchises',
+        to_field='body_number',
+    )
     name = models.CharField(max_length=255)
     denomination = models.CharField(max_length=100, blank=True, null=True)
     plate_no = models.CharField(max_length=50)
@@ -156,6 +151,16 @@ class Franchise(models.Model):
     date = models.DateField()
     amount_paid = models.DecimalField(max_digits=12, decimal_places=2)
     municipal_treasurer = models.CharField(max_length=255)
+    status = models.CharField(                          # ← ADD THIS
+        max_length=10,
+        choices=[
+            ('New', 'New'),
+            ('Renewed', 'Renewed'),
+            ('Expired', 'Expired'),
+            ('Inactive', 'Inactive'),
+        ],
+        default='New'
+    )
 
     def __str__(self):
         return f"{self.name} - {self.plate_no}"
@@ -218,13 +223,21 @@ class Tricycle(models.Model):
         ('without_mayors_permit', 'Without Mayors Permit'),
     ]
 
-    
+    TODA_CHOICES = [
+        ('PTL 001-A', 'PTL 001-A'),
+        ('PSMTL 001-B', 'PSMTL 001-B'),
+        ('PST 001-C', 'PST 001-C'),
+        ('PCRT-001-D', 'PCRT-001-D'),
+        ('PHC 001-E', 'PHC 001-E'),
+    ]
+
+    toda = models.CharField(max_length=20, choices=TODA_CHOICES, blank=True, null=True)
     body_number = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=200)
     address = models.TextField()
     make_kind = models.CharField(max_length=100)
     engine_motor_no = models.CharField(max_length=100)
-    chassis_no = models.CharField(max_length=100)
+    chassis_no = models.CharField(max_length=100, blank=True, null=True)
     plate_no = models.CharField(max_length=20, unique=True)
     date_registered = models.DateField()
     date_expired = models.DateField(blank=True, null=True)

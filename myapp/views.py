@@ -16,7 +16,8 @@ from django.urls import reverse
 from django.contrib import messages
 from django.db import IntegrityError
 from django.contrib.auth.hashers import make_password, check_password
-from .models import Admin, MayorsPermit, IDCard, Mtop, Franchise, MayorsPermitTricycle, SuperAdmin, AdminPermission,MayorsPermitHistory, MayorsPermitTricycleHistory,ActivityLog,Tricycle, TricycleHistory
+
+from .models import Admin, MayorsPermit, IDCard, Mtop, Franchise, MayorsPermitTricycle, SuperAdmin,MayorsPermitHistory, MayorsPermitTricycleHistory,ActivityLog,Tricycle, TricycleHistory
 from django.http import JsonResponse
 from django.utils.dateparse import parse_date
 from django.http import HttpResponse
@@ -46,114 +47,6 @@ def superadmin_required(view_func):
         return view_func(request, *args, **kwargs)
     return wrapper
 
-@require_http_methods(["POST"])
-def update_permit_tri(request, permit_id):
-    if request.method != 'POST':
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid request method'
-        }, status=405)
-    
-    try:
-        permit = get_object_or_404(MayorsPermitTricycle, id=permit_id)
-        data = json.loads(request.body)
-
-        # ✅ Save previous values BEFORE updating
-        previous_status = permit.status
-        previous_expiry_date = permit.expiry_date
-        new_status = data.get('status')
-
-        # -------- Update fields --------
-        permit.control_no = data.get('control_no')
-        permit.name = data.get('name')
-        permit.address = data.get('address')
-        permit.motorized_operation = data.get('motorized_operation')
-        permit.business_name = data.get('business_name')
-
-        if data.get('issue_date'):
-            permit.issue_date = datetime.strptime(data.get('issue_date'), '%Y-%m-%d').date()
-
-        new_expiry_date = None
-        if data.get('expiry_date'):
-            new_expiry_date = datetime.strptime(data.get('expiry_date'), '%Y-%m-%d').date()
-            permit.expiry_date = new_expiry_date
-
-        permit.amount_paid = int(data.get('amount_paid', 0))
-        permit.or_no = data.get('or_no')
-        permit.issued_at = data.get('issued_at')
-        permit.mayor = data.get('mayor')
-        permit.quarter = data.get('quarter')
-        permit.status = new_status
-
-        permit.save()
-
-        # -------- User info --------
-        user_type = request.session.get('user_type')
-        user_id = request.session.get('superadmin_id') if user_type == 'superadmin' else request.session.get('admin_id')
-        user_name = request.session.get('full_name')
-
-        # -------- ✅ MayorsPermitTricycleHistory: status changed --------
-        if previous_status != new_status:
-            MayorsPermitTricycleHistory.objects.create(
-                permit=permit,
-                previous_status=previous_status,
-                new_status=new_status,
-                remarks=f"Status changed from {previous_status} to {new_status}",
-                updated_by_type=user_type,
-                updated_by_id=user_id,
-                updated_by_name=user_name
-            )
-
-        # -------- ✅ TricycleHistory: record renewal from permit --------
-        if permit.tricycle:
-            tricycle = permit.tricycle
-
-            is_renewal = (
-                new_status == 'active' and (
-                    previous_status != 'active' or
-                    (new_expiry_date and new_expiry_date != previous_expiry_date)
-                )
-            )
-            is_status_change = tricycle.status != {
-                'active': 'Renewed',
-                'inactive': 'Inactive',
-                'expired': 'Expired',
-            }.get(new_status, tricycle.status)
-
-            if is_renewal:
-                TricycleHistory.objects.create(
-                    tricycle=tricycle,
-                    action='renewed',
-                    previous_status=tricycle.status,
-                    new_status='Renewed',
-                    previous_date_expired=previous_expiry_date,
-                    new_date_expired=new_expiry_date or permit.expiry_date,
-                    remarks=f"Renewed via Mayor's Permit (Control No: {permit.control_no})",
-                    created_by=user_name or 'system'
-                )
-            elif is_status_change:
-                STATUS_MAP = {
-                    'active': 'Renewed',
-                    'inactive': 'Inactive',
-                    'expired': 'Expired',
-                }
-                new_tricycle_status = STATUS_MAP.get(new_status, tricycle.status)
-                TricycleHistory.objects.create(
-                    tricycle=tricycle,
-                    action='status_changed',
-                    previous_status=tricycle.status,
-                    new_status=new_tricycle_status,
-                    remarks=f"Status updated via Mayor's Permit (Control No: {permit.control_no})",
-                    created_by=user_name or 'system'
-                )
-
-        messages.success(request, f'Permit for {permit.name} updated successfully!')
-        return JsonResponse({'success': True, 'message': 'Permit updated successfully'})
-
-    except json.JSONDecodeError:
-        return JsonResponse({'success': False, 'error': 'Invalid JSON data'}, status=400)
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
     
 
 @require_POST
@@ -201,7 +94,120 @@ def add_mtop(request):
         return JsonResponse({"success": False})
 
 
+def franchise(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
+    franchises = Franchise.objects.all().order_by('-date')  # latest first
+    return render(request, 'myapp/franchise.html', {'franchises': franchises}) 
 
+def franchise_datatable(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
+    """Server-side processing endpoint for Franchise DataTables"""
+    
+    draw = int(request.GET.get('draw', 1))
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 10))
+    search_value = request.GET.get('search[value]', '')
+    
+    queryset = Franchise.objects.select_related('tricycle').all().order_by('-date')
+
+    if search_value:
+        queryset = queryset.filter(
+            Q(name__icontains=search_value) |
+            Q(denomination__icontains=search_value) |
+            Q(plate_no__icontains=search_value) |
+            Q(motor_no__icontains=search_value) |
+            Q(authorized_no__icontains=search_value) |
+            Q(chassis_no__icontains=search_value) |
+            Q(authorized_route__icontains=search_value) |
+            Q(purpose__icontains=search_value) |
+            Q(official_receipt_no__icontains=search_value) |
+            Q(municipal_treasurer__icontains=search_value) |
+            Q(valid_until__icontains=search_value) |
+            Q(date__icontains=search_value) |
+            Q(amount_paid__icontains=search_value) |
+            Q(tricycle__body_number__icontains=search_value)  # ← ADDED
+        )
+
+    for i in range(16):  # ← was 14
+        column_search = request.GET.get(f'columns[{i}][search][value]', '')
+        if column_search:
+            if i == 0:    queryset = queryset.filter(name__icontains=column_search)
+            elif i == 1:  queryset = queryset.filter(denomination__icontains=column_search)
+            elif i == 2:  queryset = queryset.filter(plate_no__icontains=column_search)
+            elif i == 3:  queryset = queryset.filter(valid_until__icontains=column_search)
+            elif i == 4:  queryset = queryset.filter(motor_no__icontains=column_search)
+            elif i == 5:  queryset = queryset.filter(authorized_no__icontains=column_search)
+            elif i == 6:  queryset = queryset.filter(chassis_no__icontains=column_search)
+            elif i == 7:  queryset = queryset.filter(tricycle__body_number__icontains=column_search)  # ← NEW
+            elif i == 8:  queryset = queryset.filter(authorized_route__icontains=column_search)
+            elif i == 9:  queryset = queryset.filter(purpose__icontains=column_search)
+            elif i == 10: queryset = queryset.filter(official_receipt_no__icontains=column_search)
+            elif i == 11: queryset = queryset.filter(date__icontains=column_search)
+            elif i == 12: queryset = queryset.filter(amount_paid__icontains=column_search)
+            elif i == 13: queryset = queryset.filter(municipal_treasurer__icontains=column_search)
+    
+    total_records = Franchise.objects.count()
+    filtered_records = queryset.count()
+    
+    franchises = queryset[start:start + length]
+    
+    data = []
+    for f in franchises:
+        action_html = f'''
+        <div class="btn-group" role="group" aria-label="actions">
+            <button class="btn btn-sm btn-primary print-btn" 
+                    data-permit-id="{f.id}"
+                    data-name="{f.name}"
+                    data-denomination="{f.denomination}"
+                    data-plate="{f.plate_no}"
+                    data-valid="{f.valid_until.strftime('%b-') + str(f.valid_until.day) + f.valid_until.strftime('-%Y')}"
+                    data-motor="{f.motor_no}"
+                    data-authorized="{f.authorized_no}"
+                    data-chassis="{f.chassis_no}"
+                    data-route="{f.authorized_route}"
+                    data-purpose="{f.purpose}"
+                    data-receipt="{f.official_receipt_no}"
+                    data-date="{f.date.strftime('%b-') + str(f.date.day) + f.date.strftime('-%Y')}"
+                    data-amount="₱{float(f.amount_paid):,.2f}"
+                    data-treasurer="{f.municipal_treasurer}"
+                    title="Print">
+                <i class="fas fa-print"></i>
+            </button>
+            <a href="#" class="btn btn-sm btn-warning btn-franchise-update" data-id="{f.id}" data-body-number="{f.tricycle.body_number if f.tricycle else ''}" data-name="{f.name}" title="Update">
+                <i class="fas fa-edit"></i>
+            </a>
+        </div>
+        '''
+        
+        data.append([
+            f.name,                                     # 0  - Name
+            f.denomination,                             # 1  - Denomination
+            f.plate_no,                                 # 2  - Plate No
+            f.valid_until.strftime('%b-') + str(f.valid_until.day) + f.valid_until.strftime('-%Y'),  # 3  - Valid Until
+            f.motor_no,                                 # 4  - Motor No
+            f.authorized_no,                            # 5  - Authorized No
+            f.chassis_no,                               # 6  - Chassis No
+            f.tricycle.body_number if f.tricycle else '',  # 7  - Body Number ← NEW
+            f.authorized_route,                         # 8  - Authorized Route (hidden)
+            f.purpose,                                  # 9  - Purpose (hidden)
+            f.official_receipt_no,                      # 10 - Official Receipt No (hidden)
+            f.date.strftime('%b-') + str(f.date.day) + f.date.strftime('-%Y'),  # 11 - Date (hidden)
+            '{:,.2f}'.format(float(f.amount_paid)),     # 12 - Amount Paid (hidden)
+            f.municipal_treasurer,                      # 13 - Municipal Treasurer (hidden)
+            action_html,                                # 14 - Action
+            f.id,                                       # 15 - Hidden ID
+            f.status,                                   # 16 - Status (hidden)
+        ])
+    
+    return JsonResponse({
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': filtered_records,
+        'data': data
+    })
+    
 # New view to add franchise
 @require_http_methods(["POST"])
 def add_franchise(request):
@@ -220,7 +226,7 @@ def add_franchise(request):
         date = request.POST.get('date')
         amount_paid = request.POST.get('amount_paid')
         municipal_treasurer = request.POST.get('municipal_treasurer')
-
+        status = request.POST.get('status', 'New') 
 
         # Check for duplicate Plate Number
         if Franchise.objects.filter(plate_no=plate_no).exists():
@@ -240,7 +246,17 @@ def add_franchise(request):
 
 
         # Create new Franchise record
+      # Resolve tricycle FK from body_number
+        tricycle_body_number = request.POST.get('tricycle_body_number', '').strip()
+        tricycle = None
+        if tricycle_body_number:
+            try:
+                tricycle = Tricycle.objects.get(body_number=tricycle_body_number)
+            except Tricycle.DoesNotExist:
+                pass
+
         franchise = Franchise.objects.create(
+            tricycle=tricycle,          # ✅ this was missing
             name=name,
             denomination=denomination,
             plate_no=plate_no,
@@ -253,9 +269,9 @@ def add_franchise(request):
             official_receipt_no=official_receipt_no,
             date=date,
             amount_paid=amount_paid,
-            municipal_treasurer=municipal_treasurer
+            municipal_treasurer=municipal_treasurer,
+            status=status,
         )
-
         # Add success message
         messages.success(request, f'Franchise record for {name} added successfully!')
 
@@ -319,6 +335,17 @@ def update_franchise(request):
         franchise.date = datetime.date.fromisoformat(request.POST.get('date'))
         franchise.amount_paid = Decimal(request.POST.get('amount_paid'))
         franchise.municipal_treasurer = request.POST.get('municipal_treasurer')
+        franchise.status = request.POST.get('status', 'New')
+
+        # Save linked tricycle by body_number
+        tricycle_body_number = request.POST.get('tricycle_body_number', '').strip()
+        if tricycle_body_number:
+            try:
+                franchise.tricycle = Tricycle.objects.get(body_number=tricycle_body_number)
+            except Tricycle.DoesNotExist:
+                franchise.tricycle = None
+        else:
+            franchise.tricycle = None
 
         # Attach current user for the signal
         franchise._current_user = {
@@ -459,13 +486,8 @@ def admin_login(request):
                 request.session['username'] = admin.username
                 request.session['full_name'] = admin.full_name
                 # Load admin permissions (if any) into session
-                try:
-                    perms = admin.permissions
-                    request.session['can_access_potpot_registration'] = bool(perms.can_access_potpot_registration)
-                    request.session['can_access_motorcycle_registration'] = bool(perms.can_access_motorcycle_registration)
-                except AdminPermission.DoesNotExist:
-                    request.session['can_access_potpot_registration'] = False
-                    request.session['can_access_motorcycle_registration'] = False
+                request.session['can_access_potpot_registration'] = admin.can_access_potpot_registration
+                request.session['can_access_motorcycle_registration'] = admin.can_access_motorcycle_registration
 
                 messages.success(request, f'Welcome back, {admin.full_name}!')
                 return redirect('dashboard')
@@ -625,6 +647,114 @@ def admin_management(request):
     return render(request, 'myapp/admin-management.html', context)
 
 
+def admin_management_datatable(request):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return redirect('login')
+
+    draw = int(request.GET.get('draw', 1))
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 10))
+    search_value = request.GET.get('search[value]', '')
+
+    queryset = Admin.objects.select_related('created_by').order_by('-created_at')
+    if search_value:
+        q = (
+            Q(username__icontains=search_value) |
+            Q(full_name__icontains=search_value) |
+            Q(email__icontains=search_value) |
+            Q(created_by__username__icontains=search_value) |
+            Q(permissions__can_access_potpot_registration__icontains=search_value) |
+            Q(permissions__can_access_motorcycle_registration__icontains=search_value) |
+            Q(created_at__icontains=search_value)
+        )
+        if 'inactive' in search_value.lower():
+            q |= Q(is_active=False)
+        elif 'active' in search_value.lower():
+            q |= Q(is_active=True)
+        queryset = queryset.filter(q)
+    for i in range(7):
+        column_search = request.GET.get(f'columns[{i}][search][value]', '')
+        if column_search:
+            if i == 0:   queryset = queryset.filter(username__icontains=column_search)
+            elif i == 1: queryset = queryset.filter(full_name__icontains=column_search)
+            elif i == 2: queryset = queryset.filter(email__icontains=column_search)
+            elif i == 3: queryset = queryset.filter(created_by__username__icontains=column_search)
+            elif i == 4:
+                if 'potpot' in column_search.lower():
+                    queryset = queryset.filter(permissions__can_access_potpot_registration=True)
+                elif 'motorcycle' in column_search.lower():
+                    queryset = queryset.filter(permissions__can_access_motorcycle_registration=True)
+            elif i == 5:
+                if column_search.lower() in ['active', 'act']:
+                    queryset = queryset.filter(is_active=True)
+                elif column_search.lower() in ['inactive', 'inact']:
+                    queryset = queryset.filter(is_active=False)
+
+    total_records = Admin.objects.count()
+    filtered_records = queryset.count()
+    admins = queryset[start:start + length]
+
+    data = []
+    for admin in admins:
+        perm_potpot = admin.can_access_potpot_registration
+        perm_moto = admin.can_access_motorcycle_registration
+
+        role_display = {
+            'potpot_admin': 'Potpot Admin',
+            'tricycle_admin': 'Tricycle Admin',
+            'both': 'Both',
+        }.get(admin.role, '—')
+
+        status_html = '<span class="badge badge-success">Active</span>' if admin.is_active else '<span class="badge badge-danger">Inactive</span>'
+
+        created_at_str = admin.created_at.strftime('%b %d, %Y') if admin.created_at else ''
+
+        action_html = f'''
+        <div class="btn-group" role="group">
+            <a href="#" class="btn btn-sm btn-info btn-admin-view"
+               data-perm-potpot="{'1' if perm_potpot else '0'}"
+               data-perm-moto="{'1' if perm_moto else '0'}">
+                <i class="fas fa-eye"></i>
+            </a>
+            <a href="#" class="btn btn-sm btn-warning btn-admin-edit"
+               data-admin-id="{admin.id}"
+               data-username="{admin.username}"
+               data-full-name="{admin.full_name}"
+               data-email="{admin.email}"
+               data-created-by="{admin.created_by.username if admin.created_by else ''}"
+               data-created-at="{created_at_str}"
+               data-status="{'1' if admin.is_active else '0'}"
+               data-role="{admin.role}"
+               data-perm-potpot="{'1' if perm_potpot else '0'}"
+               data-perm-moto="{'1' if perm_moto else '0'}">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="#" class="btn btn-sm btn-danger btn-admin-delete"
+               data-admin-id="{admin.id}">
+                <i class="fas fa-trash"></i>
+            </a>
+        </div>
+        '''
+
+        data.append([
+            admin.username,                                          # 0 - Username
+            admin.full_name,                                         # 1 - Full Name
+            admin.email,                                             # 2 - Email
+            admin.created_by.username if admin.created_by else '—', # 3 - Created By
+            role_display,# 4 - Permissions
+            status_html,                                             # 5 - Status
+            action_html,                                             # 6 - Action
+            str(admin.id),                                           # 7 - Hidden ID
+            created_at_str,                                          # 8 - Hidden created_at
+        ])
+
+    return JsonResponse({
+        'draw': draw,
+        'recordsTotal': total_records,
+        'recordsFiltered': filtered_records,
+        'data': data
+    })
+
 @require_POST
 @superadmin_required
 def add_admin(request):
@@ -642,8 +772,7 @@ def add_admin(request):
     password = request.POST.get('password')
 
     # Permissions
-    can_access_potpot_registration = request.POST.get('can_access_potpot_registration') == '1'
-    can_access_motorcycle_registration = request.POST.get('can_access_motorcycle_registration') == '1'
+    role = request.POST.get('role', 'potpot_admin')
 
     if Admin.objects.filter(username=username).exists():
         messages.error(request, "Username already exists.")
@@ -654,21 +783,14 @@ def add_admin(request):
         return redirect('admin-management')
 
     try:
-        # 1️⃣ Create admin
-        admin = Admin.objects.create(
+        # ← Only one create, no more AdminPermission.objects.create()
+        Admin.objects.create(
             username=username,
             full_name=full_name,
             email=email,
             password=make_password(password),
+            role=role,              # ← NEW
             created_by=super_admin
-        )
-
-        # 2️⃣ Create admin permissions
-        AdminPermission.objects.create(
-            admin=admin,
-            can_access_potpot_registration=can_access_potpot_registration,
-            can_access_motorcycle_registration=can_access_motorcycle_registration,
-            updated_by=super_admin
         )
 
         messages.success(request, "Admin created successfully.")
@@ -744,17 +866,8 @@ def update_admin(request):
     if password:
         admin.password = make_password(password)
 
+    admin.role = request.POST.get('role', admin.role)
     admin.save()
-
-    # Update or create permissions
-    can_potpot = request.POST.get('can_access_potpot_registration') == '1'
-    can_moto = request.POST.get('can_access_motorcycle_registration') == '1'
-
-    perm, created = AdminPermission.objects.get_or_create(admin=admin)
-    perm.can_access_potpot_registration = can_potpot
-    perm.can_access_motorcycle_registration = can_moto
-    perm.updated_by = super_admin
-    perm.save()
 
     messages.success(request, "Admin updated successfully.")
     return redirect('admin-management')
@@ -893,9 +1006,9 @@ def mayors_permit_datatable(request):
             permit.business_name or '',
             permit.motorized_operation or '',
             permit.or_no,
-            str(permit.amount_paid),
-            permit.issue_date.strftime('%Y-%m-%d'),
-            permit.expiry_date.strftime('%Y-%m-%d'),
+            '{:,.2f}'.format(permit.amount_paid),
+            (permit.issue_date.strftime('%b-') + str(permit.issue_date.day) + permit.issue_date.strftime('-%Y')),
+            (permit.expiry_date.strftime('%b-') + str(permit.expiry_date.day) + permit.expiry_date.strftime('-%Y')),
             permit.issued_at or '',
             permit.mayor or '',
             permit.get_quarter_display(),
@@ -1066,9 +1179,9 @@ def id_cards_datatable(request):
 
         image_url = card.image.url if card.image else ''
         gender_display = card.get_gender_display()
-        dob = card.date_of_birth.strftime('%Y-%m-%d') if card.date_of_birth else ''
-        date_issued = card.date_issued.strftime('%Y-%m-%d') if card.date_issued else ''
-        expiry = card.expiration_date.strftime('%Y-%m-%d') if card.expiration_date else ''
+        dob = (card.date_of_birth.strftime('%b-') + str(card.date_of_birth.day) + card.date_of_birth.strftime('-%Y')) if card.date_of_birth else ''
+        date_issued = (card.date_issued.strftime('%b-') + str(card.date_issued.day) + card.date_issued.strftime('-%Y')) if card.date_issued else ''
+        expiry = (card.expiration_date.strftime('%b-') + str(card.expiration_date.day) + card.expiration_date.strftime('-%Y')) if card.expiration_date else ''
         height = str(card.height) if card.height else ''
         weight = str(card.weight) if card.weight else ''
         or_number = card.or_number or ''
@@ -1605,7 +1718,7 @@ def mtop_datatable(request):
             m.motor_no,                                  # 6
             m.chasses_no,                               # 7
             m.plate_no,                                  # 8
-            m.date.strftime('%Y-%m-%d'),                # 9
+            m.date.strftime('%b-') + str(m.date.day) + m.date.strftime('-%Y'),  # 9             # 9
             m.municipal_treasurer,                      # 10
             m.officer_in_charge,                        # 11
             m.mayor,                                     # 12
@@ -2095,115 +2208,6 @@ def mtop_print(request, pk):
     mtop = Mtop.objects.get(pk=pk)
     return render(request, 'myapp/mtop-print.html', {'mtop': mtop})
 
-def franchise(request):
-    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
-        return redirect('login')
-    franchises = Franchise.objects.all().order_by('-date')  # latest first
-    return render(request, 'myapp/franchise.html', {'franchises': franchises}) 
-
-def franchise_datatable(request):
-    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
-        return redirect('login')
-    """Server-side processing endpoint for Franchise DataTables"""
-    
-    draw = int(request.GET.get('draw', 1))
-    start = int(request.GET.get('start', 0))
-    length = int(request.GET.get('length', 10))
-    search_value = request.GET.get('search[value]', '')
-    
-    queryset = Franchise.objects.all().order_by('-date')
-    
-    if search_value:
-        queryset = queryset.filter(
-            Q(name__icontains=search_value) |
-            Q(denomination__icontains=search_value) |
-            Q(plate_no__icontains=search_value) |
-            Q(motor_no__icontains=search_value) |
-            Q(authorized_no__icontains=search_value) |
-            Q(chassis_no__icontains=search_value) |
-            Q(authorized_route__icontains=search_value) |
-            Q(purpose__icontains=search_value) |
-            Q(official_receipt_no__icontains=search_value) |
-            Q(municipal_treasurer__icontains=search_value) |
-            Q(valid_until__icontains=search_value) |
-            Q(date__icontains=search_value) |
-            Q(amount_paid__icontains=search_value)
-        )
-    
-    for i in range(14):
-        column_search = request.GET.get(f'columns[{i}][search][value]', '')
-        if column_search:
-            if i == 0:   queryset = queryset.filter(name__icontains=column_search)
-            elif i == 1: queryset = queryset.filter(denomination__icontains=column_search)
-            elif i == 2: queryset = queryset.filter(plate_no__icontains=column_search)
-            elif i == 3: queryset = queryset.filter(valid_until__icontains=column_search)
-            elif i == 4: queryset = queryset.filter(motor_no__icontains=column_search)
-            elif i == 5: queryset = queryset.filter(authorized_no__icontains=column_search)
-            elif i == 6: queryset = queryset.filter(chassis_no__icontains=column_search)
-            elif i == 7: queryset = queryset.filter(authorized_route__icontains=column_search)
-            elif i == 8: queryset = queryset.filter(purpose__icontains=column_search)
-            elif i == 9: queryset = queryset.filter(official_receipt_no__icontains=column_search)
-            elif i == 10: queryset = queryset.filter(date__icontains=column_search)
-            elif i == 11: queryset = queryset.filter(amount_paid__icontains=column_search)
-            elif i == 12: queryset = queryset.filter(municipal_treasurer__icontains=column_search)
-    
-    total_records = Franchise.objects.count()
-    filtered_records = queryset.count()
-    
-    franchises = queryset[start:start + length]
-    
-    data = []
-    for f in franchises:
-        action_html = f'''
-        <div class="btn-group" role="group" aria-label="actions">
-            <button class="btn btn-sm btn-primary print-btn" 
-                    data-permit-id="{f.id}"
-                    data-name="{f.name}"
-                    data-denomination="{f.denomination}"
-                    data-plate="{f.plate_no}"
-                    data-valid="{f.valid_until}"
-                    data-motor="{f.motor_no}"
-                    data-authorized="{f.authorized_no}"
-                    data-chassis="{f.chassis_no}"
-                    data-route="{f.authorized_route}"
-                    data-purpose="{f.purpose}"
-                    data-receipt="{f.official_receipt_no}"
-                    data-date="{f.date}"
-                    data-amount="{f.amount_paid}"
-                    data-treasurer="{f.municipal_treasurer}"
-                    title="Print">
-                <i class="fas fa-print"></i>
-            </button>
-            <a href="#" class="btn btn-sm btn-warning btn-franchise-update" data-id="{f.id}" title="Update">
-                <i class="fas fa-edit"></i>
-            </a>
-        </div>
-        '''
-        
-        data.append([
-            f.name,                                     # 0  - Name
-            f.denomination,                             # 1  - Denomination
-            f.plate_no,                                 # 2  - Plate No
-            f.valid_until.strftime('%Y-%m-%d'),         # 3  - Valid Until
-            f.motor_no,                                 # 4  - Motor No
-            f.authorized_no,                            # 5  - Authorized No
-            f.chassis_no,                               # 6  - Chassis No
-            f.authorized_route,                         # 7  - Authorized Route (hidden)
-            f.purpose,                                  # 8  - Purpose (hidden)
-            f.official_receipt_no,                      # 9  - Official Receipt No (hidden)
-            f.date.strftime('%Y-%m-%d'),                # 10 - Date (hidden)
-            str(f.amount_paid),                         # 11 - Amount Paid (hidden)
-            f.municipal_treasurer,                      # 12 - Municipal Treasurer (hidden)
-            action_html,                                # 13 - Action
-            f.id,                                       # 14 - Hidden ID (NEW)
-        ])
-    
-    return JsonResponse({
-        'draw': draw,
-        'recordsTotal': total_records,
-        'recordsFiltered': filtered_records,
-        'data': data
-    })
 
 def mayors_permit_tricycle(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
@@ -2373,7 +2377,8 @@ def mayors_permit_tricycle_datatable(request):
                 data-issue_date="{permit.issue_date}"
                 data-issued_at="{permit.issued_at or ''}"
                 data-mayor="{permit.mayor or ''}"
-                data-quarter="{permit.get_quarter_display()}">
+                data-quarter="{permit.get_quarter_display()}"
+                data-body-number="{body_number}">
                 <i class="fas fa-edit"></i>
             </button>
             <button type="button" class="btn btn-sm btn-secondary btn-history" data-id="{permit.id}" title="History">
@@ -2389,10 +2394,10 @@ def mayors_permit_tricycle_datatable(request):
             permit.address,                             # 3 - Address
             permit.motorized_operation or '',           # 4 - Motorized Operation
             permit.business_name or '',                 # 5 - Business Name
-            permit.expiry_date.strftime('%Y-%m-%d'),    # 6 - Expiry Date (hidden)
-            str(permit.amount_paid),                    # 7 - Amount Paid (hidden)
+            permit.expiry_date.strftime('%b-') + str(permit.expiry_date.day) + permit.expiry_date.strftime('-%Y'),  # 6    # 6 - Expiry Date (hidden)
+            '{:,.2f}'.format(float(permit.amount_paid)),  # 7 - Amount Paid (hidden)                   # 7 - Amount Paid (hidden)
             permit.or_no,                               # 8 - OR No (hidden)
-            permit.issue_date.strftime('%Y-%m-%d'),     # 9 - Issue Date (hidden)
+            permit.issue_date.strftime('%b-') + str(permit.issue_date.day) + permit.issue_date.strftime('-%Y'),     # 9   # 9 - Issue Date (hidden)
             permit.issued_at or '',                     # 10 - Issued At (hidden)
             permit.mayor or '',                         # 11 - Mayor (hidden)
             permit.get_quarter_display(),               # 12 - Quarter (hidden)
@@ -2463,12 +2468,134 @@ def add_permit_tri(request):
     messages.error(request, 'Invalid request method')
     return redirect('mayors-permit-tricycle')
 
+
+@require_http_methods(["POST"])
+def update_permit_tri(request, permit_id):
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid request method'
+        }, status=405)
+    
+    try:
+        permit = get_object_or_404(MayorsPermitTricycle, id=permit_id)
+        data = json.loads(request.body)
+
+        # ✅ Save previous values BEFORE updating
+        previous_status = permit.status
+        previous_expiry_date = permit.expiry_date
+        new_status = data.get('status')
+
+        # -------- Update fields --------
+        permit.control_no = data.get('control_no')
+        permit.name = data.get('name')
+        permit.address = data.get('address')
+        permit.motorized_operation = data.get('motorized_operation')
+        permit.business_name = data.get('business_name')
+
+        if data.get('issue_date'):
+            permit.issue_date = datetime.strptime(data.get('issue_date'), '%Y-%m-%d').date()
+
+        new_expiry_date = None
+        if data.get('expiry_date'):
+            new_expiry_date = datetime.strptime(data.get('expiry_date'), '%Y-%m-%d').date()
+            permit.expiry_date = new_expiry_date
+
+        permit.amount_paid = int(data.get('amount_paid', 0))
+        permit.or_no = data.get('or_no')
+        permit.issued_at = data.get('issued_at')
+        permit.mayor = data.get('mayor')
+        permit.quarter = data.get('quarter')
+        permit.status = new_status
+
+        # Update tricycle FK if body number provided
+        tricycle_body_number = data.get('tricycle_body_number', '').strip()
+        if tricycle_body_number:
+            try:
+                permit.tricycle = Tricycle.objects.get(body_number=tricycle_body_number)
+            except Tricycle.DoesNotExist:
+                return JsonResponse({'success': False, 'error': f"Tricycle with body number '{tricycle_body_number}' not found."}, status=400)
+        else:
+            permit.tricycle = None
+
+        permit.save()
+
+        # -------- User info --------
+        user_type = request.session.get('user_type')
+        user_id = request.session.get('superadmin_id') if user_type == 'superadmin' else request.session.get('admin_id')
+        user_name = request.session.get('full_name')
+
+        # -------- ✅ MayorsPermitTricycleHistory: status changed --------
+        if previous_status != new_status:
+            MayorsPermitTricycleHistory.objects.create(
+                permit=permit,
+                previous_status=previous_status,
+                new_status=new_status,
+                remarks=f"Status changed from {previous_status} to {new_status}",
+                updated_by_type=user_type,
+                updated_by_id=user_id,
+                updated_by_name=user_name
+            )
+
+        # -------- ✅ TricycleHistory: record renewal from permit --------
+        if permit.tricycle:
+            tricycle = permit.tricycle
+
+            is_renewal = (
+                new_status == 'active' and (
+                    previous_status != 'active' or
+                    (new_expiry_date and new_expiry_date != previous_expiry_date)
+                )
+            )
+            is_status_change = tricycle.status != {
+                'active': 'Renewed',
+                'inactive': 'Inactive',
+                'expired': 'Expired',
+            }.get(new_status, tricycle.status)
+
+            if is_renewal:
+                TricycleHistory.objects.create(
+                    tricycle=tricycle,
+                    action='renewed',
+                    previous_status=tricycle.status,
+                    new_status='Renewed',
+                    previous_date_expired=previous_expiry_date,
+                    new_date_expired=new_expiry_date or permit.expiry_date,
+                    remarks=f"Renewed via Mayor's Permit (Control No: {permit.control_no})",
+                    created_by=user_name or 'system'
+                )
+            elif is_status_change:
+                STATUS_MAP = {
+                    'active': 'Renewed',
+                    'inactive': 'Inactive',
+                    'expired': 'Expired',
+                }
+                new_tricycle_status = STATUS_MAP.get(new_status, tricycle.status)
+                TricycleHistory.objects.create(
+                    tricycle=tricycle,
+                    action='status_changed',
+                    previous_status=tricycle.status,
+                    new_status=new_tricycle_status,
+                    remarks=f"Status updated via Mayor's Permit (Control No: {permit.control_no})",
+                    created_by=user_name or 'system'
+                )
+
+        messages.success(request, f'Permit for {permit.name} updated successfully!')
+        return JsonResponse({'success': True, 'message': 'Permit updated successfully'})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
 def get_tricycles(request):
     tricycles = Tricycle.objects.values(
         'body_number',
         'name',
-        'address',       # ← auto-fill address
+        'address',
         'plate_no',
+        'engine_motor_no',
+        'chassis_no',
     ).order_by('body_number')
     return JsonResponse({"tricycles": list(tricycles)})
 
@@ -3096,6 +3223,7 @@ def create_report_tri_datatable(request):
             Q(plate_no__icontains=search_value) |
             Q(status__icontains=search_value) |
             Q(remarks__icontains=search_value) |
+            Q(toda__icontains=search_value) | 
             Q(date_registered__icontains=search_value) |
             Q(date_expired__icontains=search_value)
         )
@@ -3126,6 +3254,9 @@ def create_report_tri_datatable(request):
                 queryset = queryset.filter(status__icontains=column_search)
             elif i == 10:  # Remarks
                 queryset = queryset.filter(remarks__icontains=column_search)
+            elif i == 11:  # TODA
+                queryset = queryset.filter(toda__icontains=column_search)
+            
     
     # ✅ SIMPLE COUNTS - Based on current status in the FILTERED queryset
     renewed_count = queryset.filter(status='Renewed').count()
@@ -3158,10 +3289,12 @@ def create_report_tri_datatable(request):
                 data-date-registered="{tricycle.date_registered}"
                 data-date-expired="{tricycle.date_expired}"
                 data-status="{tricycle.status}"
-                data-remarks="{tricycle.remarks or ''}">
+                data-latest-franchise-date="{tricycle.franchises.order_by('-date').first().date.strftime('%b-%d-%Y') if tricycle.franchises.exists() else ''}"
+                data-remarks="{tricycle.remarks or ''}"
+                data-toda="{tricycle.toda or ''}">
                 <i class="fas fa-edit"></i>
             </button>
-            <button class="btn btn-sm btn-info btn-view" title="View Details" 
+            <button class="btn btn-sm btn-info btn-view" title="View Details"
                 data-id="{tricycle.id}"
                 data-body-number="{tricycle.body_number}"
                 data-name="{tricycle.name}"
@@ -3173,28 +3306,30 @@ def create_report_tri_datatable(request):
                 data-date-registered="{tricycle.date_registered}"
                 data-date-expired="{tricycle.date_expired}"
                 data-status="{tricycle.status}"
-                data-remarks="{tricycle.remarks or ''}">
+                data-remarks="{tricycle.remarks or ''}"
+                data-toda="{tricycle.toda or ''}">
                 <i class="fas fa-eye"></i>
             </button>
         </div>
         '''
         
         data.append([
-        tricycle.body_number,                                   # 0
-        tricycle.name,                                          # 1
-        tricycle.address,                                       # 2
-        tricycle.make_kind,                                     # 3
-        tricycle.engine_motor_no,                              # 4
-        tricycle.chassis_no,                                    # 5
-        tricycle.plate_no,                                      # 6
-        tricycle.date_registered.strftime('%Y-%m-%d'),         # 7
-        tricycle.date_expired.strftime('%Y-%m-%d') if tricycle.date_expired else '',  # 8        # 8
-        tricycle.status,                                        # 9
-        tricycle.remarks or '-',                                # 10
-        action_html,                                            # 11
-        tricycle.id                                             # 12 - NEW: Tricycle ID
-    ])
-    
+            tricycle.body_number,                                                           # 0
+            tricycle.name,                                                                  # 1
+            tricycle.address,                                                               # 2
+            tricycle.make_kind,                                                             # 3
+            tricycle.engine_motor_no,                                                       # 4
+            tricycle.chassis_no,                                                            # 5
+            tricycle.plate_no,                                                              # 6
+            tricycle.date_registered.strftime('%b-') + str(tricycle.date_registered.day) + tricycle.date_registered.strftime('-%Y'),                              # 7
+            tricycle.date_expired.strftime('%b-') + str(tricycle.date_expired.day) + tricycle.date_expired.strftime('-%Y') if tricycle.date_expired else '',    # 8
+            tricycle.status,                                                                # 9
+            tricycle.remarks or '-',                                                        # 10
+            tricycle.toda or '',                                                            # 11 - TODA (hidden, searchable)
+            action_html,                                                                    # 12
+            tricycle.id,                                                                    # 13
+        ])
+            
     return JsonResponse({
         'draw': draw,
         'recordsTotal': total_records,
@@ -3224,7 +3359,7 @@ def export_create_report_tri(request):
         headers = [
             'Body Number', 'Name', 'Address', 'Make/Kind',
             'Engine/Motor No', 'Chassis No', 'Plate No',
-            'Date Registered', 'Date Expired', 'Status', 'Remarks'
+            'Date Registered', 'Date Expired', 'Status', 'Remarks', 'TODA'
         ]
         
         for col_num, header in enumerate(headers, 1):
@@ -3246,6 +3381,7 @@ def export_create_report_tri(request):
             ws.cell(row=row_num, column=9, value=str(t.date_expired) if t.date_expired else '')
             ws.cell(row=row_num, column=10, value=t.status)
             ws.cell(row=row_num, column=11, value=t.remarks or '')
+            ws.cell(row=row_num, column=12, value=t.toda or '')
         
         # Auto-adjust column widths
         for column in ws.columns:
@@ -3278,7 +3414,7 @@ def export_create_report_tri(request):
         writer.writerow([
             'body_number', 'name', 'address', 'make_kind',
             'engine_motor_no', 'chassis_no', 'plate_no',
-            'date_registered', 'date_expired', 'status', 'remarks'
+            'date_registered', 'date_expired', 'status', 'remarks', 'toda'
         ])
         
         # CSV Rows
@@ -3286,11 +3422,10 @@ def export_create_report_tri(request):
             writer.writerow([
                 t.body_number, t.name, t.address, t.make_kind,
                 t.engine_motor_no, t.chassis_no, t.plate_no,
-                t.date_registered, t.date_expired, t.status, t.remarks or ''
+                t.date_registered, t.date_expired, t.status, t.remarks or '', t.toda or ''  # ✅ added
             ])
-        
+                
         return response
-
 
 def import_create_report_tri(request):
     if request.method == "POST":
@@ -3311,58 +3446,130 @@ def import_create_report_tri(request):
         errors = []
         success_count = 0
 
-        # Expected header columns (with underscores)
-        expected_header = ['body_number', 'name', 'address', 'make_kind', 
-                          'engine_motor_no', 'chassis_no', 'plate_no',
-                          'date_registered', 'date_expired', 'status', 'remarks']
+        expected_header = ['body_number', 'name', 'address', 'make_kind',
+                           'engine_motor_no', 'chassis_no', 'plate_no',
+                           'date_registered', 'date_expired', 'status', 'remarks', 'toda']
+
+        expected_header_legacy = ['body_number', 'name', 'address', 'make_kind',
+                                  'engine_motor_no', 'chassis_no', 'plate_no',
+                                  'date_registered', 'date_expired', 'status', 'remarks']
 
         def normalize_header(header):
-            """Convert header to lowercase and replace spaces with underscores"""
-            return [h.strip().lower().replace(' ', '_').replace('/', '_') for h in header]
+            normalized = [h.strip().lower().replace(' ', '_').replace('/', '_') for h in header]
+            while normalized and normalized[-1] == '':
+                normalized.pop()
+            return normalized
+
+        def parse_date(date_val):
+            if date_val is None or str(date_val).strip() == '':
+                return None
+            if isinstance(date_val, datetime):
+                return date_val.date()
+            import datetime as dt
+            if isinstance(date_val, dt.date):
+                return date_val
+            date_str = str(date_val).strip().replace(' ', '')
+            formats = [
+                "%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y", "%m-%d-%Y", "%d-%m-%Y",
+                "%b-%d-%y", "%b-%d-%Y", "%B-%d-%y", "%B-%d-%Y",
+                "%d-%b-%y", "%d-%b-%Y", "%d-%B-%y", "%d-%B-%Y",
+                "%b %d, %Y", "%B %d, %Y", "%m/%d/%y", "%d/%m/%y", "%Y/%m/%d",
+            ]
+            for fmt in formats:
+                try:
+                    parsed = datetime.strptime(date_str, fmt)
+                    if parsed.year < 100:
+                        parsed = parsed.replace(year=parsed.year + 2000)
+                    return parsed.date()
+                except ValueError:
+                    continue
+            raise ValueError(f"Cannot parse date: '{date_val}'")
 
         try:
             if is_excel:
-                # Handle Excel file
-                wb = load_workbook(uploaded_file)
-                ws = wb.active
-                rows = list(ws.iter_rows(values_only=True))
-                
+                rows = []
+                try:
+                    wb = load_workbook(uploaded_file)
+                    ws = wb.worksheets[0] if wb.worksheets else None
+                    if ws is not None:
+                        rows = list(ws.iter_rows(values_only=True))
+                    else:
+                        raise Exception("No worksheets found")
+                except Exception:
+                    try:
+                        import xlrd
+                        uploaded_file.seek(0)
+                        wb_xls = xlrd.open_workbook(file_contents=uploaded_file.read())
+                        ws_xls = wb_xls.sheet_by_index(0)
+                        rows = []
+                        for rx in range(ws_xls.nrows):
+                            row_vals = []
+                            for cx in range(ws_xls.ncols):
+                                cell = ws_xls.cell(rx, cx)
+                                if cell.ctype == xlrd.XL_CELL_DATE:
+                                    date_tuple = xlrd.xldate_as_tuple(cell.value, wb_xls.datemode)
+                                    from datetime import date as date_type
+                                    row_vals.append(str(date_type(*date_tuple[:3])))
+                                else:
+                                    row_vals.append(cell.value)
+                            rows.append(tuple(row_vals))
+                    except Exception as e2:
+                        messages.error(request, f"Cannot read Excel file: {str(e2)}. Try saving as .xlsx in Excel via File → Save As.")
+                        return redirect("create-report-tri")
+
                 if not rows:
                     messages.error(request, "Excel file is empty.")
                     return redirect("create-report-tri")
-                
-                # Validate and normalize header
-                raw_header = [str(cell).strip() if cell else '' for cell in rows[0]]
-                normalized_header = normalize_header(raw_header)
-                
-                if normalized_header != expected_header:
-                    messages.error(request, f"Invalid Excel header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
+
+                # ✅ Auto-detect header row (skip title row if present)
+        # ✅ Auto-detect header row (skip title row if present, search up to row 5)
+                normalized_header = []
+                header_row_index = None
+
+                for idx in range(min(5, len(rows))):
+                    raw_header = [str(cell).strip() if cell else '' for cell in rows[idx]]
+                    normalized_header = normalize_header(raw_header)
+                    if normalized_header in [expected_header, expected_header_legacy]:
+                        header_row_index = idx
+                        break
+
+                if header_row_index is None:
+                    messages.error(request, f"Could not find a valid header row in the first 5 rows.")
                     return redirect('create-report-tri')
-                
-                # Skip header row
-                data_rows = rows[1:]
-                
-                for i, row in enumerate(data_rows, start=2):
+
+                data_rows = rows[header_row_index + 1:]
+
+                if normalized_header == expected_header:
+                    has_toda = True
+                elif normalized_header == expected_header_legacy:
+                    has_toda = False
+                else:
+                    messages.error(request, f"Invalid Excel header. Got: {', '.join(normalized_header)}")
+                    return redirect('create-report-tri')
+
+                for i, row in enumerate(data_rows, start=header_row_index + 2):
                     if not row or all(cell is None for cell in row):
                         continue
-                        
-                    # Strip whitespace from all columns
+
                     row = [str(cell).strip() if cell is not None else '' for cell in row]
-                    
-                    if len(row) < len(expected_header):
-                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+
+                    expected_col_count = len(expected_header) if has_toda else len(expected_header_legacy)
+                    row = row[:expected_col_count]  # ✅ Trim extra blank columns
+
+                    # ✅ Pad short rows with empty strings instead of skipping
+                    while len(row) < expected_col_count:
+                        row.append('')
+
+                    # ✅ Skip fully blank rows
+                    if not row[0] or str(row[0]).strip() == '':
+                        continue
+
+                    # ✅ Skip rows with missing date_registered
+                    if not row[7] or str(row[7]).strip() == '':
+                        errors.append(f"Row {i}: Skipped — 'date_registered' is empty.")
                         continue
 
                     try:
-                        # Handle date parsing for Excel
-                        def parse_date(date_val):
-                            if isinstance(date_val, datetime):
-                                return date_val.date()
-                            elif isinstance(date_val, str):
-                                return datetime.strptime(date_val, "%Y-%m-%d").date()
-                            else:
-                                return date_val
-
                         date_registered = parse_date(row[7])
                         date_expired = parse_date(row[8])
 
@@ -3373,45 +3580,62 @@ def import_create_report_tri(request):
                                 "address": str(row[2]) if row[2] else '',
                                 "make_kind": str(row[3]) if row[3] else '',
                                 "engine_motor_no": str(row[4]) if row[4] else '',
-                                "chassis_no": str(row[5]) if row[5] else '',
+                                "chassis_no": str(row[5]) if row[5] else None,  # ✅ None instead of ''
                                 "plate_no": str(row[6]) if row[6] else '',
                                 "date_registered": date_registered,
                                 "date_expired": date_expired,
-                                "status": str(row[9]) if row[9] else 'active',
+                                "status": str(row[9]) if row[9] else 'New',
                                 "remarks": str(row[10]) if row[10] else '',
+                                "toda": (str(row[11]) if row[11] else None) if has_toda else None,
                             },
                         )
                         success_count += 1
 
                     except ValueError as ve:
-                        errors.append(f"Row {i}: Value error - {ve}")
+                        errors.append(f"Row {i}: Value error - {ve}. Row data: {list(enumerate(row[:12]))}")
                     except Exception as e:
-                        errors.append(f"Row {i}: {e}")
+                        if 'UNIQUE constraint failed: myapp_tricycle.plate_no' in str(e):
+                            errors.append(f"Row {i}: Skipped — plate_no '{row[6]}' already exists for a different body number.")
+                        else:
+                            errors.append(f"Row {i}: {e}")
 
             else:
-                # Handle CSV file
                 file_data = uploaded_file.read().decode("utf-8-sig").splitlines()
                 reader = csv.reader(file_data)
                 raw_header = next(reader)
-                
-                # Validate and normalize header columns
+
                 normalized_header = normalize_header(raw_header)
-                
-                if normalized_header != expected_header:
-                    messages.error(request, f"Invalid CSV header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
+
+                if normalized_header == expected_header:
+                    has_toda = True
+                elif normalized_header == expected_header_legacy:
+                    has_toda = False
+                else:
+                    messages.error(request, f"Invalid CSV header. Got: {', '.join(normalized_header)}")
                     return redirect('create-report-tri')
 
-                for i, row in enumerate(reader, start=2):
-                    # Strip whitespace from all columns
-                    row = [c.strip() for c in row]
+                expected_col_count = len(expected_header) if has_toda else len(expected_header_legacy)
 
-                    if len(row) != len(expected_header):
-                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {len(expected_header)}.")
+                for i, row in enumerate(reader, start=2):
+                    row = [c.strip() for c in row]
+                    row = row[:expected_col_count]  # ✅ Trim extra blank columns
+
+                    if len(row) < expected_col_count:
+                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}). Expected {expected_col_count}.")
+                        continue
+
+                    # ✅ Skip fully blank rows
+                    if not row[0]:
+                        continue
+
+                    # ✅ Skip rows with missing date_registered
+                    if not row[7]:
+                        errors.append(f"Row {i}: Skipped — 'date_registered' is empty.")
                         continue
 
                     try:
-                        date_registered = datetime.strptime(row[7], "%Y-%m-%d").date()
-                        date_expired = datetime.strptime(row[8], "%Y-%m-%d").date()
+                        date_registered = parse_date(row[7])
+                        date_expired = parse_date(row[8])
 
                         Tricycle.objects.update_or_create(
                             body_number=row[0],
@@ -3420,12 +3644,13 @@ def import_create_report_tri(request):
                                 "address": row[2],
                                 "make_kind": row[3],
                                 "engine_motor_no": row[4],
-                                "chassis_no": row[5],
+                                "chassis_no": row[5] if row[5] else None,  # ✅ None instead of ''
                                 "plate_no": row[6],
                                 "date_registered": date_registered,
                                 "date_expired": date_expired,
                                 "status": row[9],
                                 "remarks": row[10],
+                                "toda": (row[11] if row[11] else None) if has_toda else None,
                             },
                         )
                         success_count += 1
@@ -3433,7 +3658,10 @@ def import_create_report_tri(request):
                     except ValueError as ve:
                         errors.append(f"Row {i}: Value error - {ve}")
                     except Exception as e:
-                        errors.append(f"Row {i}: {e}")
+                        if 'UNIQUE constraint failed: myapp_tricycle.plate_no' in str(e):
+                            errors.append(f"Row {i}: Skipped — plate_no '{row[6]}' already exists for a different body number.")
+                        else:
+                            errors.append(f"Row {i}: {e}")
 
             if success_count:
                 messages.success(request, f"{success_count} tricycle records imported successfully!")
@@ -3452,7 +3680,6 @@ def import_create_report_tri(request):
     return redirect('create-report-tri')
 
 
-
 @require_POST
 def add_tricycle(request):
     try:
@@ -3467,6 +3694,7 @@ def add_tricycle(request):
         date_expired = request.POST.get('date_expired') or None
         status = request.POST.get('status')
         remarks = request.POST.get('remarks', '')
+        toda = request.POST.get('toda', '')
 
         # Simple validation
         if not all([body_number, name, address, make_kind, plate_no, date_registered,status]):
@@ -3484,7 +3712,8 @@ def add_tricycle(request):
             date_registered=date_registered,
             date_expired=date_expired,
             status=status,
-            remarks=remarks
+            remarks=remarks,
+            toda=toda or None,
         )
 
         # ✅ Manually log to ActivityLog
@@ -3518,6 +3747,7 @@ def add_tricycle(request):
     except Exception as e:
         messages.error(request, f'An error occurred: {str(e)}')
         return JsonResponse({'success': False, 'error': str(e)})
+    
 @require_http_methods(["POST"])
 def update_tricycle(request):
     import datetime
@@ -3551,6 +3781,7 @@ def update_tricycle(request):
         date_expired = request.POST.get('date_expired')
         status = request.POST.get('status')
         remarks = request.POST.get('remarks', '')
+        toda = request.POST.get('toda', '')
         
         # Validate required fields
         if not all([body_number, name, address, make_kind, plate_no, date_registered, date_expired, status]):
@@ -3578,6 +3809,7 @@ def update_tricycle(request):
         tricycle.date_expired = datetime.date.fromisoformat(date_expired)
         tricycle.status = status
         tricycle.remarks = remarks
+        tricycle.toda = toda or None
 
         # Attach current user for the signal
         tricycle._current_user = {
@@ -3592,33 +3824,6 @@ def update_tricycle(request):
         status_changed = old_status != status
         date_expired_changed = str(old_date_expired) != date_expired
 
-        # ✅ Sync MayorsPermitTricycle when Tricycle status changes
-        if status_changed:
-            permit_status_map = {
-                'New': 'active',
-                'Renewed': 'active',
-                'Expired': 'expired',
-                'Inactive': 'inactive',
-            }
-            new_permit_status = permit_status_map.get(status)
-
-            if new_permit_status:
-                linked_permits = MayorsPermitTricycle.objects.filter(tricycle=tricycle)
-                for permit in linked_permits:
-                    old_permit_status = permit.status
-                    if old_permit_status != new_permit_status:
-                        permit.status = new_permit_status
-                        permit.save()
-
-                        MayorsPermitTricycleHistory.objects.create(
-                            permit=permit,
-                            previous_status=old_permit_status,
-                            new_status=new_permit_status,
-                            remarks=f'Auto-synced from Tricycle status change: {old_status} → {status}',
-                            updated_by_type=request.session.get('user_type'),
-                            updated_by_id=request.session.get('admin_id') or request.session.get('superadmin_id'),
-                            updated_by_name=request.session.get('full_name'),
-                        )
 
         # ✅ Record Tricycle history if anything changed
         if status_changed or date_expired_changed:

@@ -128,7 +128,7 @@
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-dark">ID Cards</h6>
-        <div class="btn-group" role="group">
+        <div class="btn-group flex-wrap" role="group">
             <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#importIdCardZipModal">
                 <i class="fas fa-file-import"></i> Import ZIP
             </button>
@@ -202,7 +202,7 @@
 <div class="modal fade" id="addIdCardModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
+      <div class="modal-header bg-white text-dark">
         <h5 class="modal-title"><i class="fas fa-id-card mr-2"></i> Add ID Card</h5>
         <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
       </div>
@@ -310,7 +310,7 @@
 <div class="modal fade" id="updateIdCardModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
+      <div class="modal-header bg-text text-dark">
         <h5 class="modal-title"><i class="fas fa-edit mr-2"></i> Update ID Card</h5>
         <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
       </div>
@@ -633,9 +633,10 @@ function showImagePreview(imageUrl) {
 function formatDateForInput(dateStr) {
     if (!dateStr || dateStr === 'None' || dateStr === 'null') return '';
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-    const date = new Date(dateStr);
-    if (!isNaN(date.getTime())) {
-        return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    // Handles "Mar-1-2026" format from the server
+    const parsed = new Date(dateStr.replace(/-/g, ' '));
+    if (!isNaN(parsed.getTime())) {
+        return `${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`;
     }
     return '';
 }
@@ -824,7 +825,7 @@ function executePrint(idType) {
 
     if (idType === 1) {
         document.getElementById('preview-template-bg').src = "{% static 'assets/img/potpot5.png' %}";
-        applyPreviewStyle('preview-dyn-photo',  { top:'19.2%', left:'50.3%', width:'275px', height:'250px', transform:'translateX(-50%)' });
+        applyPreviewStyle('preview-dyn-photo',  { top:'19.2%', left:'50.3%', width:'275px', height:'250px', transform:'translateX(-50%)', objectFit:'cover' });
         applyPreviewStyle('preview-dyn-name', { 
           top:'48%', 
           left:'50%', 
@@ -890,7 +891,7 @@ function executePrint(idType) {
         document.getElementById('preview-dyn-weight').innerText = data.weight ? data.weight + ' kg' : '';
         document.getElementById('preview-dyn-issued').innerText = data.dateIssued || '';
         document.getElementById('preview-dyn-expiry').innerText = data.expiryDate || '';
-        document.getElementById('preview-dyn-mayor').innerText  = 'Mary Dominique Oñate';
+        document.getElementById('preview-dyn-mayor').innerText  = 'MARY DOMINIQUE OÑATE';
     } else {
         document.getElementById('preview-template-bg').src = "{% static 'assets/img/modernid7.png' %}";
         applyPreviewStyle('preview-dyn-photo',  { top:'16%', left:'50%', transform:'translateX(-50%)', width:'257px', height:'257px', borderRadius:'8px' });
@@ -935,7 +936,7 @@ document.getElementById('confirmPrintBtn').addEventListener('click', function ()
         document.getElementById('print-weight').innerText      = data.weight ? data.weight + ' kg' : '';
         document.getElementById('print-date-issued').innerText = data.dateIssued || '';
         document.getElementById('print-expiry-date').innerText = data.expiryDate || '';
-        document.getElementById('print-dm-onate').innerText    = 'Mary Dominique Oñate';
+        document.getElementById('print-dm-onate').innerText    = 'MARY DOMINIQUE OÑATE';
         document.getElementById('print-area').classList.add('active');
         triggerPrintAfterImageLoad(document.getElementById('print-photo'));
     } else {

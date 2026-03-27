@@ -404,15 +404,22 @@ def log_tricycle_activity(sender, instance, created, **kwargs):
 @receiver(post_save, sender=MayorsPermitTricycle)
 def sync_tricycle_expiry_from_permit(sender, instance, **kwargs):
     if instance.tricycle:
+        remarks = 'without_mayors_permit' if instance.status == 'expired' else 'with_mayors_permit'
+        Tricycle.objects.filter(body_number=instance.tricycle.body_number).update(
+            remarks=remarks,
+        )
+@receiver(post_save, sender=Franchise)
+def sync_tricycle_expiry_from_franchise(sender, instance, **kwargs):
+    if instance.tricycle:
         STATUS_MAP = {
-            'active': 'Renewed',
-            'inactive': 'Inactive',
-            'expired': 'Expired',
+            'New': 'New',
+            'Renewed': 'Renewed',
+            'Expired': 'Expired',
+            'Inactive': 'Inactive',
         }
-        tricycle_status = STATUS_MAP.get(instance.status, 'New')
+        tricycle_status = STATUS_MAP.get(instance.status, instance.status)
 
         Tricycle.objects.filter(body_number=instance.tricycle.body_number).update(
-            date_expired=instance.expiry_date,
-            remarks='with_mayors_permit',
-            status=tricycle_status
+            date_expired=instance.valid_until,
+            status=tricycle_status,
         )

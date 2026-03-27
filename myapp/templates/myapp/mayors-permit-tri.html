@@ -16,14 +16,14 @@
 <div class="card shadow mb-4">
    <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-dark">Mayor's Permit Tricycle Records</h6>
-       <div class="btn-group">
+       <div class="btn-group flex-wrap">
      <!-- IMPORT -->
         <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#importTriModal">
             <i class="fas fa-file-import"></i> Import File
         </button>
 
             <!-- EXPORT DROPDOWN -->
-        <div class="btn-group">
+        <div class="btn-group flex-wrap">
             <button type="button" class="btn btn-danger btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fas fa-file-export"></i> Export
             </button>
@@ -115,11 +115,12 @@
 <div class="modal fade" id="addPermitModal" tabindex="-1" role="dialog" aria-labelledby="addPermitModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-white text-dark">
                 <h5 class="modal-title" id="addPermitModalLabel">
                     <i class="fas fa-plus-circle"></i> Add New Permit
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" 
+                    onclick="this.blur()">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -322,7 +323,7 @@
 <div class="modal fade" id="updatePermitModal" tabindex="-1" role="dialog" aria-labelledby="updatePermitModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-white text-dark">
                 <h5 class="modal-title" id="updatePermitModalLabel">
                     <i class="fas fa-edit"></i> Update Permit
                 </h5>
@@ -338,6 +339,14 @@
 
                     <div class="container-fluid">
                       <div class="form-row">
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_tricycle_select">Body Number (Tricycle)</label>
+                          <select class="form-control" id="update_tricycle_select" name="update_tricycle" style="width:100%;">
+                            <option value="">-- Search Body Number --</option>
+                          </select>
+                          <input type="hidden" id="update_body_number">
+                        </div>
+
                         <div class="col-md-4 col-sm-6 mb-3">
                           <label class="font-weight-bold" for="update_control_no">Control No</label>
                           <div class="input-group">
@@ -552,7 +561,7 @@
 <div class="modal fade" id="viewPermitModal" tabindex="-1" role="dialog" aria-labelledby="viewPermitModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content shadow-lg border-0">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-white text-dark">
                 <h5 class="modal-title font-weight-bold" id="viewPermitModalLabel">
                     <i class="fas fa-file-alt mr-2"></i> Permit Information
                 </h5>
@@ -692,22 +701,95 @@ $('#tricycle_select').on('change', function () {
     }
 });
 
- // ✅ BLOCK 3 — Cleanup when modal closes
-    $('#addPermitModal').on('hidden.bs.modal', function () {
-        $('#tricycle_select').select2('destroy');
+$('#updatePermitModal').on('shown.bs.modal', function () {
+    const currentBodyNumber = window._pendingBodyNumber || '';
 
-        ['name', 'address'].forEach(id => {
+    // Set the hidden input NOW (inside shown, after cleanup already ran)
+    document.getElementById('update_body_number').value = currentBodyNumber;
+
+    fetch("{% url 'get-tricycles' %}")
+        .then(res => res.json())
+        .then(data => {
+            let select = $('#update_tricycle_select');
+
+            if (select.data('select2')) {
+                select.select2('destroy');
+            }
+
+            select.empty().append('<option value="">-- Search Body Number --</option>');
+            window.updateTricycleData = {};
+
+            data.tricycles.forEach(t => {
+                select.append(new Option(
+                    `${t.body_number} — ${t.name} (${t.plate_no})`,
+                    t.body_number
+                ));
+                window.updateTricycleData[t.body_number] = t;
+            });
+
+            select.select2({
+                placeholder: "Search body number...",
+                allowClear: true,
+                dropdownParent: $('#updatePermitModal'),
+                width: '100%'
+            });
+
+            // Pre-select without triggering the change handler
+            if (currentBodyNumber) {
+                select.val(currentBodyNumber).trigger('change.select2');
+            }
+        })
+        .catch(err => console.error('Failed to load tricycles for update:', err));
+});
+
+$('#update_tricycle_select').on('change', function () {
+    const bodyNumber = $(this).val();
+    document.getElementById('update_body_number').value = bodyNumber || '';
+
+    if (bodyNumber && window.updateTricycleData && window.updateTricycleData[bodyNumber]) {
+        const t = window.updateTricycleData[bodyNumber];
+        document.getElementById('update_name').value    = t.name    || '';
+        document.getElementById('update_address').value = t.address || '';
+        ['update_name', 'update_address'].forEach(id => {
+            const el = document.getElementById(id);
+            el.setAttribute('readonly', true);
+            el.classList.add('bg-light');
+        });
+    } else {
+        // Clear readonly if selection is cleared
+        ['update_name', 'update_address'].forEach(id => {
             const el = document.getElementById(id);
             el.removeAttribute('readonly');
             el.classList.remove('bg-light');
-            el.value = '';
         });
-    });
-
-// Destroy Select2 when modal closes
-$('#addPermitModal').on('hidden.bs.modal', function () {
-    $('#tricycle_select').select2('destroy');
+    }
 });
+
+$('#updatePermitModal').on('hidden.bs.modal', function () {
+    window._pendingBodyNumber = '';
+
+    if ($('#update_tricycle_select').data('select2')) {
+        $('#update_tricycle_select').select2('destroy');
+    }
+    $('#update_tricycle_select').empty().append('<option value="">-- Search Body Number --</option>');
+    document.getElementById('update_body_number').value = '';
+});
+
+$('#addPermitModal').on('hidden.bs.modal', function () {
+    // Only destroy if Select2 is initialized
+    if ($('#tricycle_select').data('select2')) {
+        $('#tricycle_select').select2('destroy');
+    }
+
+    ['name', 'address'].forEach(id => {
+        const el = document.getElementById(id);
+        el.removeAttribute('readonly');
+        el.classList.remove('bg-light');
+        el.value = '';
+    });
+});
+
+
 
     // Initialize DataTable with server-side processing
     var table = $('#dataTable').DataTable({
@@ -886,7 +968,10 @@ $('#addPermitModal').on('hidden.bs.modal', function () {
     // Update button - use event delegation  
     $('#dataTable tbody').on('click', '.btn-update', function(e) {
         e.preventDefault();
-        
+
+        // Store body number in a module-level variable BEFORE modal opens
+        window._pendingBodyNumber = this.dataset.bodyNumber || '';
+
         document.getElementById('update_permit_id').value = this.dataset.id;
         document.getElementById('update_control_no').value = this.dataset.control_no;
         document.getElementById('update_status').value = this.dataset.status;
@@ -903,6 +988,9 @@ $('#addPermitModal').on('hidden.bs.modal', function () {
         document.getElementById('update_quarter').value = this.dataset.quarter;
 
         $('#updatePermitModal').modal('show');
+
+        console.log('Body number from dataset:', this.dataset.bodyNumber);
+        console.log('window._pendingBodyNumber:', window._pendingBodyNumber);
     });
 
     // Handle update form submission
@@ -923,7 +1011,8 @@ $('#addPermitModal').on('hidden.bs.modal', function () {
             issued_at: document.getElementById('update_issued_at').value,
             mayor: document.getElementById('update_mayor').value,
             quarter: document.getElementById('update_quarter').value,
-            status: document.getElementById('update_status').value
+            status: document.getElementById('update_status').value,
+            tricycle_body_number: document.getElementById('update_body_number').value
         };
 
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -1047,7 +1136,13 @@ $('#addPermitModal').on('hidden.bs.modal', function () {
 });
 
 
-
+function formatReadableDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[date.getMonth()] + '-' + date.getDate() + '-' + date.getFullYear();
+}
 
 function printPermit(permitId) {
     const button = document.querySelector(`[data-permit-id="${permitId}"]`);
@@ -1061,7 +1156,8 @@ function printPermit(permitId) {
     const businessName = button.dataset.business || '';
     const expiryDate = button.dataset.expiry || '';
     const quarter = button.dataset.quarter || '';
-    const amount_paid = button.dataset.amount || '';
+    const amount_paid_raw = button.dataset.amount || '';
+    const amount_paid = amount_paid_raw ? '₱' + parseFloat(amount_paid_raw).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
     const or_no = button.dataset.or || '';
     const issueDate = button.dataset.issue || '';
     const issued_at = button.dataset.issuedAt || '';
@@ -1244,7 +1340,7 @@ function printPermit(permitId) {
             This permit expires on 
             <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
                 <span style="font-weight:bold; position: relative; z-index: 1;">
-                    ${expiryDate || '&nbsp;'}
+                    ${expiryDate ? formatReadableDate(expiryDate) : '&nbsp;'}
                 </span>
                 <span style="position: absolute; bottom: 0; left: 0; width: 100%; border-bottom:1px solid black;"></span>
             </span>
@@ -1322,8 +1418,8 @@ function printPermit(permitId) {
                     ${or_no || '&nbsp;'}
                 </span>
             </div>
-            <div style="margin-top:5px;">
-                Issued On: ${issueDate || '&nbsp;'}
+           <div style="margin-top:5px;">
+                Issued On: ${issueDate ? formatReadableDate(issueDate) : '&nbsp;'}
             </div>
             <div style="margin-top:5px;">
                 Issued At: ${issued_at || '&nbsp;'}

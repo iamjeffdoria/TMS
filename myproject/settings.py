@@ -1,27 +1,41 @@
-# import pymysql
-# pymysql.install_as_MySQLdb()
+# myproject/settings.py  –  EXE-aware version
+#
+# REPLACE your existing settings.py with this file.
+# It auto-detects whether it's running as a frozen EXE and
+# adjusts all file-system paths accordingly.
 
 import os
+import sys
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# ── Path helpers ──────────────────────────────────────────────────────────────
+
+def _resource(relative):
+    """Path inside the PyInstaller bundle (_MEIPASS) or the project root."""
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative)
+    return os.path.join(Path(__file__).resolve().parent.parent, relative)
+
+
+def _writable(relative):
+    """
+    Path for *writable* data (DB, media, logs).
+    When frozen: folder that contains the .exe
+    When running normally: project root
+    """
+    if getattr(sys, 'frozen', False):
+        return os.path.join(os.path.dirname(sys.executable), relative)
+    return os.path.join(Path(__file__).resolve().parent.parent, relative)
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
+# ── Core ──────────────────────────────────────────────────────────────────────
 SECRET_KEY = 'django-insecure-2^uld(+dc0i^2(x!=%4$571kz)4=b-qxu^p8qwhf%a$a!moeu+'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = ["*"]
-
-
-# Application definition
-
+# ── Apps ──────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     'myapp.apps.MyappConfig',
     'jazzmin',
@@ -31,8 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-     'rest_framework',
-    
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -48,12 +61,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'myproject.urls'
 
+# ── Templates ─────────────────────────────────────────────────────────────────
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'templates')
-        ],
+        'DIRS': [_resource('myapp/templates')],  # ← bundle-aware
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,95 +80,46 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
-
-
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-
-
+# ── Database ──────────────────────────────────────────────────────────────────
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'potpotdb',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': _writable('db.sqlite3'),        # ← writable location
     }
 }
 
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'potpotdb',        # Your database name
-#         'USER': 'potpotuser',      # Your MySQL username
-#         'PASSWORD': 'StrongPassword123',  # Your MySQL password
-#         'HOST': 'localhost',       # Usually localhost
-#         'PORT': '3306',            # Default MySQL port
-#         'OPTIONS': {
-#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-#         }
-#     }
-# }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
+# ── Auth ──────────────────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
+# ── i18n ──────────────────────────────────────────────────────────────────────
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'Asia/Manila'
-
 USE_I18N = True
-
 USE_TZ = True
 
+# ── Static files ──────────────────────────────────────────────────────────────
+STATIC_URL = '/static/'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+# Where collectstatic writes files (also bundled into the EXE)
+STATIC_ROOT = _resource('staticfiles')
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# Extra locations Django's staticfiles finder checks during development
+STATICFILES_DIRS = []
+_dev_static = str(BASE_DIR / 'static')
+if os.path.isdir(_dev_static):
+    STATICFILES_DIRS = [_dev_static]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# ── Media files ───────────────────────────────────────────────────────────────
+MEDIA_URL  = '/media/'
+MEDIA_ROOT = _writable('media')          # ← writable location
 
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
+# ── Misc ──────────────────────────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 LOGGING = {
     'version': 1,
@@ -169,9 +132,6 @@ LOGGING = {
         },
     },
     'handlers': {
-        'null': {
-            'class': 'logging.NullHandler',
-        },
+        'null': {'class': 'logging.NullHandler'},
     },
 }
-

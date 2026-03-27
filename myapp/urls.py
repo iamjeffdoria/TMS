@@ -76,10 +76,61 @@ urlpatterns = [
     path('id-cards/datatable/', views.id_cards_datatable, name='id-cards-datatable'),
 
     path('tricycles/list/', views.get_tricycles, name='get-tricycles'),
+    path('admin-management/datatable/', views.admin_management_datatable, name='admin-management-datatable'),
     path('', include(router.urls))
 
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+# ============================================================
+# SERVE STATIC AND MEDIA FILES — NO if DEBUG condition!
+# This works in both development AND the EXE on any PC
+# ============================================================
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

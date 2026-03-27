@@ -19,13 +19,13 @@
 
                               <h6 class="m-0 font-weight-bold text-dark">Mayor's Permit Pedicab Records</h6>
 
-                         <div class="btn-group">
+                         <div class="btn-group flex-wrap">
                               <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#importModal">
                                   <i class="fas fa-file-import"></i> Import File
                               </button>
 
                               <!-- EXPORT DROPDOWN -->
-                              <div class="btn-group">
+                              <div class="btn-group flex-wrap">
                                   <button type="button" class="btn btn-sm btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                       <i class="fas fa-file-export"></i> Export
                                   </button>
@@ -116,7 +116,7 @@
         <div class="modal-content shadow-lg border-0">
 
           <!-- Header -->
-          <div class="modal-header bg-primary text-white">
+          <div class="modal-header bg-white text-dark">
             <h5 class="modal-title font-weight-bold" id="viewModalLabel">
               <i class="fas fa-file-alt mr-2"></i> Permit Information
             </h5>
@@ -150,7 +150,7 @@
       <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content shadow-lg border-0">
 
-          <div class="modal-header bg-primary text-white">
+          <div class="modal-header bg-white text-dark">
             <h5 class="modal-title font-weight-bold">
               <i class="fas fa-edit mr-2"></i> Update Mayor's Permit
             </h5>
@@ -618,11 +618,12 @@
 
         function toInputDate(dateStr) {
             if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-            let d = new Date(dateStr);
-            if (isNaN(d.getTime())) return "";
-            let m = ("0" + (d.getMonth() + 1)).slice(-2);
-            let day = ("0" + d.getDate()).slice(-2);
-            return `${d.getFullYear()}-${m}-${day}`;
+            // Handles "Mar-1-2026" format — replace dashes with spaces for reliable parsing
+            const parsed = new Date(dateStr.replace(/-/g, ' '));
+            if (!isNaN(parsed.getTime())) {
+                return `${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`;
+            }
+            return '';
         }
 
   document.querySelectorAll(".btn-update").forEach(button => {

@@ -1,11 +1,10 @@
 from datetime import date
 import logging
-from .models import MayorsPermit, MayorsPermitTricycle, MayorsPermitHistory, MayorsPermitTricycleHistory, Tricycle, TricycleHistory
+from .models import MayorsPermit, MayorsPermitTricycle, MayorsPermitHistory, MayorsPermitTricycleHistory, Tricycle, TricycleHistory,  Franchise
 
 logger = logging.getLogger(__name__)
 
 def mark_expired_tricycles():
-    """Automatically expire tricycles based on date_expired"""
     today = date.today()
 
     qs = Tricycle.objects.filter(
@@ -16,16 +15,11 @@ def mark_expired_tricycles():
     if not count:
         return 0
 
-    # ✅ Record history BEFORE updating
     tricycles = list(qs)
-    
-    # Update status
-    qs.update(
-        status='Expired',
-        remarks='Automatically expired by system'
-    )
-    
-    # ✅ Create history records
+
+    # ✅ Never touch remarks here
+    qs.update(status='Expired')
+
     histories = [
         TricycleHistory(
             tricycle=tricycle,
@@ -84,11 +78,11 @@ def mark_expired_tricycle_permits():
     qs = MayorsPermitTricycle.objects.filter(
         expiry_date__lte=today,
         status='active'
-    )
+    ).select_related('tricycle')  # ← add this for efficiency
 
     count = qs.count()
     if count:
-        # ✅ RECORD HISTORY (minimal addition)
+        # ✅ RECORD HISTORY
         for permit in qs:
             MayorsPermitTricycleHistory.objects.create(
                 permit=permit,
@@ -96,6 +90,12 @@ def mark_expired_tricycle_permits():
                 new_status='expired',
                 remarks='Automatically expired by system'
             )
+            
+            # ✅ UPDATE TRICYCLE REMARKS when permit auto-expires
+            if permit.tricycle:
+                Tricycle.objects.filter(
+                    body_number=permit.tricycle.body_number
+                ).update(remarks='without_mayors_permit')
 
         # ✅ KEEP EXISTING LOGIC
         qs.update(status='expired')
@@ -106,15 +106,37 @@ def mark_expired_tricycle_permits():
     return count
 
 
+def mark_expired_franchises():
+    """Automatically expire Franchise records based on valid_until date."""
+    today = date.today()
+
+    qs = Franchise.objects.filter(
+        valid_until__lt=today
+    ).exclude(status='Expired')
+
+    count = qs.count()
+    if not count:
+        return 0
+
+    # ✅ Only update franchise status, do NOT touch tricycle remarks
+    qs.update(status='Expired')
+
+    print(f"Marked {count} franchise(s) as expired.")
+    logger.info("Expired %d Franchise(s)", count)
+    return count
+
+
 def mark_expired_permits():
-    """Run both expiration routines and return a dict with counts."""
+    """Run all expiration routines and return a dict with counts."""
     res1 = mark_expired_mayors_permits()
     res2 = mark_expired_tricycle_permits()
     res3 = mark_expired_tricycles()
+    res4 = mark_expired_franchises()
     results = {
         'mayors_permit': res1,
         'tricycle_permit': res2,
         'tricycles': res3,
+        'franchises': res4,
     }
     logger.info("Expiration summary: %s", results)
     return results

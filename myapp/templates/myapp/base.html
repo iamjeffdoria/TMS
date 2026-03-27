@@ -186,19 +186,26 @@
     border-color: #e63939 !important;
 }
 
-/* Modal Header */
+
+/* AFTER */
 .modal-header {
-    background-color: #ff4444 !important;
-    color: white !important;
+    background-color: #ffffff !important;
+    color: #343a40 !important;
+    border-bottom: 1px solid #e3e6f0 !important;
 }
 
 .modal-header .modal-title {
-    color: white !important;
+    color: #343a40 !important;
 }
 
 .modal-header .close {
-    color: white !important;
-    opacity: 0.8;
+    color: #343a40 !important;
+    opacity: 0.5;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+    color: #343a40 !important;
 }
 
 .modal-header .close:hover {
@@ -902,7 +909,11 @@ a.text-primary:focus {
 
    <!-- Enhanced auto-dismiss alerts with smooth animation -->
     <script>
-        
+        $(document).on('hide.bs.modal', '.modal', function () {
+    if (document.activeElement) {
+        document.activeElement.blur();
+    }
+});
         $(document).ready(function() {
             // Auto-dismiss messages after 10 seconds with fade-out animation
             $('.messages-container .alert').each(function() {
