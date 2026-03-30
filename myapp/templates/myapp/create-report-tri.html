@@ -3,7 +3,16 @@
 
 {% block content %}
 
-
+<style>
+    /* Truncate long Engine/Motor No and Chassis No */
+    #createReportTable td:nth-child(5),  /* Engine/Motor No */
+    #createReportTable td:nth-child(6) { /* Chassis No */
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
 <div class="card shadow mb-4">
     <!-- Card Header with Buttons -->
    <div class="card-header py-3 d-flex flex-wrap justify-content-between align-items-center" style="gap: 8px;">
@@ -357,6 +366,7 @@
                 <select name="status" class="form-control" required>
                   <option value="">Select Status</option>
                   <option value="New">New</option>
+                  <option value="Renewal">Renewal</option> 
                   <option value="Renewed">Renewed</option>
                   <option value="Expired">Expired</option>
                   <option value="Inactive">Inactive</option>
@@ -571,6 +581,7 @@
                 <select name="status" id="update_status" class="form-control" required>
                   <option value="">Select Status</option>
                   <option value="New">New</option>
+                  <option value="Renewal">Renewal</option> 
                   <option value="Renewed">Renewed</option>
                   <option value="Expired">Expired</option>
                   <option value="Inactive">Inactive</option>
@@ -623,6 +634,38 @@
         <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
       </div>
 
+    </div>
+  </div>
+</div>
+
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteTriModal" tabindex="-1" aria-labelledby="deleteTriModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow border-0">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title font-weight-bold" id="deleteTriModalLabel">
+          <i class="fas fa-trash mr-2"></i> Delete Tricycle
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+        <p class="mb-1">Are you sure you want to delete this tricycle?</p>
+        <p class="font-weight-bold text-dark mb-0" id="deleteTriName"></p>
+        <p class="text-muted small" id="deleteTriBodyNumber"></p>
+        <p class="text-muted small">This action <strong>cannot be undone.</strong></p>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteTriBtn">
+          <i class="fas fa-trash"></i> Yes, Delete
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -693,7 +736,9 @@ $(document).on('click', '.btn-view', function() {
     if (status.toLowerCase().includes('active') || status.toLowerCase().includes('registered') || status.toLowerCase() === 'new') {
         statusBadgeClass = 'badge-soft-success';
         statusBadgeStyle = 'background: #e1fcef; color: #147d64;';
-    } else if (status.toLowerCase().includes('expired')) {
+    }  else if (status.toLowerCase() === 'renewal') {
+        badgeClass = 'badge-warning';   // ← ADD THIS BLOCK
+    }  else if (status.toLowerCase().includes('expired')) {
         statusBadgeClass = 'badge-soft-danger';
         statusBadgeStyle = 'background: #ffe5e5; color: #c41e3a;';
     } else if (status.toLowerCase().includes('renewed')) {
@@ -824,7 +869,48 @@ $('#saveUpdatePermitBtn').on('click', function () {
         }
     });
 });
+// Handle Delete button click — open confirmation modal
+var deleteTriId = null;
+$(document).on('click', '.btn-delete', function () {
+    deleteTriId = $(this).data('id');
+    var name = $(this).data('name');
+    var bodyNumber = $(this).data('body-number');
 
+    $('#deleteTriName').text(name);
+    $('#deleteTriBodyNumber').text('Body #: ' + bodyNumber);
+    $('#deleteTriModal').modal('show');
+});
+
+// Handle confirmed delete
+$('#confirmDeleteTriBtn').on('click', function () {
+    if (!deleteTriId) return;
+
+    var csrfToken = $('[name=csrfmiddlewaretoken]').first().val();
+
+    $.ajax({
+        url: "{% url 'delete-tricycle' %}",
+        type: "POST",
+        data: {
+            tricycle_id: deleteTriId,
+            csrfmiddlewaretoken: csrfToken
+        },
+        success: function (data) {
+            if (data.success) {
+                $('#deleteTriModal').modal('hide');
+                deleteTriId = null;
+                // ✅ Store message in sessionStorage before reload
+                setTimeout(function () {
+                    location.reload();
+                }, 300);
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        },
+        error: function () {
+            alert('An error occurred while deleting the tricycle.');
+        }
+    });
+});
     
     // Initialize DataTable with server-side processing
     var table = $('#createReportTable').DataTable({

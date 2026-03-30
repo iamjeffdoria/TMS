@@ -151,15 +151,16 @@ class Franchise(models.Model):
     date = models.DateField()
     amount_paid = models.DecimalField(max_digits=12, decimal_places=2)
     municipal_treasurer = models.CharField(max_length=255)
-    status = models.CharField(                          # ← ADD THIS
-        max_length=10,
-        choices=[
-            ('New', 'New'),
-            ('Renewed', 'Renewed'),
-            ('Expired', 'Expired'),
-            ('Inactive', 'Inactive'),
-        ],
-        default='New'
+    status = models.CharField(
+    max_length=10,
+    choices=[
+        ('New', 'New'),
+        ('Renewal', 'Renewal'),
+        ('Renewed', 'Renewed'),
+        ('Expired', 'Expired'),
+        ('Inactive', 'Inactive'),
+    ],
+    default='New'
     )
 
     def __str__(self):
@@ -194,13 +195,14 @@ class MayorsPermitTricycle(models.Model):
     )
 
     status = models.CharField(
-        max_length=8,
-        choices=[
-            ('active', 'Active'),
-            ('inactive', 'Inactive'),
-            ('expired', 'Expired'),
-        ],
-        default='active'
+    max_length=8,
+    choices=[
+        ('active', 'Active'),
+        ('renewal', 'Renewal'),
+        ('inactive', 'Inactive'),
+        ('expired', 'Expired'),
+    ],
+    default='active'
     )
 
     def __str__(self):
@@ -214,6 +216,7 @@ class MayorsPermitTricycle(models.Model):
 class Tricycle(models.Model):
     STATUS_CHOICES = [
         ('New', 'New'),
+        ('Renewal', 'Renewal'),
         ('Renewed', 'Renewed'),
         ('Expired', 'Expired'),
         ('Inactive', 'Inactive'),

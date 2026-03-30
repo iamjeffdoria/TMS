@@ -38,7 +38,7 @@
                         <th>Name</th>
                         <th>Denomination</th>
                         <th>Plate No</th>
-                        <th>Valid Until</th>
+                        <th>Route</th>
                         <th>Motor No</th>
                         <th>Authorized No</th>
                         <th>Chassis No</th>
@@ -75,7 +75,7 @@
                         <th>Name</th>
                         <th>Denomination</th>
                         <th>Plate No</th>
-                        <th>Valid Until</th>
+                        <th>Route</th>
                         <th>Motor No</th>
                         <th>Authorized No</th>
                         <th>Chassis No</th>
@@ -190,6 +190,7 @@
               <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-tag"></i></span></div>
               <select class="form-control" name="status">
                 <option value="New" selected>New</option>
+                <option value="Renewal">Renewal</option>
                 <option value="Renewed">Renewed</option>
                 <option value="Expired">Expired</option>
                 <option value="Inactive">Inactive</option>
@@ -348,12 +349,13 @@
               <label class="font-weight-bold">Status</label>
               <div class="input-group">
                 <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-tag"></i></span></div>
-                <select class="form-control" id="update-status" name="status">
-                  <option value="New">New</option>
-                  <option value="Renewed">Renewed</option>
-                  <option value="Expired">Expired</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+               <select class="form-control" id="update-status" name="status">
+                <option value="New">New</option>
+                <option value="Renewal">Renewal</option>
+                <option value="Renewed">Renewed</option>
+                <option value="Expired">Expired</option>
+                <option value="Inactive">Inactive</option>
+              </select>
               </div>
             </div>
 
@@ -443,6 +445,36 @@
   </div>
 </div>
 
+<!-- Delete Franchise Confirmation Modal -->
+<div class="modal fade" id="deleteFranchiseModal" tabindex="-1" aria-labelledby="deleteFranchiseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow border-0">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title font-weight-bold" id="deleteFranchiseModalLabel">
+          <i class="fas fa-trash mr-2"></i> Delete Franchise Record
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+        <p class="mb-1">Are you sure you want to delete this franchise record?</p>
+        <p class="font-weight-bold text-dark mb-0" id="deleteFranchiseName"></p>
+        <p class="text-muted small" id="deleteFranchisePlate"></p>
+        <p class="text-muted small">This action <strong>cannot be undone.</strong></p>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteFranchiseBtn">
+          <i class="fas fa-trash"></i> Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 const logoURL = "{% static 'assets/img/lgu.png' %}";
@@ -672,6 +704,7 @@ $('#updateRecordModal').on('shown.bs.modal', function () {
                     var status = row[16];
                     var badgeClass = {
                         'New':      'badge-primary',
+                        'Renewal':  'badge-info',
                         'Renewed':  'badge-success',
                         'Expired':  'badge-danger',
                         'Inactive': 'badge-secondary',
@@ -682,14 +715,14 @@ $('#updateRecordModal').on('shown.bs.modal', function () {
                     return '<span>' + data + '</span>' + statusBadge;
                 }
             },
-            {
-                "data": 3,   // Valid Until — route badge now at row[8]
+           {
+                "data": 8,   // Authorized Route — valid until badge from row[3]
                 "render": function(data, type, row) {
-                    var route = row[8];
-                    var routeBadge = route
-                        ? '<br><span class="badge badge-info badge-sm"><i class="fas fa-route"></i> ' + route + '</span>'
+                    var validUntil = row[3];
+                    var validBadge = validUntil
+                        ? '<br><span class="badge badge-info badge-sm"><i class="fas fa-calendar-check"></i> ' + validUntil + '</span>'
                         : '';
-                    return '<span>' + data + '</span>' + routeBadge;
+                    return '<span>' + data + '</span>' + validBadge;
                 }
             },
             { "data": 4 },   // Motor No
@@ -716,8 +749,8 @@ $('#updateRecordModal').on('shown.bs.modal', function () {
                     return '<span>' + data + '</span>' + badges;
                 }
             },
-            { "data": 7, "visible": true,  "searchable": true },   // Body Number ← NEW (visible)
-            { "data": 8,  "visible": false, "searchable": true },  // Authorized Route
+            { "data": 7, "visible": true,  "searchable": true },   // Body Number
+            { "data": 3,  "visible": false, "searchable": true },  // Valid Until (hidden, for badge reference)
             { "data": 9,  "visible": false, "searchable": true },  // Purpose
             { "data": 10, "visible": false, "searchable": true },  // Official Receipt No
             { "data": 11, "visible": false, "searchable": true },  // Date
@@ -732,7 +765,7 @@ $('#updateRecordModal').on('shown.bs.modal', function () {
     // Column search
     table.columns().every(function(index) {
         var that = this;
-        if ([1, 8, 9, 10, 11, 12, 13, 14, 15].includes(index)) return;  // skip hidden cols + action + id
+        if ([1, 8, 9, 10, 11, 12, 13, 14, 15].includes(index)) return;// skip hidden cols + action + id
         $('input', this.header()).on('keyup change clear', function() {
             if (that.search() !== this.value) {
                 that.search(this.value).draw();
@@ -814,8 +847,56 @@ $('#updateRecordModal').on('shown.bs.modal', function () {
         .catch(() => location.reload());
     });
 
+    // Handle Delete Franchise button click
+var deleteFranchiseId = null;
+$('#dataTable tbody').on('click', '.btn-delete-franchise', function () {
+    deleteFranchiseId = $(this).data('id');
+    var name = $(this).data('name');
+    var plate = $(this).data('plate');
+
+    $('#deleteFranchiseName').text(name);
+    $('#deleteFranchisePlate').text('Plate No: ' + plate);
+    $('#deleteFranchiseModal').modal('show');
 });
 
+// Handle confirmed delete
+$('#confirmDeleteFranchiseBtn').on('click', function () {
+    if (!deleteFranchiseId) return;
+
+    var csrfToken = $('[name=csrfmiddlewaretoken]').first().val();
+
+    $.ajax({
+        url: "{% url 'delete-franchise' %}",
+        type: "POST",
+        data: {
+            franchise_id: deleteFranchiseId,
+            csrfmiddlewaretoken: csrfToken
+        },
+        success: function (data) {
+            if (data.success) {
+                $('#deleteFranchiseModal').modal('hide');
+                deleteFranchiseId = null;
+                setTimeout(function () {
+                    location.reload();
+                }, 300);
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        },
+        error: function () {
+            alert('An error occurred while deleting the franchise record.');
+        }
+    });
+});
+
+});
+function formatReadableDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
+}
 // ── PRINT FUNCTION ────────────────────────────────────────────────────
 function printFranchise(permitId) {
     const button = document.querySelector(`[data-permit-id="${permitId}"]`);
@@ -824,14 +905,14 @@ function printFranchise(permitId) {
     const name         = button.dataset.name || '';
     const denomination = button.dataset.denomination || '';
     const plateNo      = button.dataset.plate || '';
-    const validUntil   = button.dataset.valid || '';
+    const validUntil   = formatReadableDate(button.dataset.valid) || '';
     const motorNo      = button.dataset.motor || '';
     const authorizedNo = button.dataset.authorized || '';
     const chassisNo    = button.dataset.chassis || '';
     const authorizedRoute = button.dataset.route || '';
     const purpose      = button.dataset.purpose || '';
     const receiptNo    = button.dataset.receipt || '';
-    const date         = button.dataset.date || '';
+    const date         = formatReadableDate(button.dataset.date) || '';
     const amountPaid   = button.dataset.amount || '';
     const treasurer    = button.dataset.treasurer || '';
 

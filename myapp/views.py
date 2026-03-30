@@ -136,7 +136,7 @@ def franchise_datatable(request):
             if i == 0:    queryset = queryset.filter(name__icontains=column_search)
             elif i == 1:  queryset = queryset.filter(denomination__icontains=column_search)
             elif i == 2:  queryset = queryset.filter(plate_no__icontains=column_search)
-            elif i == 3:  queryset = queryset.filter(valid_until__icontains=column_search)
+            elif i == 3:  queryset = queryset.filter(authorized_route__icontains=column_search)
             elif i == 4:  queryset = queryset.filter(motor_no__icontains=column_search)
             elif i == 5:  queryset = queryset.filter(authorized_no__icontains=column_search)
             elif i == 6:  queryset = queryset.filter(chassis_no__icontains=column_search)
@@ -178,6 +178,12 @@ def franchise_datatable(request):
             <a href="#" class="btn btn-sm btn-warning btn-franchise-update" data-id="{f.id}" data-body-number="{f.tricycle.body_number if f.tricycle else ''}" data-name="{f.name}" title="Update">
                 <i class="fas fa-edit"></i>
             </a>
+             <button class="btn btn-sm btn-danger btn-delete-franchise" title="Delete"
+                data-id="{f.id}"
+                data-name="{f.name}"
+                data-plate="{f.plate_no}">
+                <i class="fas fa-trash"></i>
+            </button>
         </div>
         '''
         
@@ -380,7 +386,44 @@ def update_franchise(request):
             'success': False,
             'message': str(e)
         }, status=400)
-    
+
+@require_POST
+def delete_franchise(request):
+    try:
+        franchise_id = request.POST.get('franchise_id')
+
+        if not franchise_id:
+            messages.error(request, 'Franchise ID is required')
+            return JsonResponse({'success': False, 'error': 'Franchise ID is required'})
+
+        franchise = Franchise.objects.get(id=franchise_id)
+
+        franchise_name = franchise.name
+        plate_no = franchise.plate_no
+
+        ActivityLog.objects.create(
+            action='delete',
+            model_type='franchise',
+            object_id=plate_no,
+            object_name=franchise_name,
+            description=f'Franchise record deleted: {franchise_name} (Plate No: {plate_no})',
+            user_type=request.session.get('user_type'),
+            user_id=request.session.get('admin_id') or request.session.get('superadmin_id'),
+            user_name=request.session.get('full_name'),
+        )
+
+        franchise.delete()
+
+        messages.success(request, f'Franchise record for "{franchise_name}" (Plate No: {plate_no}) has been deleted successfully.')
+        return JsonResponse({'success': True, 'message': f'Franchise record for "{franchise_name}" has been deleted successfully.'})
+
+    except Franchise.DoesNotExist:
+        messages.error(request, 'Franchise record not found.')
+        return JsonResponse({'success': False, 'error': 'Franchise record not found'})
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+        return JsonResponse({'success': False, 'error': str(e)})
+
 def get_mtop(request, id):
     mtop = get_object_or_404(Mtop, id=id)
 
@@ -1101,6 +1144,62 @@ def add_mayors_permit(request):
     return JsonResponse({"success": False, "error": "Invalid request method."})
 
 
+def update_mayors_permit(request, permit_id):
+
+    permit = get_object_or_404(MayorsPermit, id=permit_id)
+    old_status = permit.status
+    # Extract POST datar
+    control_no = request.POST.get("control_no")
+    name = request.POST.get("name")
+    address = request.POST.get("address")
+    business_name = request.POST.get("business_name")
+    motorized_operation = request.POST.get("motorized_operation")
+    or_no = request.POST.get("or_no")
+    amount_paid = request.POST.get("amount_paid")
+    issue_date = parse_date(request.POST.get("issue_date"))
+    expiry_date = parse_date(request.POST.get("expiry_date"))
+    issued_at = request.POST.get("issued_at")
+    mayor = request.POST.get("mayor")
+    quarter = request.POST.get("quarter")
+    status = request.POST.get("status")
+
+    # Update fields
+    permit.control_no = control_no
+    permit.name = name
+    permit.address = address
+    permit.business_name = business_name
+    permit.motorized_operation = motorized_operation
+    permit.or_no = or_no
+    permit.amount_paid = amount_paid
+    permit.issue_date = issue_date
+    permit.expiry_date = expiry_date
+    permit.issued_at = issued_at
+    permit.mayor = mayor
+    permit.quarter = quarter
+    permit.status = status
+
+    permit.save()
+  # ✅ RECORD STATUS CHANGES WITH USER INFO
+    if old_status != permit.status:
+        # Get user info from session
+        user_type = request.session.get('user_type')
+        user_id = request.session.get('superadmin_id') if user_type == 'superadmin' else request.session.get('admin_id')
+        user_name = request.session.get('full_name')
+        
+        MayorsPermitHistory.objects.create(
+            permit=permit,
+            previous_status=old_status,
+            new_status=permit.status,
+            remarks=f"Status changed from {old_status} to {permit.status}",
+            updated_by_type=user_type,
+            updated_by_id=user_id,
+            updated_by_name=user_name
+        )
+    messages.success(request, f"Permit for **{permit.name}** updated successfully!")
+
+    # Return JSON for AJAX success
+    return JsonResponse({"success": True, "message": "Permit updated successfully!"})
+
 def id_cards(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
         return redirect('login')
@@ -1531,61 +1630,6 @@ def add_idcard(request):
 
     return JsonResponse({"success": False})
 
-def update_mayors_permit(request, permit_id):
-
-    permit = get_object_or_404(MayorsPermit, id=permit_id)
-    old_status = permit.status
-    # Extract POST datar
-    control_no = request.POST.get("control_no")
-    name = request.POST.get("name")
-    address = request.POST.get("address")
-    business_name = request.POST.get("business_name")
-    motorized_operation = request.POST.get("motorized_operation")
-    or_no = request.POST.get("or_no")
-    amount_paid = request.POST.get("amount_paid")
-    issue_date = parse_date(request.POST.get("issue_date"))
-    expiry_date = parse_date(request.POST.get("expiry_date"))
-    issued_at = request.POST.get("issued_at")
-    mayor = request.POST.get("mayor")
-    quarter = request.POST.get("quarter")
-    status = request.POST.get("status")
-
-    # Update fields
-    permit.control_no = control_no
-    permit.name = name
-    permit.address = address
-    permit.business_name = business_name
-    permit.motorized_operation = motorized_operation
-    permit.or_no = or_no
-    permit.amount_paid = amount_paid
-    permit.issue_date = issue_date
-    permit.expiry_date = expiry_date
-    permit.issued_at = issued_at
-    permit.mayor = mayor
-    permit.quarter = quarter
-    permit.status = status
-
-    permit.save()
-  # ✅ RECORD STATUS CHANGES WITH USER INFO
-    if old_status != permit.status:
-        # Get user info from session
-        user_type = request.session.get('user_type')
-        user_id = request.session.get('superadmin_id') if user_type == 'superadmin' else request.session.get('admin_id')
-        user_name = request.session.get('full_name')
-        
-        MayorsPermitHistory.objects.create(
-            permit=permit,
-            previous_status=old_status,
-            new_status=permit.status,
-            remarks=f"Status changed from {old_status} to {permit.status}",
-            updated_by_type=user_type,
-            updated_by_id=user_id,
-            updated_by_name=user_name
-        )
-    messages.success(request, f"Permit for **{permit.name}** updated successfully!")
-
-    # Return JSON for AJAX success
-    return JsonResponse({"success": True, "message": "Permit updated successfully!"})
 
 def permit_renewal(request):
     permits = MayorsPermit.objects.all()
@@ -1705,6 +1749,12 @@ def mtop_datatable(request):
                 data-target="#editRecordModal">
                 <i class="fas fa-edit"></i>
             </button>
+            <button class="btn btn-sm btn-danger btn-delete-mtop" title="Delete"
+                data-id="{m.id}"
+                data-case-no="{m.case_no}"
+                data-name="{m.name}">
+                <i class="fas fa-trash"></i>
+            </button>
         </div>
         '''
         
@@ -1732,6 +1782,42 @@ def mtop_datatable(request):
         'data': data
     })
 
+@require_POST
+def delete_mtop(request):
+    try:
+        mtop_id = request.POST.get('mtop_id')
+
+        if not mtop_id:
+            messages.error(request, 'MTOP ID is required')
+            return JsonResponse({'success': False, 'error': 'MTOP ID is required'})
+
+        mtop = Mtop.objects.get(id=mtop_id)
+
+        case_no = mtop.case_no
+        name = mtop.name
+
+        ActivityLog.objects.create(
+            action='delete',
+            model_type='mtop',
+            object_id=case_no,
+            object_name=name,
+            description=f'MTOP record deleted: {name} (Case No: {case_no})',
+            user_type=request.session.get('user_type'),
+            user_id=request.session.get('admin_id') or request.session.get('superadmin_id'),
+            user_name=request.session.get('full_name'),
+        )
+
+        mtop.delete()
+
+        messages.success(request, f'MTOP record "{case_no}" for {name} has been deleted successfully.')
+        return JsonResponse({'success': True, 'message': f'MTOP record "{case_no}" has been deleted successfully.'})
+
+    except Mtop.DoesNotExist:
+        messages.error(request, 'MTOP record not found.')
+        return JsonResponse({'success': False, 'error': 'MTOP record not found'})
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+        return JsonResponse({'success': False, 'error': str(e)})
 
 def import_mtop(request):
     """Import MTOP records from CSV or Excel file"""
@@ -2384,6 +2470,12 @@ def mayors_permit_tricycle_datatable(request):
             <button type="button" class="btn btn-sm btn-secondary btn-history" data-id="{permit.id}" title="History">
                 <i class="fas fa-history"></i>
             </button>
+            <button type="button" class="btn btn-sm btn-danger btn-delete-permit" title="Delete"
+                data-id="{permit.id}"
+                data-control-no="{permit.control_no}"
+                data-name="{permit.name}">
+                <i class="fas fa-trash"></i>
+            </button>
         </div>
         '''
         
@@ -2394,10 +2486,10 @@ def mayors_permit_tricycle_datatable(request):
             permit.address,                             # 3 - Address
             permit.motorized_operation or '',           # 4 - Motorized Operation
             permit.business_name or '',                 # 5 - Business Name
-            permit.expiry_date.strftime('%b-') + str(permit.expiry_date.day) + permit.expiry_date.strftime('-%Y'),  # 6    # 6 - Expiry Date (hidden)
+            permit.expiry_date.strftime('%B ') + str(permit.expiry_date.day) + permit.expiry_date.strftime(', %Y'),  # 6    # 6 - Expiry Date (hidden)
             '{:,.2f}'.format(float(permit.amount_paid)),  # 7 - Amount Paid (hidden)                   # 7 - Amount Paid (hidden)
             permit.or_no,                               # 8 - OR No (hidden)
-            permit.issue_date.strftime('%b-') + str(permit.issue_date.day) + permit.issue_date.strftime('-%Y'),     # 9   # 9 - Issue Date (hidden)
+            permit.issue_date.strftime('%B ') + str(permit.issue_date.day) + permit.issue_date.strftime(', %Y'),    # 9   # 9 - Issue Date (hidden)
             permit.issued_at or '',                     # 10 - Issued At (hidden)
             permit.mayor or '',                         # 11 - Mayor (hidden)
             permit.get_quarter_display(),               # 12 - Quarter (hidden)
@@ -2587,6 +2679,43 @@ def update_permit_tri(request, permit_id):
         return JsonResponse({'success': False, 'error': 'Invalid JSON data'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@require_POST
+def delete_permit_tri(request):
+    try:
+        permit_id = request.POST.get('permit_id')
+
+        if not permit_id:
+            messages.error(request, 'Permit ID is required')
+            return JsonResponse({'success': False, 'error': 'Permit ID is required'})
+
+        permit = MayorsPermitTricycle.objects.get(id=permit_id)
+
+        control_no = permit.control_no
+        name = permit.name
+
+        ActivityLog.objects.create(
+            action='delete',
+            model_type='motorcycle',
+            object_id=control_no,
+            object_name=name,
+            description=f"Mayor's Permit (Tricycle) deleted: {name} (Control No: {control_no})",
+            user_type=request.session.get('user_type'),
+            user_id=request.session.get('admin_id') or request.session.get('superadmin_id'),
+            user_name=request.session.get('full_name'),
+        )
+
+        permit.delete()
+
+        messages.success(request, f'Permit "{control_no}" for {name} has been deleted successfully.')
+        return JsonResponse({'success': True, 'message': f'Permit "{control_no}" has been deleted successfully.'})
+
+    except MayorsPermitTricycle.DoesNotExist:
+        messages.error(request, 'Permit not found.')
+        return JsonResponse({'success': False, 'error': 'Permit not found'})
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+        return JsonResponse({'success': False, 'error': str(e)})
 
 def get_tricycles(request):
     tricycles = Tricycle.objects.values(
@@ -3310,6 +3439,12 @@ def create_report_tri_datatable(request):
                 data-toda="{tricycle.toda or ''}">
                 <i class="fas fa-eye"></i>
             </button>
+            <button class="btn btn-sm btn-danger btn-delete" title="Delete"
+                data-id="{tricycle.id}"
+                data-body-number="{tricycle.body_number}"
+                data-name="{tricycle.name}">
+                <i class="fas fa-trash"></i>
+            </button>
         </div>
         '''
         
@@ -3860,3 +3995,41 @@ def update_tricycle(request):
     except Exception as e:
         messages.error(request, f'An error occurred: {str(e)}')
         return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
+
+
+@require_POST
+def delete_tricycle(request):
+    try:
+        tricycle_id = request.POST.get('tricycle_id')
+        
+        if not tricycle_id:
+            messages.error(request, 'Tricycle ID is required')
+            return JsonResponse({'success': False, 'error': 'Tricycle ID is required'})
+        
+        tricycle = Tricycle.objects.get(id=tricycle_id)
+        
+        body_number = tricycle.body_number
+        name = tricycle.name
+
+        ActivityLog.objects.create(
+            action='delete',
+            model_type='tricycle',
+            object_id=body_number,
+            object_name=name,
+            description=f'Tricycle deleted: {name} (Body # {body_number})',
+            user_type=request.session.get('user_type'),
+            user_id=request.session.get('admin_id') or request.session.get('superadmin_id'),
+            user_name=request.session.get('full_name'),
+        )
+        
+        tricycle.delete()
+        
+        messages.success(request, f'Tricycle "{body_number}" has been deleted successfully.')
+        return JsonResponse({'success': True, 'message': f'Tricycle "{body_number}" has been deleted successfully.'})
+    
+    except Tricycle.DoesNotExist:
+        messages.error(request, 'Tricycle not found.')
+        return JsonResponse({'success': False, 'error': 'Tricycle not found'})
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+        return JsonResponse({'success': False, 'error': str(e)})

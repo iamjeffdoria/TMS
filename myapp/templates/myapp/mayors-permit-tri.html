@@ -259,9 +259,10 @@
                           </div>
                           <select class="form-control" id="status" name="status" required>
                             <option value="active" selected>Active</option>
+                            <option value="renewal">Renewal</option>
                             <option value="inactive">Inactive</option>
                             <option value="expired">Expired</option>
-                          </select>
+                        </select>
                         </div>
                       </div>
 
@@ -469,9 +470,10 @@
                               <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
                             </div>
                             <select class="form-control" id="update_status" required>
-                              <option value="active">Active</option>
-                              <option value="inactive">Inactive</option>
-                              <option value="expired">Expired</option>
+                                <option value="active">Active</option>
+                                <option value="renewal">Renewal</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="expired">Expired</option>
                             </select>
                           </div>
                         </div>
@@ -587,6 +589,38 @@
     </div>
 </div>
 
+
+<!-- Delete Permit Confirmation Modal -->
+<div class="modal fade" id="deletePermitTriModal" tabindex="-1" aria-labelledby="deletePermitTriModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow border-0">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title font-weight-bold" id="deletePermitTriModalLabel">
+          <i class="fas fa-trash mr-2"></i> Delete Mayor's Permit
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+        <p class="mb-1">Are you sure you want to delete this permit?</p>
+        <p class="font-weight-bold text-dark mb-0" id="deletePermitTriName"></p>
+        <p class="text-muted small" id="deletePermitTriControlNo"></p>
+        <p class="text-muted small">This action <strong>cannot be undone.</strong></p>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeletePermitTriBtn">
+          <i class="fas fa-trash"></i> Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const logoURL = "{% static 'assets/img/lgu.png' %}";
 
@@ -617,6 +651,8 @@ function getStatusBadge(status) {
     
     if (status === 'active') {
         return '<span class="badge badge-success">Active</span>';
+    } else if (status === 'renewal') {
+        return '<span class="badge badge-primary">Renewal</span>';
     } else if (status === 'inactive') {
         return '<span class="badge badge-warning">Inactive</span>';
     } else if (status === 'expired') {
@@ -625,7 +661,6 @@ function getStatusBadge(status) {
         return `<span class="badge badge-secondary">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
     }
 }
-
 function formatDisplayDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -788,7 +823,47 @@ $('#addPermitModal').on('hidden.bs.modal', function () {
         el.value = '';
     });
 });
+// Handle Delete Permit button click
+var deletePermitTriId = null;
+$('#dataTable tbody').on('click', '.btn-delete-permit', function () {
+    deletePermitTriId = $(this).data('id');
+    var name = $(this).data('name');
+    var controlNo = $(this).data('control-no');
 
+    $('#deletePermitTriName').text(name);
+    $('#deletePermitTriControlNo').text('Control No: ' + controlNo);
+    $('#deletePermitTriModal').modal('show');
+});
+
+// Handle confirmed delete
+$('#confirmDeletePermitTriBtn').on('click', function () {
+    if (!deletePermitTriId) return;
+
+    var csrfToken = $('[name=csrfmiddlewaretoken]').first().val();
+
+    $.ajax({
+        url: "{% url 'delete-permit-tri' %}",
+        type: "POST",
+        data: {
+            permit_id: deletePermitTriId,
+            csrfmiddlewaretoken: csrfToken
+        },
+        success: function (data) {
+            if (data.success) {
+                $('#deletePermitTriModal').modal('hide');
+                deletePermitTriId = null;
+                setTimeout(function () {
+                    location.reload();
+                }, 300);
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        },
+        error: function () {
+            alert('An error occurred while deleting the permit.');
+        }
+    });
+});
 
 
     // Initialize DataTable with server-side processing
@@ -850,6 +925,7 @@ $('#addPermitModal').on('hidden.bs.modal', function () {
                     var badgeClass = 'badge-secondary';
                     var statusText = status.charAt(0).toUpperCase() + status.slice(1);
                     if (status.toLowerCase() === 'active') badgeClass = 'badge-success';
+                    else if (status.toLowerCase() === 'renewal') badgeClass = 'badge-info';
                     else if (status.toLowerCase() === 'inactive') badgeClass = 'badge-warning';
                     else if (status.toLowerCase() === 'expired') badgeClass = 'badge-danger';
                     badges += '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
@@ -1140,8 +1216,8 @@ function formatReadableDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return months[date.getMonth()] + '-' + date.getDate() + '-' + date.getFullYear();
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
 }
 
 function printPermit(permitId) {

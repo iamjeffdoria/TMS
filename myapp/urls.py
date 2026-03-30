@@ -77,7 +77,11 @@ urlpatterns = [
 
     path('tricycles/list/', views.get_tricycles, name='get-tricycles'),
     path('admin-management/datatable/', views.admin_management_datatable, name='admin-management-datatable'),
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('delete-tricycle/', views.delete_tricycle, name='delete-tricycle'),
+    path('delete-permit-tri/', views.delete_permit_tri, name='delete-permit-tri'),
+    path('mtop/delete/', views.delete_mtop, name='delete-mtop'),
+    path('franchise/delete/', views.delete_franchise, name='delete-franchise'),
 
 ]
 
