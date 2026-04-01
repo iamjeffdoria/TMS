@@ -32,9 +32,10 @@ def _writable(relative):
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ── Core ──────────────────────────────────────────────────────────────────────
-SECRET_KEY = 'django-insecure-2^uld(+dc0i^2(x!=%4$571kz)4=b-qxu^p8qwhf%a$a!moeu+'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = os.environ.get("SECRET_KEY")
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
 
 # ── Apps ──────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -89,7 +90,8 @@ DATABASES = {
     }
 }
 
-DATABASES["default"] = dj_database_url.parse("postgresql://tms_django_render_user:V7fSx7NKRIPmKNNdA8GH8UAtXpq8gVaV@dpg-d76aef1r0fns73c68gu0-a.oregon-postgres.render.com/tms_django_render")
+database_url = os.environ.get("DATABASE_URL")
+DATABASES["default"] = dj_database_url.parse(database_url)
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
