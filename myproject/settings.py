@@ -89,7 +89,7 @@ DATABASES = {
     }
 }
 
-# DATABASES["default"] = dj_database_url.parse("postgresql://tms_django_render_user:V7fSx7NKRIPmKNNdA8GH8UAtXpq8gVaV@dpg-d76aef1r0fns73c68gu0-a.oregon-postgres.render.com/tms_django_render")
+DATABASES["default"] = dj_database_url.parse("postgresql://tms_django_render_user:V7fSx7NKRIPmKNNdA8GH8UAtXpq8gVaV@dpg-d76aef1r0fns73c68gu0-a.oregon-postgres.render.com/tms_django_render")
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
