@@ -3,6 +3,7 @@
 # REPLACE your existing settings.py with this file.
 # It auto-detects whether it's running as a frozen EXE and
 # adjusts all file-system paths accordingly.
+import dj_database_url
 
 import os
 import sys
@@ -87,6 +88,8 @@ DATABASES = {
         'NAME': _writable('db.sqlite3'),        # ← writable location
     }
 }
+
+# DATABASES["default"] = dj_database_url.parse("postgresql://tms_django_render_user:V7fSx7NKRIPmKNNdA8GH8UAtXpq8gVaV@dpg-d76aef1r0fns73c68gu0-a.oregon-postgres.render.com/tms_django_render")
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [

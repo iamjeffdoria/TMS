@@ -1,0 +1,492 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="card shadow mb-4">
+<div class="card-header py-3 d-flex justify-content-between align-items-center">
+    <h6 class="m-0 font-weight-bold text-dark">Admin Records</h6>
+
+    <!-- BUTTON GROUP -->
+    <div class="btn-group" role="group">
+        <!-- IMPORT -->
+        <a href="#" class="btn btn-sm btn-success">
+            <i class="fas fa-file-import mr-1"></i> Import File
+
+        <!-- EXPORT -->
+        <a href="#" class="btn btn-sm btn-danger">
+            <i class="fas fa-file-export mr-1"></i> Export File
+        </a>
+            <!-- ADD -->
+           <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#addAdminModal">
+            <i class="fas fa-user-plus mr-1"></i> Add Admin
+        </button>
+
+    </div>
+</div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Created By</th>
+                        <th>Permissions</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                     <tr>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th><input type="text" class="form-control form-control-sm border-secondary" /></th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tfoot>
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Created By</th>
+                        <th>Permissions</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </tfoot>
+
+                <tbody>
+
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ADD ADMIN MODAL -->
+<div class="modal fade" id="addAdminModal" tabindex="-1" role="dialog" aria-labelledby="addAdminModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <form method="POST" action="{% url 'add_admin' %}">
+            {% csrf_token %}
+            <div class="modal-content">
+
+                <div class="modal-header bg-white text-dark">
+                    <h5 class="modal-title" id="addAdminModalLabel">Add New Admin</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        </div>
+                                        <input type="text" name="username" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        </div>
+                                        <input type="email" name="email" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Role</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-user-shield"></i></span>
+                                        </div>
+                                        <select name="role" class="form-control" required>
+                                            <option value="potpot_admin">Potpot Admin</option>
+                                            <option value="tricycle_admin">Tricycle Admin</option>
+                                            <option value="both">Both</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                        </div>
+                                        <input type="text" name="full_name" class="form-control" required>
+                                    </div>
+                                </div>
+                             <div class="form-group">
+                                    <label>Password</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        </div>
+                                        <input type="password" name="password" id="add-password" class="form-control" required>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text" style="cursor: pointer;" onclick="togglePasswordVisibility('add-password', this)">
+                                                <i class="fas fa-eye"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                           
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Create Admin</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT ADMIN MODAL -->
+<div class="modal fade" id="editAdminModal" tabindex="-1" role="dialog" aria-labelledby="editAdminModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <form method="POST" action="{% url 'update_admin' %}">
+            {% csrf_token %}
+            <input type="hidden" name="admin_id" value="">
+            <div class="modal-content">
+
+                <div class="modal-header bg-white text-dark">
+                    <h5 class="modal-title" id="editAdminModalLabel">Edit Admin</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        </div>
+                                        <input type="text" name="username" class="form-control" required>
+                                        <input type="hidden" name="username_original" class="form-control">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        </div>
+                                        <input type="email" name="email" class="form-control" required>
+                                    </div>
+                                </div>
+
+                         <div class="form-group">
+                                    <label>Role</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-user-shield"></i></span>
+                                        </div>
+                                        <select name="role" class="form-control" required>
+                                            <option value="potpot_admin">Potpot Admin</option>
+                                            <option value="tricycle_admin">Tricycle Admin</option>
+                                            <option value="both">Both</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                       </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                        </div>
+                                        <input type="text" name="full_name" class="form-control" required>
+                                    </div>
+                                </div>
+
+                             <div class="form-group">
+                                    <label>Status</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-toggle-on"></i></span>
+                                        </div>
+                                        <select name="status" class="form-control">
+                                            <option value="1">Active</option>
+                                            <option value="0">Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                             <div class="form-group">
+                                    <label>Password (leave blank to keep current)</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        </div>
+                                        <input type="password" name="password" id="edit-password" class="form-control">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text" style="cursor: pointer;" onclick="togglePasswordVisibility('edit-password', this)">
+                                                <i class="fas fa-eye"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                          
+                            </div>
+                        </div>
+
+                        <hr>
+                        <p><strong>Created By:</strong> <span id="edit-admin-created-by"></span></p>
+                        <p><strong>Date Created:</strong> <span id="edit-admin-created-at"></span></p>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- VIEW ADMIN MODAL -->
+<div class="modal fade" id="viewAdminModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;" role="document">
+    <div class="modal-content" style="border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: none;">
+
+      <div class="modal-body" style="padding: 1.5rem;">
+
+        <!-- Close -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+          <button type="button" data-dismiss="modal" style="background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 18px; line-height: 1; padding: 0;">&times;</button>
+        </div>
+
+        <!-- Avatar + Name -->
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 1.25rem;">
+          <div id="admin-avatar" style="width: 52px; height: 52px; border-radius: 50%; background: #eff6ff; color: #1d4ed8; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; margin-bottom: 10px;">A</div>
+          <h6 id="view-admin-full-name" style="margin: 0 0 2px; font-size: 15px; font-weight: 600;"></h6>
+          <span id="view-admin-username" style="font-size: 13px; color: #6b7280;"></span>
+          <div id="view-admin-status" style="margin-top: 6px;"></div>
+        </div>
+
+        <!-- Divider -->
+        <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 0 0 1rem;">
+
+        <!-- Fields -->
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #9ca3af;">Email</span>
+            <span id="view-admin-email" style="color: #111827; text-align: right;"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #9ca3af;">Created by</span>
+            <span id="view-admin-created-by" style="color: #111827;"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #9ca3af;">Date created</span>
+            <span id="view-admin-created-at" style="color: #111827;"></span>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 1rem 0;">
+
+        <!-- Permissions -->
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; margin-bottom: 8px;">Permissions</div>
+        <div style="display: flex; gap: 8px;">
+          <span id="view-admin-perm-potpot"></span>
+          <span id="view-admin-perm-moto"></span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function togglePasswordVisibility(inputId, iconElement) {
+    var passwordInput = document.getElementById(inputId);
+    var icon = iconElement.querySelector('i');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    // ── Initialize DataTable (server-side) ────────────────────────────
+    var table = $('#dataTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{% url 'admin-management-datatable' %}",
+            type: "GET"
+        },
+        pageLength: 10,
+        lengthChange: false,
+        ordering: false,
+        searching: true,
+        columns: [
+            {
+                // Username + Status badge
+                data: 0,
+                render: function(data, type, row) {
+                    var statusHtml = (row[5] || '').includes('Active')
+                        ? '<br><span class="badge badge-success badge-sm"><i class="fas fa-circle"></i> Active</span>'
+                        : '<br><span class="badge badge-danger badge-sm"><i class="fas fa-circle"></i> Inactive</span>';
+                    return '<span>' + data + '</span>' + statusHtml;
+                }
+            },
+            {
+                // Full Name + Email badge
+                data: 1,
+                render: function(data, type, row) {
+                    var email = row[2];
+                    var emailBadge = email
+                        ? '<br><span class="badge badge-secondary badge-sm"><i class="fas fa-envelope"></i> ' + email + '</span>'
+                        : '';
+                    return '<span>' + data + '</span>' + emailBadge;
+                }
+            },
+            { data: 2, visible: false, searchable: true },   // Email (hidden, still searchable)
+            {
+                // Created By + Date badge
+                data: 3,
+                render: function(data, type, row) {
+                    var createdAt = row[8];
+                    var dateBadge = createdAt
+                        ? '<br><span class="badge badge-info badge-sm"><i class="fas fa-calendar-alt"></i> ' + createdAt + '</span>'
+                        : '';
+                    return '<span>' + (data || '—') + '</span>' + dateBadge;
+                }
+            },
+            {
+                // Permissions + Status badge (status hidden separately)
+                data: 4,
+                render: function(data, type, row) {
+                    return '<span>' + (data || '—') + '</span>';
+                }
+            },
+            { data: 5, visible: false, searchable: false },  // Status (hidden, shown in col 0)
+            { data: 6, orderable: false, searchable: false }, // Action
+            { data: 7, visible: false, searchable: false },   // Hidden ID
+            { data: 8, visible: false, searchable: false },   // Hidden created_at
+        ]
+    });
+
+    // ── Column search ─────────────────────────────────────────────────
+    table.columns().every(function(index) {
+        var that = this;
+        if ([5, 6, 7, 8].includes(index)) return;
+        $('input', this.header()).on('keyup change clear', function() {
+            if (that.search() !== this.value) {
+                that.search(this.value).draw();
+            }
+        });
+    });
+
+    // ── VIEW ──────────────────────────────────────────────────────────
+    $('#dataTable tbody').on('click', '.btn-admin-view', function () {
+        var row = table.row($(this).closest('tr'));
+        var data = row.data();
+        var usernameText = data[0] || '';
+        var fullNameText = data[1] || usernameText;
+        var emailText    = data[2] || '—';
+        var createdByText = data[3] || '—';
+        var statusActive = (data[5] || '').includes('Active');
+
+        document.getElementById('view-admin-username').innerText  = usernameText ? '@' + usernameText : '';
+        document.getElementById('view-admin-full-name').innerText = fullNameText;
+        document.getElementById('view-admin-email').innerText     = emailText;
+        document.getElementById('view-admin-created-by').innerText = createdByText;
+        document.getElementById('view-admin-created-at').innerText = data[8] || '—';
+
+        document.getElementById('view-admin-status').innerHTML = statusActive
+            ? '<span class="badge badge-success">Active</span>'
+            : '<span class="badge badge-danger">Inactive</span>';
+
+        var initials = (fullNameText.split(/\s+/).map(n => n ? n[0] : '').join('').slice(0, 2) || usernameText.slice(0, 2)).toUpperCase();
+        var avatarEl = document.getElementById('admin-avatar');
+        if (avatarEl) avatarEl.innerText = initials;
+
+        var permPotpot = this.dataset.permPotpot;
+        var permMoto   = this.dataset.permMoto;
+
+        function permBadge(val, label) {
+            var granted = (val === '1');
+            var bg    = granted ? '#f0fdf4' : '#f9fafb';
+            var color = granted ? '#15803d' : '#6b7280';
+            var dot   = granted ? '●' : '○';
+            return '<span style="font-size:12px;padding:4px 10px;border-radius:20px;background:' + bg + ';color:' + color + ';">' + dot + ' ' + label + '</span>';
+        }
+        document.getElementById('view-admin-perm-potpot').innerHTML = permBadge(permPotpot, 'Potpot');
+        document.getElementById('view-admin-perm-moto').innerHTML   = permBadge(permMoto, 'Motorcycle');
+
+        $('#viewAdminModal').modal('show');
+    });
+
+    // ── EDIT ──────────────────────────────────────────────────────────
+    $('#dataTable tbody').on('click', '.btn-admin-edit', function (e) {
+        e.preventDefault();
+        var modal = document.getElementById('editAdminModal');
+
+        modal.querySelector('input[name="admin_id"]').value          = this.dataset.adminId || '';
+        modal.querySelector('input[name="username"]').value          = this.dataset.username || '';
+        modal.querySelector('input[name="username_original"]').value = this.dataset.username || '';
+        modal.querySelector('input[name="full_name"]').value         = this.dataset.fullName || '';
+        modal.querySelector('input[name="email"]').value             = this.dataset.email || '';
+        modal.querySelector('#edit-admin-created-by').innerText      = this.dataset.createdBy || '—';
+        modal.querySelector('#edit-admin-created-at').innerText      = this.dataset.createdAt || '—';
+        modal.querySelector('select[name="role"]').value = this.dataset.role || 'potpot_admin';
+        modal.querySelector('select[name="status"]').value           = this.dataset.status === '1' ? '1' : '0';
+
+        $('#editAdminModal').modal('show');
+    });
+
+    // ── DELETE ────────────────────────────────────────────────────────
+    $('#dataTable tbody').on('click', '.btn-admin-delete', function (e) {
+        e.preventDefault();
+        if (!confirm('Are you sure you want to delete this admin?')) return;
+        // wire up your delete URL here if you have one
+    });
+
+});
+</script>
+
+
+{% endblock %}

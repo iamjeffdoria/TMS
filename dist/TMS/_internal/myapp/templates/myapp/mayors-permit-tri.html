@@ -1,0 +1,1626 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .table-responsive {
+        font-size: 0.95rem;
+        overflow-x: auto;
+    }
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+</style>
+
+<div class="card shadow mb-4">
+   <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-dark">Mayor's Permit Tricycle Records</h6>
+       <div class="btn-group flex-wrap">
+     <!-- IMPORT -->
+        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#importTriModal">
+            <i class="fas fa-file-import"></i> Import File
+        </button>
+
+            <!-- EXPORT DROPDOWN -->
+        <div class="btn-group flex-wrap">
+            <button type="button" class="btn btn-danger btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-file-export"></i> Export
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="{% url 'export-mayors-permit-tri' %}?format=csv">
+                    <i class="fas fa-file-csv"></i> Export as CSV
+                </a>
+                <a class="dropdown-item" href="{% url 'export-mayors-permit-tri' %}?format=excel">
+                    <i class="fas fa-file-excel"></i> Export as Excel
+                </a>
+            </div>
+        </div>
+        
+        <!-- ADD PERMIT -->
+        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#addPermitModal">
+            <i class="fas fa-plus"></i> Add Permit
+        </button>
+    </div>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Control No</th>
+                        <th style="display:none;">Status</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Motorized Operation</th>
+                        <th>Business Name</th>
+                        <th>Expiry Date</th>
+                        <th>Amount Paid</th>
+                        <th>OR No</th>
+                        <th>Issue Date</th>
+                        <th>Issued At</th>
+                        <th>Mayor</th>
+                        <th>Quarter</th>
+                        <th>Body Number</th>
+                        <th>Action</th>
+                    </tr>
+                 <tr>
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Control No -->
+                    <th></th> <!-- Status (hidden) -->
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Name -->
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Address -->
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Motorized Operation -->
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Business Name -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Expiry Date -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Amount Paid -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- OR No -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Issue Date -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Issued At -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Mayor -->
+                    <th style="display:none;"><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Quarter -->
+                    <th><input type="text" class="form-control form-control-sm border-secondary" /></th> <!-- Body Number ✅ -->
+                    <th></th> <!-- Action -->
+                </tr>
+                </thead>
+                <tfoot>
+                <tr>
+                    <th>Control No</th>
+                    <th style="display:none;">Status</th>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Motorized Operation</th>
+                    <th>Business Name</th>
+                    <th>Expiry Date</th>
+                    <th>Amount Paid</th>
+                    <th>OR No</th>
+                    <th>Issue Date</th>
+                    <th>Issued At</th>
+                    <th>Mayor</th>
+                    <th>Quarter</th>
+                    <th>Body Number</th> 
+                    <th>Action</th>
+                </tr>
+                </tfoot>
+                <tbody>
+               
+            </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Permit Modal -->
+<div class="modal fade" id="addPermitModal" tabindex="-1" role="dialog" aria-labelledby="addPermitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-white text-dark">
+                <h5 class="modal-title" id="addPermitModalLabel">
+                    <i class="fas fa-plus-circle"></i> Add New Permit
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" 
+                    onclick="this.blur()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form method="post" action="{% url 'add-mayors-permit-tri' %}" id="addPermitForm">
+                {% csrf_token %}
+                <div class="modal-body py-4">
+                  <div class="container-fluid">
+                    <div class="form-row">
+<div class="col-md-4 col-sm-6 mb-3">
+  <label class="font-weight-bold" for="tricycle_select">Body Number (Tricycle)</label>
+  <select class="form-control select2-tricycle" id="tricycle_select" name="tricycle" style="width:100%;">
+    <option value="">-- Search Body Number --</option>
+  </select>
+</div>
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="control_no">Control No <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                          </div>
+                          <input type="text" class="form-control" id="control_no" name="control_no" required>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="name">Name <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                          </div>
+                          <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="motorized_operation">Motorized Operation <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-motorcycle"></i></span>
+                          </div>
+                          <input type="text" class="form-control" id="motorized_operation" name="motorized_operation" required>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="business_name">Business Name <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-building"></i></span>
+                          </div>
+                          <input type="text" class="form-control" id="business_name" name="business_name" required>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="issue_date">Issue Date <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
+                          </div>
+                          <input type="date" class="form-control" id="issue_date" name="issue_date" required>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="expiry_date">Expiry Date <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+                          </div>
+                          <input type="date" class="form-control" id="expiry_date" name="expiry_date" required>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="amount_paid">Amount Paid <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-peso-sign"></i></span>
+                          </div>
+                          <input type="number" class="form-control" id="amount_paid" name="amount_paid" min="0" required>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="or_no">OR No <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-receipt"></i></span>
+                          </div>
+                          <input type="text" class="form-control" id="or_no" name="or_no" required>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="issued_at">Issued At <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
+                          </div>
+                          <input type="text" class="form-control" id="issued_at" name="issued_at" required>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="mayor">Mayor <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                          </div>
+                          <input type="text" class="form-control" id="mayor" name="mayor" required>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="quarter">Quarter <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-chart-line"></i></span>
+                          </div>
+                          <select class="form-control" id="quarter" name="quarter" required>
+                            <option value="First Quarter">First Quarter</option>
+                            <option value="Second Quarter">Second Quarter</option>
+                            <option value="Third Quarter">Third Quarter</option>
+                            <option value="Fourth Quarter">Fourth Quarter</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="col-md-4 col-sm-6 mb-3">
+                        <label class="font-weight-bold" for="status">Status <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+                          </div>
+                          <select class="form-control" id="status" name="status" required>
+                            <option value="active" selected>Active</option>
+                            <option value="renewal">Renewal</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                        </div>
+                      </div>
+
+                      <div class="col-lg-4 col-md-6 mb-3">
+                        <label class="font-weight-bold" for="address">Address <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                          </div>
+                          <input type="text" class="form-control" id="address" name="address" required>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Save Permit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import Tricycle Permits Modal -->
+<div class="modal fade" id="importTriModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="fas fa-file-import"></i> Import File</h5>
+        <button class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" action="{% url 'import-mayors-permit-tri' %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <label><strong>Select CSV or Excel File</strong></label>
+          <input type="file" name="csv_file" accept=".csv,.xlsx,.xls" class="form-control" required>
+          <small class="form-text text-muted">Supported formats: .csv, .xlsx, .xls</small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-upload"></i> Upload
+          </button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Update Permit Modal -->
+<div class="modal fade" id="updatePermitModal" tabindex="-1" role="dialog" aria-labelledby="updatePermitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-white text-dark">
+                <h5 class="modal-title" id="updatePermitModalLabel">
+                    <i class="fas fa-edit"></i> Update Permit
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form id="updatePermitForm">
+                {% csrf_token %}
+                <div class="modal-body py-4">
+                    <input type="hidden" id="update_permit_id">
+
+                    <div class="container-fluid">
+                      <div class="form-row">
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_tricycle_select">Body Number (Tricycle)</label>
+                          <select class="form-control" id="update_tricycle_select" name="update_tricycle" style="width:100%;">
+                            <option value="">-- Search Body Number --</option>
+                          </select>
+                          <input type="hidden" id="update_body_number">
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_control_no">Control No</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                            </div>
+                            <input type="text" class="form-control" id="update_control_no" required>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_name">Name</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            </div>
+                            <input type="text" class="form-control" id="update_name" required>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_motorized_operation">Motorized Operation</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-motorcycle"></i></span>
+                            </div>
+                            <input type="text" class="form-control" id="update_motorized_operation" required>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_business_name">Business Name</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-building"></i></span>
+                            </div>
+                            <input type="text" class="form-control" id="update_business_name" required>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_issue_date">Issue Date</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
+                            </div>
+                            <input type="date" class="form-control" id="update_issue_date" required>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_expiry_date">Expiry Date</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+                            </div>
+                            <input type="date" class="form-control" id="update_expiry_date" required>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_amount_paid">Amount Paid</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-peso-sign"></i></span>
+                            </div>
+                            <input type="number" class="form-control" id="update_amount_paid" min="0" required>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_or_no">OR No</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-receipt"></i></span>
+                            </div>
+                            <input type="text" class="form-control" id="update_or_no" required>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_issued_at">Issued At</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-map-pin"></i></span>
+                            </div>
+                            <input type="text" class="form-control" id="update_issued_at" required>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_mayor">Mayor</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                            </div>
+                            <input type="text" class="form-control" id="update_mayor" required>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_quarter">Quarter</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-chart-line"></i></span>
+                            </div>
+                            <select class="form-control" id="update_quarter" required>
+                              <option>First Quarter</option>
+                              <option>Second Quarter</option>
+                              <option>Third Quarter</option>
+                              <option>Fourth Quarter</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div class="col-md-4 col-sm-6 mb-3">
+                          <label class="font-weight-bold" for="update_status">Status</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+                            </div>
+                            <select class="form-control" id="update_status" required>
+                                <option value="active">Active</option>
+                                <option value="renewal">Renewal</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="expired">Expired</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-4 mt-1">
+                          <label class="font-weight-bold" for="update_address">Address</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                            </div>
+                            <input type="text" class="form-control" id="update_address" required>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Update Permit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title font-weight-bold" id="historyModalLabel">
+          <i class="fas fa-history mr-2"></i> Status History
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body py-4">
+        <div class="container-fluid">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <div class="small text-muted">Control No</div>
+              <div class="font-weight-bold" id="history-control-no">-</div>
+            </div>
+            <div class="col-md-4">
+              <div class="small text-muted">Name</div>
+              <div class="font-weight-bold" id="history-name">-</div>
+            </div>
+            <div class="col-md-4">
+              <div class="small text-muted">Current Status</div>
+              <div class="font-weight-bold" id="history-current-status">-</div>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="row">
+            <div class="col-12">
+              <h6 class="font-weight-bold mb-3">Status Change History</h6>
+              <div id="historyTimeline" style="max-height: 300px; overflow-y: auto; padding-right: 10px;">
+                <div class="text-center text-muted py-4">
+                  <i class="fas fa-spinner fa-spin fa-2x"></i>
+                  <p class="mt-2">Loading history...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Details Modal -->
+<div class="modal fade" id="viewPermitModal" tabindex="-1" role="dialog" aria-labelledby="viewPermitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-white text-dark">
+                <h5 class="modal-title font-weight-bold" id="viewPermitModalLabel">
+                    <i class="fas fa-file-alt mr-2"></i> Permit Information
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body py-4">
+                <div class="container-fluid">
+                    <div class="row" id="viewModalContent">
+                        <!-- Content will be injected by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Delete Permit Confirmation Modal -->
+<div class="modal fade" id="deletePermitTriModal" tabindex="-1" aria-labelledby="deletePermitTriModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow border-0">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title font-weight-bold" id="deletePermitTriModalLabel">
+          <i class="fas fa-trash mr-2"></i> Delete Mayor's Permit
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+        <p class="mb-1">Are you sure you want to delete this permit?</p>
+        <p class="font-weight-bold text-dark mb-0" id="deletePermitTriName"></p>
+        <p class="text-muted small" id="deletePermitTriControlNo"></p>
+        <p class="text-muted small">This action <strong>cannot be undone.</strong></p>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeletePermitTriBtn">
+          <i class="fas fa-trash"></i> Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const logoURL = "{% static 'assets/img/lgu.png' %}";
+
+function formatLocalDateTime(dateString) {
+    const [datePart, timePart] = dateString.split(' ');
+    const [year, month, day] = datePart.split('-');
+    const [hour, minute, second] = timePart.split(':');
+    
+    const d = new Date(year, month - 1, day, hour, minute, second);
+
+    const formattedDate = d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric'
+    });
+
+    const formattedTime = d.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    return `${formattedDate} • ${formattedTime}`;
+}
+
+function getStatusBadge(status) {
+    status = status.toLowerCase();
+    
+    if (status === 'active') {
+        return '<span class="badge badge-success">Active</span>';
+    } else if (status === 'renewal') {
+        return '<span class="badge badge-primary">Renewal</span>';
+    } else if (status === 'inactive') {
+        return '<span class="badge badge-warning">Inactive</span>';
+    } else if (status === 'expired') {
+        return '<span class="badge badge-danger">Expired</span>';
+    } else {
+        return `<span class="badge badge-secondary">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+    }
+}
+function formatDisplayDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+    
+function toInputDate(dateStr) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    let d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    let m = ("0" + (d.getMonth() + 1)).slice(-2);
+    let day = ("0" + d.getDate()).slice(-2);
+    return `${d.getFullYear()}-${m}-${day}`;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+$('#addPermitModal').on('show.bs.modal', function () {
+    fetch("{% url 'get-tricycles' %}")
+        .then(res => res.json())
+        .then(data => {
+            let select = $('#tricycle_select');
+            select.empty().append('<option value="">-- Search Body Number --</option>');
+
+            // Store full tricycle data for auto-fill
+            window.tricycleData = {};
+
+            data.tricycles.forEach(t => {
+                select.append(new Option(
+                    `${t.body_number} — ${t.name} (${t.plate_no})`,
+                    t.body_number
+                ));
+                // Store each tricycle by body_number for quick lookup
+                window.tricycleData[t.body_number] = t;
+            });
+
+            select.select2({
+                placeholder: "Search body number...",
+                allowClear: true,
+                dropdownParent: $('#addPermitModal'),
+                width: '100%'
+            });
+        })
+        .catch(err => console.error('Failed to load tricycles:', err));
+});
+
+// Auto-fill fields when a tricycle is selected
+$('#tricycle_select').on('change', function () {
+    const bodyNumber = $(this).val();
+
+    if (bodyNumber && window.tricycleData && window.tricycleData[bodyNumber]) {
+        const t = window.tricycleData[bodyNumber];
+
+        // Auto-fill matching fields
+        document.getElementById('name').value         = t.name        || '';
+        document.getElementById('address').value      = t.address     || '';
+         // Make fields read-only
+            ['name', 'address'].forEach(id => {
+                const el = document.getElementById(id);
+                el.setAttribute('readonly', true);
+                el.classList.add('bg-light');
+            });
+    } else {
+        // Clear fields if selection is cleared
+        document.getElementById('name').value         = '';
+        document.getElementById('address').value      = '';
+    }
+});
+
+$('#updatePermitModal').on('shown.bs.modal', function () {
+    const currentBodyNumber = window._pendingBodyNumber || '';
+
+    // Set the hidden input NOW (inside shown, after cleanup already ran)
+    document.getElementById('update_body_number').value = currentBodyNumber;
+
+    fetch("{% url 'get-tricycles' %}")
+        .then(res => res.json())
+        .then(data => {
+            let select = $('#update_tricycle_select');
+
+            if (select.data('select2')) {
+                select.select2('destroy');
+            }
+
+            select.empty().append('<option value="">-- Search Body Number --</option>');
+            window.updateTricycleData = {};
+
+            data.tricycles.forEach(t => {
+                select.append(new Option(
+                    `${t.body_number} — ${t.name} (${t.plate_no})`,
+                    t.body_number
+                ));
+                window.updateTricycleData[t.body_number] = t;
+            });
+
+            select.select2({
+                placeholder: "Search body number...",
+                allowClear: true,
+                dropdownParent: $('#updatePermitModal'),
+                width: '100%'
+            });
+
+            // Pre-select without triggering the change handler
+            if (currentBodyNumber) {
+                select.val(currentBodyNumber).trigger('change.select2');
+            }
+        })
+        .catch(err => console.error('Failed to load tricycles for update:', err));
+});
+
+$('#update_tricycle_select').on('change', function () {
+    const bodyNumber = $(this).val();
+    document.getElementById('update_body_number').value = bodyNumber || '';
+
+    if (bodyNumber && window.updateTricycleData && window.updateTricycleData[bodyNumber]) {
+        const t = window.updateTricycleData[bodyNumber];
+        document.getElementById('update_name').value    = t.name    || '';
+        document.getElementById('update_address').value = t.address || '';
+        ['update_name', 'update_address'].forEach(id => {
+            const el = document.getElementById(id);
+            el.setAttribute('readonly', true);
+            el.classList.add('bg-light');
+        });
+    } else {
+        // Clear readonly if selection is cleared
+        ['update_name', 'update_address'].forEach(id => {
+            const el = document.getElementById(id);
+            el.removeAttribute('readonly');
+            el.classList.remove('bg-light');
+        });
+    }
+});
+
+$('#updatePermitModal').on('hidden.bs.modal', function () {
+    window._pendingBodyNumber = '';
+
+    if ($('#update_tricycle_select').data('select2')) {
+        $('#update_tricycle_select').select2('destroy');
+    }
+    $('#update_tricycle_select').empty().append('<option value="">-- Search Body Number --</option>');
+    document.getElementById('update_body_number').value = '';
+});
+
+$('#addPermitModal').on('hidden.bs.modal', function () {
+    // Only destroy if Select2 is initialized
+    if ($('#tricycle_select').data('select2')) {
+        $('#tricycle_select').select2('destroy');
+    }
+
+    ['name', 'address'].forEach(id => {
+        const el = document.getElementById(id);
+        el.removeAttribute('readonly');
+        el.classList.remove('bg-light');
+        el.value = '';
+    });
+});
+// Handle Delete Permit button click
+var deletePermitTriId = null;
+$('#dataTable tbody').on('click', '.btn-delete-permit', function () {
+    deletePermitTriId = $(this).data('id');
+    var name = $(this).data('name');
+    var controlNo = $(this).data('control-no');
+
+    $('#deletePermitTriName').text(name);
+    $('#deletePermitTriControlNo').text('Control No: ' + controlNo);
+    $('#deletePermitTriModal').modal('show');
+});
+
+// Handle confirmed delete
+$('#confirmDeletePermitTriBtn').on('click', function () {
+    if (!deletePermitTriId) return;
+
+    var csrfToken = $('[name=csrfmiddlewaretoken]').first().val();
+
+    $.ajax({
+        url: "{% url 'delete-permit-tri' %}",
+        type: "POST",
+        data: {
+            permit_id: deletePermitTriId,
+            csrfmiddlewaretoken: csrfToken
+        },
+        success: function (data) {
+            if (data.success) {
+                $('#deletePermitTriModal').modal('hide');
+                deletePermitTriId = null;
+                setTimeout(function () {
+                    location.reload();
+                }, 300);
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        },
+        error: function () {
+            alert('An error occurred while deleting the permit.');
+        }
+    });
+});
+
+
+    // Initialize DataTable with server-side processing
+    var table = $('#dataTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "{% url 'mayors-permit-tri-datatable' %}",
+            "type": "GET"
+        },
+        "pageLength": 10,
+        "lengthChange": false,
+        "ordering": false,
+        "searching": true,
+        "dom": 'frtip',
+        "columns": [
+        { 
+            "data": 0,  // Control No + Issued At badge
+            "render": function(data, type, row) {
+                var issuedAt = row[10];
+                var issuedBadge = '';
+                if (issuedAt) {
+                    issuedBadge = '<br><span class="badge badge-info badge-sm"><i class="fas fa-map-pin"></i> ' + issuedAt + '</span>';
+                }
+                return '<span>' + data + '</span>' + issuedBadge;
+            }
+        },
+        { "data": 1, "visible": false, "searchable": true },   // Status (hidden)
+        { 
+            "data": 2,  // Name + Mayor badge
+            "render": function(data, type, row) {
+                var mayor = row[11];
+                var mayorBadge = '';
+                if (mayor) {
+                    mayorBadge = '<br><span class="badge badge-dark badge-sm"><i class="fas fa-user-tie"></i> ' + mayor + '</span>';
+                }
+                return '<span>' + data + '</span>' + mayorBadge;
+            }
+        },
+        { 
+            "data": 3,  // Address + Quarter badge
+            "render": function(data, type, row) {
+                var quarter = row[12];
+                var quarterBadge = '';
+                if (quarter) {
+                    quarterBadge = '<br><span class="badge badge-secondary badge-sm"><i class="fas fa-chart-line"></i> ' + quarter + '</span>';
+                }
+                return '<span>' + data + '</span>' + quarterBadge;
+            }
+        },
+        { 
+            "data": 4,  // Motorized Operation + Status + OR No + Amount Paid badges
+            "render": function(data, type, row) {
+                var status = row[1];
+                var orNo = row[8];
+                var amountPaid = row[7];
+                var badges = '';
+                if (status) {
+                    var badgeClass = 'badge-secondary';
+                    var statusText = status.charAt(0).toUpperCase() + status.slice(1);
+                    if (status.toLowerCase() === 'active') badgeClass = 'badge-success';
+                    else if (status.toLowerCase() === 'renewal') badgeClass = 'badge-info';
+                    else if (status.toLowerCase() === 'inactive') badgeClass = 'badge-warning';
+                    else if (status.toLowerCase() === 'expired') badgeClass = 'badge-danger';
+                    badges += '<br><span class="badge ' + badgeClass + ' badge-sm">' + statusText + '</span>';
+                }
+                if (orNo) {
+                    badges += ' <span class="badge badge-secondary badge-sm"><i class="fas fa-receipt"></i> ' + orNo + '</span>';
+                }
+                if (amountPaid) {
+                    badges += ' <span class="badge badge-warning badge-sm">₱ ' + amountPaid + '</span>';
+                }
+                return '<span>' + data + '</span>' + badges;
+            }
+        },
+        { 
+            "data": 5,  // Business Name + Issue Date + Expiry Date badges
+            "render": function(data, type, row) {
+                var issueDate = row[9];
+                var expiryDate = row[6];
+                var dateBadges = '';
+                if (issueDate) {
+                    dateBadges += '<br><span class="badge badge-success badge-sm"><i class="fas fa-calendar-plus"></i> ' + issueDate + '</span>';
+                }
+                if (expiryDate) {
+                    dateBadges += ' <span class="badge badge-danger badge-sm"><i class="fas fa-calendar-times"></i> ' + expiryDate + '</span>';
+                }
+                return '<span>' + data + '</span>' + dateBadges;
+            }
+        },
+        { "data": 6,  "visible": false, "searchable": true },   // Expiry Date (hidden)
+        { "data": 7,  "visible": false, "searchable": true },   // Amount Paid (hidden)
+        { "data": 8,  "visible": false, "searchable": true },   // OR No (hidden)
+        { "data": 9,  "visible": false, "searchable": true },   // Issue Date (hidden)
+        { "data": 10, "visible": false, "searchable": true },   // Issued At (hidden)
+        { "data": 11, "visible": false, "searchable": true },   // Mayor (hidden)
+        { "data": 12, "visible": false, "searchable": true },   // Quarter (hidden)
+        { "data": 16, "visible": true,  "searchable": true },   // ✅ Body Number (new, col 13 in DOM)
+        { "data": 13, "orderable": false },                     // Action (col 14 in DOM)
+        { "data": 14, "visible": false, "searchable": false },  // Hidden ID
+        { "data": 15, "visible": false, "searchable": false }   // Hidden raw status
+    ],
+        "columnDefs": []  // All visibility handled above
+    });
+
+// FIXED - skip Status(1), Action(14), ID(15), raw status(16)
+    table.columns().every(function(index) {
+        var that = this;
+        
+        if (index === 1 || index === 14 || index === 15 || index === 16) {
+            return;
+        }
+        
+        $('input', this.header()).on('keyup change clear', function() {
+            if (that.search() !== this.value) {
+                that.search(this.value).draw();
+            }
+        });
+    });
+
+    // View button - use event delegation
+    $('#dataTable tbody').on('click', '.btn-view', function(e) {
+        e.preventDefault();
+        
+        // Get all data attributes
+        const data = this.dataset;
+        
+        // Define fields with their labels and values
+        const fields = [
+            { label: "Body Number", value: data.body_number },
+            { label: "Control No", value: data.control_no },
+            { label: "Status", value: data.status, isBadge: true },
+            { label: "Name", value: data.name },
+            { label: "Address", value: data.address },
+            { label: "Business Name", value: data.business_name },
+            { label: "Motorized Operation", value: data.motorized_operation },
+            { label: "OR No", value: data.or_no },
+            { label: "Amount Paid", value: data.amount_paid, isCurrency: true },
+            { label: "Issue Date", value: data.issue_date, isDate: true },
+            { label: "Expiry Date", value: data.expiry_date, isDate: true },
+            { label: "Issued At", value: data.issued_at },
+            { label: "Mayor", value: data.mayor },
+            { label: "Quarter", value: data.quarter }
+        ];
+
+        // Build HTML
+        let html = "";
+        fields.forEach(field => {
+            let displayValue = field.value || '&mdash;';
+            
+            // Handle status badge
+            if (field.isBadge && field.value) {
+                displayValue = getStatusBadge(field.value);
+            }
+            
+            // Handle currency formatting
+            if (field.isCurrency && field.value) {
+                displayValue = '₱' + parseFloat(field.value).toLocaleString();
+            }
+            
+            // Handle date formatting
+            if (field.isDate && field.value) {
+                displayValue = formatDisplayDate(field.value);
+            }
+            
+            html += `
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="small text-muted">${field.label}</div>
+                    <div class="font-weight-bold">${displayValue}</div>
+                </div>
+            `;
+        });
+
+        document.getElementById("viewModalContent").innerHTML = html;
+        $("#viewPermitModal").modal("show");
+    });
+
+    // Update button - use event delegation  
+    $('#dataTable tbody').on('click', '.btn-update', function(e) {
+        e.preventDefault();
+
+        // Store body number in a module-level variable BEFORE modal opens
+        window._pendingBodyNumber = this.dataset.bodyNumber || '';
+
+        document.getElementById('update_permit_id').value = this.dataset.id;
+        document.getElementById('update_control_no').value = this.dataset.control_no;
+        document.getElementById('update_status').value = this.dataset.status;
+        document.getElementById('update_name').value = this.dataset.name;
+        document.getElementById('update_address').value = this.dataset.address;
+        document.getElementById('update_motorized_operation').value = this.dataset.motorized_operation;
+        document.getElementById('update_business_name').value = this.dataset.business_name;
+        document.getElementById('update_issue_date').value = toInputDate(this.dataset.issue_date);
+        document.getElementById('update_expiry_date').value = toInputDate(this.dataset.expiry_date);
+        document.getElementById('update_amount_paid').value = this.dataset.amount_paid;
+        document.getElementById('update_or_no').value = this.dataset.or_no;
+        document.getElementById('update_issued_at').value = this.dataset.issued_at;
+        document.getElementById('update_mayor').value = this.dataset.mayor;
+        document.getElementById('update_quarter').value = this.dataset.quarter;
+
+        $('#updatePermitModal').modal('show');
+
+        console.log('Body number from dataset:', this.dataset.bodyNumber);
+        console.log('window._pendingBodyNumber:', window._pendingBodyNumber);
+    });
+
+    // Handle update form submission
+    document.getElementById('updatePermitForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const permitId = document.getElementById('update_permit_id').value;
+        const formData = {
+            control_no: document.getElementById('update_control_no').value,
+            name: document.getElementById('update_name').value,
+            address: document.getElementById('update_address').value,
+            motorized_operation: document.getElementById('update_motorized_operation').value,
+            business_name: document.getElementById('update_business_name').value,
+            issue_date: document.getElementById('update_issue_date').value,
+            expiry_date: document.getElementById('update_expiry_date').value,
+            amount_paid: document.getElementById('update_amount_paid').value,
+            or_no: document.getElementById('update_or_no').value,
+            issued_at: document.getElementById('update_issued_at').value,
+            mayor: document.getElementById('update_mayor').value,
+            quarter: document.getElementById('update_quarter').value,
+            status: document.getElementById('update_status').value,
+            tricycle_body_number: document.getElementById('update_body_number').value
+        };
+
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`/update-permit/${permitId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#updatePermitModal').modal('hide');
+                  location.reload(); 
+            } else {
+                alert('Error updating permit: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating permit. Please try again.');
+        });
+    });
+
+    // Print button - use event delegation
+    $('#dataTable tbody').on('click', '.btn-print', function(e) {
+        e.preventDefault();
+        const permitId = $(this).data('permit-id');
+        printPermit(permitId);
+    });
+
+    // History button - use event delegation
+    $('#dataTable tbody').on('click', '.btn-history', function(e) {
+        e.preventDefault();
+        
+        let permitId = $(this).data('id');
+        
+        $("#historyModal").modal("show");
+        
+        fetch(`/mayors-permit-tri/history-data/${permitId}/`)
+            .then(res => {
+                console.log('Response status:', res.status);
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(response => {
+                console.log('Response data:', response);
+                
+                if (response.success) {
+                    let data = response.data;
+                    
+                    document.getElementById('history-control-no').textContent = data.permit_info.control_no;
+                    document.getElementById('history-name').textContent = data.permit_info.name;
+                    
+                    let statusBadge = getStatusBadge(data.permit_info.current_status);
+                    document.getElementById('history-current-status').innerHTML = statusBadge;
+                    
+                    let timelineHtml = '';
+                    if (data.history && data.history.length > 0) {
+                        data.history.forEach(record => {
+                            let oldStatusBadge = getStatusBadge(record.old_status.toLowerCase());
+                            let newStatusBadge = getStatusBadge(record.new_status.toLowerCase());
+                            
+                            timelineHtml += `
+                                <div class="card mb-2">
+                                    <div class="card-body py-2">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar"></i>
+                                                    ${formatLocalDateTime(record.date)}
+                                                </small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                ${oldStatusBadge}
+                                                <i class="fas fa-arrow-right mx-2"></i>
+                                                ${newStatusBadge}
+                                            </div>
+                                            <div class="col-md-3 text-right">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user"></i> ${record.changed_by}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        ${record.reason ? `<div class="row mt-2"><div class="col-12"><small><strong>Reason:</strong> ${record.reason}</small></div></div>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        timelineHtml = `
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle"></i> No status change history available
+                            </div>
+                        `;
+                    }
+                    
+                    document.getElementById('historyTimeline').innerHTML = timelineHtml;
+                } else {
+                    document.getElementById('historyTimeline').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> ${response.error || 'Failed to load history'}
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching history:', err);
+                document.getElementById('historyTimeline').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Error: ${err.message}
+                    </div>
+                `;
+            });
+    });
+});
+
+
+function formatReadableDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
+}
+
+function printPermit(permitId) {
+    const button = document.querySelector(`[data-permit-id="${permitId}"]`);
+    if (!button) return alert('Button not found');
+
+    // Extract data from data attributes instead of cells
+    const controlNo = button.dataset.controlNo || '';
+    const operatorName = button.dataset.name || '';
+    const operatorAddress = button.dataset.address || '';
+    const motorizedOperation = button.dataset.motorized || '';
+    const businessName = button.dataset.business || '';
+    const expiryDate = button.dataset.expiry || '';
+    const quarter = button.dataset.quarter || '';
+    const amount_paid_raw = button.dataset.amount || '';
+    const amount_paid = amount_paid_raw ? '₱' + parseFloat(amount_paid_raw).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+    const or_no = button.dataset.or || '';
+    const issueDate = button.dataset.issue || '';
+    const issued_at = button.dataset.issuedAt || '';
+    const mayor = button.dataset.mayor || '';
+
+
+    function formatIssueDate(dateStr) {
+        if (!dateStr) return '&nbsp;';
+
+        const dateObj = new Date(dateStr);
+        if (isNaN(dateObj)) return '&nbsp;';
+
+        const day = dateObj.getDate();
+        const month = dateObj.toLocaleString('default', { month: 'long' });
+        const year = dateObj.getFullYear();
+        const yearLastTwo = year.toString().slice(-2);
+
+        // Determine day suffix
+        let suffix = 'th';
+        if (day === 1 || day === 21 || day === 31) suffix = 'st';
+        else if (day === 2 || day === 22) suffix = 'nd';
+        else if (day === 3 || day === 23) suffix = 'rd';
+
+        // Underline style for dynamic values
+        const underlineStyle = `
+            display:inline-block; 
+            width: 60px;       
+            text-align:center; 
+            border-bottom:1px solid black; 
+            padding-bottom:2px;
+            margin:0 3px;
+        `;
+
+        const monthUnderlineStyle = `
+            display:inline-block; 
+            width: 90px;
+            text-align:center; 
+            border-bottom:1px solid black; 
+            padding-bottom:2px;
+            margin:0 3px;
+        `;
+
+        const dayHTML = `<span style="${underlineStyle}">${day}${suffix}</span>`;
+        const monthHTML = `<span style="${monthUnderlineStyle}">${month},</span>`;
+        const yearHTML = `<span style="${underlineStyle}">${yearLastTwo}</span>`;
+
+        return `${dayHTML} day of ${monthHTML} 20 ${yearHTML}`;
+    }
+
+    const formattedIssueDate = formatIssueDate(issueDate);
+
+    // Determine which quarter checkboxes to check
+    const isFirstQuarter = quarter === 'First Quarter';
+    const isSecondQuarter = quarter === 'Second Quarter';
+    const isThirdQuarter = quarter === 'Third Quarter';
+    const isFourthQuarter = quarter === 'Fourth Quarter';
+
+    const headerHTML = `
+    <div style="position: relative; margin-bottom: 10px; height: 140px;">
+        <!-- LEFT: LOGO -->
+        <div style="position: absolute; left: 0; top: 0;">
+            <img src="${typeof logoURL !== 'undefined' ? logoURL : ''}" alt="Logo" style="height:120px;">
+        </div>
+
+        <!-- RIGHT: CONTROL NUMBER -->
+        <div style="position: absolute; right: 0; top: 0; font-size:16px; text-align:right;">
+            <strong>Control No:</strong> ${controlNo}
+        </div>
+
+        <!-- CENTER: GOV HEADER -->
+        <div style="
+            position: absolute;
+            left: 50%;
+            top: 25px;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.3;
+            width: max-content;
+        ">
+            <div style="font-weight:bold;">Republic of the Philippines</div>
+            <div>Province of Leyte</div>
+            <div>Municipality of Palompon</div>
+        </div>
+    </div>
+
+    <!-- SUBHEADER -->
+    <div style="text-align:center; margin-bottom:20px; font-size:22px;">
+        <div style="letter-spacing:1px; font-weight: bold">OFFICE OF THE MUNICIPAL MAYOR</div>
+        <div style="margin-top:5px; font-weight: bold">MAYOR'S PERMIT</div>
+
+        <div style="margin-top:8px; font-size:15px; font-weight:normal; line-height:1.3;">
+            To Operate, Drive Public Utility Cab<br>
+            <span style="font-size:14px;">
+                (Pursuant to the Provision of Revised Municipal Tax Ordinance No. 298- 041004)
+            </span>
+        </div>
+
+        <div style="margin-top:10px; font-size:22px; font-weight:bold; letter-spacing:1px;">
+            PERMIT IS HEREBY GRANTED
+        </div>
+
+        <div style="margin-top:3px; font-size:16px; font-weight:normal; letter-spacing:1px;">
+            to
+        </div>
+
+        <!-- OPERATOR NAME -->
+        <div style="margin-top:10px; text-align:center; position: relative; width:400px; margin-left:auto; margin-right:auto;">
+            <div style="
+                border-bottom: 1px solid black; 
+                padding-bottom:5px; 
+                font-weight:bold;
+                letter-spacing:3px;
+                font-size: ${operatorName && operatorName.length > 30 ? '16px' : operatorName.length > 20 ? '18px' : '22px'};
+                white-space: nowrap;
+                overflow: hidden;
+            ">
+                ${operatorName || '&nbsp;'}
+            </div>
+            <div style="font-size:13px; margin-top:5px; font-style:italic;">
+                Name of Operator
+            </div>
+        </div>
+            <!-- OPERATOR ADDRESS -->
+            <div style="margin-top:10px; text-align:center; position: relative; width:500px; margin-left:auto; margin-right:auto;">
+                <div style="
+                    border-bottom: 1px solid black; 
+                    padding-bottom:5px; 
+                    font-weight:bold;
+                    letter-spacing:1px;
+                    font-size: ${operatorAddress && operatorAddress.length > 40 ? '16px' : operatorAddress.length > 30 ? '18px' : operatorAddress.length > 20 ? '20px' : '22px'};
+                    white-space: nowrap;
+                    overflow: hidden;
+                ">
+                    ${operatorAddress || '&nbsp;'}
+                </div>
+                <div style="font-size:13px; margin-top:3px; font-style:italic;">
+                    Home Address
+                </div>
+            </div>
+
+        <!-- MOTORIZED OPERATION INLINE -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            to engage in 
+            <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
+                <span style="position: relative; z-index: 1;">
+                    ${motorizedOperation || '&nbsp;'}
+                </span>
+                <span style="position: absolute; bottom: 0; left: 0; width: 100%; border-bottom:1px solid black;"></span>
+            </span>
+            with
+        </div>
+
+        <!-- BUSINESS NAME INLINE -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            business name (if any) 
+            <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
+                <span style="font-weight:bold; position: relative; z-index: 1;">
+                    ${businessName || '&nbsp;'}
+                </span>
+                <span style="position: absolute; bottom: 0; left: 0; width: 100%; border-bottom:1px solid black;"></span>
+            </span>
+            and with
+        </div>
+
+        <!-- BUSINESS ADDRESS INLINE -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            business address at 
+            <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
+                <span style="position: relative; z-index: 1;">
+                    &nbsp;
+                </span>
+                <span style="position: absolute; bottom: 0; left: 0; width: 100%; border-bottom:1px solid black;"></span>
+            </span>
+            Palompon, Leyte
+        </div>
+
+        <!-- EXPIRY DATE INLINE -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            This permit expires on 
+            <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
+                <span style="font-weight:bold; position: relative; z-index: 1;">
+                    ${expiryDate ? formatReadableDate(expiryDate) : '&nbsp;'}
+                </span>
+                <span style="position: absolute; bottom: 0; left: 0; width: 100%; border-bottom:1px solid black;"></span>
+            </span>
+            and may be earlier revoked for cause.
+        </div>
+
+        <!-- QUARTER CHECKBOXES -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            Applicable Quarter: <br>
+
+            <label class="custom-checkbox"><em>1<sup>st</sup> Quarter</em>
+                <input type="checkbox" ${isFirstQuarter ? 'checked' : ''} disabled>
+                <span class="checkmark"></span>
+            </label>
+
+            <label class="custom-checkbox"><em>2<sup>nd</sup> Quarter</em>
+                <input type="checkbox" ${isSecondQuarter ? 'checked' : ''} disabled>
+                <span class="checkmark"></span>
+            </label>
+
+            <label class="custom-checkbox"><em>3<sup>rd</sup> Quarter</em>
+                <input type="checkbox" ${isThirdQuarter ? 'checked' : ''} disabled>
+                <span class="checkmark"></span>
+            </label>
+
+            <label class="custom-checkbox"><em>4<sup>th</sup> Quarter</em>
+                <input type="checkbox" ${isFourthQuarter ? 'checked' : ''} disabled>
+                <span class="checkmark"></span>
+            </label>
+
+            <div style="font-size: 14px; margin-top: 5px; font-style: italic;">
+                (please mark (✓) the appropriate box)
+            </div>
+        </div>
+
+        <!-- ISSUE DATE -->
+        <div style="margin-top:15px; text-align:center; font-size:16px;">
+            Issued this ${formattedIssueDate} at Palompon, Leyte, Philippines
+        </div>
+
+        <!-- MAYOR SIGNATURE -->
+        <div style="margin-top:60px; text-align:right; font-size:16px;">
+            <div style="display:inline-block; text-align:center;">
+                <div style="
+                    border-bottom:1px solid black;
+                    padding-bottom:2px;
+                    width:260px;
+                    font-weight:bold;
+                    text-transform:uppercase;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    font-size: ${mayor && mayor.length > 25 ? '13px' : '16px'};
+                ">
+                    ${mayor || '&nbsp;'}
+                </div>
+
+                <div style="margin-top:3px; text-transform:uppercase;">
+                    MUNICIPAL MAYOR
+                </div>
+            </div>
+        </div>
+
+        <!-- PAYMENT & ISSUANCE INFO -->
+        <div style="margin-top:60px; text-align:left; font-size:16px;">
+            <div>
+                Amount Paid: 
+                <span style="display:inline-block; width:120px; margin-left:5px;">
+                    ${amount_paid || '&nbsp;'}
+                </span>
+            </div>
+            <div style="margin-top:5px;">
+                O.R No: 
+                <span style="display:inline-block; width:120px; margin-left:5px;">
+                    ${or_no || '&nbsp;'}
+                </span>
+            </div>
+           <div style="margin-top:5px;">
+                Issued On: ${issueDate ? formatReadableDate(issueDate) : '&nbsp;'}
+            </div>
+            <div style="margin-top:5px;">
+                Issued At: ${issued_at || '&nbsp;'}
+            </div>
+        </div>
+    </div>
+    `;
+
+    // Create iframe for printing
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+        <html>
+        <head>
+            <title>Print Permit</title>
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                
+                body {
+                    margin: 0;
+                    font-family: "Times New Roman", Times, serif;
+                    font-size: 16px;
+                }
+                
+                .print-container {
+                    padding: 40px;
+                    width: 210mm;
+                    min-height: 297mm;
+                    margin: 0 auto;
+                }
+                
+                @media print {
+                    @page {
+                        size: A4;
+                        margin: 0;
+                    }
+                    
+                    body, html {
+                        width: 210mm;
+                        height: 297mm;
+                        margin: 0;
+                        padding: 0;
+                    }
+
+                    .print-container {
+                        page-break-after: avoid;
+                        page-break-before: avoid;
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                    }
+                }
+
+                /* Custom Checkbox */
+                .custom-checkbox {
+                    display: inline-block;
+                    position: relative;
+                    padding-left: 25px;
+                    margin-right: 15px;
+                    cursor: default;
+                    font-size: 16px;
+                    user-select: none;
+                }
+
+                .custom-checkbox input {
+                    position: absolute;
+                    opacity: 0;
+                    cursor: default;
+                    height: 0;
+                    width: 0;
+                }
+
+                .custom-checkbox .checkmark {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    height: 18px;
+                    width: 18px;
+                    background-color: #fff;
+                    border: 1px solid #000;
+                }
+
+                .custom-checkbox input:checked ~ .checkmark:after {
+                    display: block;
+                }
+
+                .custom-checkbox .checkmark:after {
+                    content: "";
+                    position: absolute;
+                    display: none;
+                    left: 5px;
+                    top: 1px;
+                    width: 5px;
+                    height: 10px;
+                    border: solid black;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(45deg);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-container">
+                ${headerHTML}
+            </div>
+        </body>
+        </html>
+    `);
+    doc.close();
+    
+    // Wait for content to load before printing
+    iframe.contentWindow.onload = function() {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => {
+            document.body.removeChild(iframe);
+        }, 100);
+    };
+}
+
+</script>
+
+{% endblock %}

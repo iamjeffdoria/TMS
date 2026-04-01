@@ -12,13 +12,14 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        padding: 35px;
+        padding: 60px 100px;
+        font-size: 15px;
     }
 
 
     .print-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
         position: relative;
     }
 
@@ -62,11 +63,19 @@
         font-weight: bold;
     }
 
-    @media print {
-        .no-print {
-            display: none !important;
-        }
+@media print {
+    .no-print {
+        display: none !important;
     }
+    @page {
+        size: legal;
+        margin: 0;
+    }
+    body {
+        padding: 40px 80px;
+        width: 216mm;
+    }
+}
 </style>
 
 
@@ -100,7 +109,7 @@
 
 <div>
 <!-- MTOP Information (plain, no borders) -->
-<div style="margin-top: 5px; font-size: 14px; line-height: 1.6;">
+<div style="margin-top: 10px; font-size: 16px; line-height: 1.8;">
     <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
         <span>Name of Operator: <strong>{{ mtop.name }}</strong></span>
         <span>Case No: {{ mtop.case_no }}</span>
@@ -115,12 +124,12 @@
 </div>
 
 <!-- Number below MTOP information -->
-<div style="margin-top: 5px; font-size: 14px; text-align: center;">
+<div style="margin-top: 10px; font-size: 16px; text-align: center;">
     Number: 033-A
 </div>
-<hr style="margin-top: 5px; border: 1px solid #000; max-width: 99%; text-align: center;">
+<hr style="margin-top: 10px; border: 1px solid #000; max-width: 99%; text-align: center;">
 <!-- Vehicle Info Row (dynamic from MTOP model) -->
-<div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px;">
+<div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 16px;">
     <div style="text-align: center; margin-right: 20px; min-width: 80px;">
         <div style="display: inline-block; border-bottom: 1px solid #000; padding-bottom: 4px;">{{ mtop.make }}</div>
         <div><small><strong>MAKE</strong></small></div>
@@ -140,9 +149,9 @@
 </div>
 
 <!-- Subject to the following -->
-<div style="margin-top: 10px; font-size: 14px; line-height: 1.5;">
+<div style="margin-top: 12px; font-size: 15px; line-height: 1.6;">
     <strong>Subject to the following:</strong>
-    <ol style="margin-top: 8px; padding-left: 20px;">
+    <ol style="margin-top: 4px; padding-left: 20px; margin-bottom: 0;">
         <li>Applicant/Operator shall comply with the rules/regulations described by the Board; Failure to comply therefore and any of the conditions herein set forth shall be sufficient cause for the suspension or cancellation of the authority herein granted.</li>
         <li>The unit/s shall be registered as for hire with the Land Transportation Office; Agency of Palompon, Leyte within THIRTY (30) days from date hereof.</li>
         <li>This special authority shall be valid for TWO (2) YEARS from date thereof and shall constitute as franchise certificate giving the operator the privilege to operate the unit/s herein prescribed for hire and/or compensation.</li>
@@ -151,18 +160,18 @@
     </ol>
 </div>
 <!-- SO ORDERED Section -->
-<div style="margin-top: 6px; font-size: 14px; line-height: 1.6;">
+<div style="margin-top: 12px; font-size: 15px; line-height: 1.6;">
     <div><strong>SO ORDERED.</strong></div>
-    <div style="margin-top: 6px; font-size: 16px;">
+    <div style="margin-top: 10px; font-size: 17px;">
         <div>Palompon, Leyte Philippines __________________________</div>
-        <div style="margin-top: 4px; margin-left: 32%;">November 19, 2025</div>
+        <div style="margin-top: 4px; margin-left: 32%;">{{ mtop.date|date:"F d, Y" }}</div>
     </div>
 </div>
 
 <!-- Recommending Approval Section -->
-<div style="margin-top:10px; font-size: 14px; line-height: 1.6;">
+<div style="margin-top: 30px; font-size: 15px; line-height: 1.6;">
     <div><strong>Recommending approval:</strong></div>
-    <div style="margin-top: 10px; display: flex; justify-content: space-between;">
+    <div style="margin-top: 12px; display: flex; justify-content: space-between;">
         <div style="text-align: center;">
              <div><strong>{{ mtop.municipal_treasurer }}</strong></div>
             <div>ICO-Municipal Treasurer</div>
@@ -175,14 +184,15 @@
 </div>
 
 <!-- Mayor Section with Logo on Left -->
-<div style=" font-size: 14px; line-height: 1.6; display: flex; align-items: center;">
+<!-- AFTER -->
+<div style="font-size: 15px; line-height: 1.6; display: flex; align-items: center; position: relative; margin-top: 10px;">
     <!-- Left: Logo -->
-    <div style="width: 300px; height: 180px; margin-right: 20px; align-self: flex-start;">
+    <div style="width: 180px; height: 160px; align-self: flex-start;">
         <img src="{% static 'assets/img/approved2.png' %}" alt="Approved" style="width: 100%; height: 100%; object-fit: contain;">
     </div>
 
-    <!-- Left-aligned Mayor signature -->
-    <div style="text-align: center; min-width: 10px;">
+    <!-- Mayor signature — centered to the full page, not relative to the image -->
+    <div style="position: absolute; left: 0; right: 0; text-align: center;">
         <div><strong>{{ mtop.mayor }}</strong></div>
         <div>Municipal Mayor</div>
     </div>

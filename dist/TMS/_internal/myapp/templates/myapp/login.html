@@ -1,0 +1,425 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
+body {
+    font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.login-wrapper {
+    background: #f5f7fa;
+    min-height: 100vh;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-overlay.active { 
+    display: flex; 
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: white;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.login-card {
+    background: white;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+.form-section {
+    padding: 32px 32px 28px;
+    background: white;
+}
+
+.logo-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.brand-logo {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    margin-bottom: 12px;
+}
+
+.system-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 4px;
+}
+
+.system-subtitle {
+    font-size: 15px;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 5px;
+}
+
+.password-input-wrapper {
+    position: relative;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    transition: border-color 0.2s;
+    outline: none;
+    background: white;
+    font-weight: 400;
+}
+
+.password-input-wrapper .form-input {
+    padding-right: 40px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 14px;
+    padding: 6px;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:hover {
+    color: #ff4444;
+}
+
+.toggle-password:focus {
+    outline: none;
+}
+
+.form-input::placeholder {
+    color: #9ca3af;
+}
+
+.form-input:focus {
+    border-color: #ff4444;
+    box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.08);
+}
+
+.form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-container input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    margin-right: 6px;
+    cursor: pointer;
+    accent-color: #ff4444;
+}
+
+.checkbox-container label {
+    font-size: 12px;
+    color: #4a5568;
+    cursor: pointer;
+    user-select: none;
+}
+
+.forgot-link {
+    font-size: 12px;
+    color: #ff4444;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(180deg, #c64545 10%, #f02525 100%) !important;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-login:hover {
+    background: #e63939;
+}
+
+.btn-login:active {
+    background: #cc2e2e;
+}
+
+.register-text {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.register-text a {
+    color: #ff4444;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.register-text a:hover {
+    text-decoration: underline;
+}
+
+/* Django Messages Styles */
+.messages-container {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    width: 90%;
+    max-width: 450px;
+}
+
+.alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error,
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.alert i {
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+.alert .close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.6;
+    padding: 0;
+    margin-left: 12px;
+    line-height: 1;
+}
+
+.alert .close:hover {
+    opacity: 1;
+}
+
+@media (max-width: 480px) {
+    .form-section {
+        padding: 28px 24px;
+    }
+    
+    .brand-logo {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .system-title {
+        font-size: 20px;
+    }
+    
+    .messages-container {
+        width: 95%;
+    }
+}
+</style>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div style="text-align: center;">
+        <div class="spinner"></div>
+        <div class="loading-text">Logging in...</div>
+    </div>
+</div>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="form-section">
+            <div class="logo-header">
+                <img src="{% static 'assets/img/csulogo2.png' %}" alt="Logo" class="brand-logo">
+                <p class="system-subtitle">Traffic Management System</p>
+            </div>
+
+            <form method="POST" id="loginForm">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" name="username" placeholder="Enter username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" class="form-input" name="password" id="passwordInput" placeholder="Enter password" required>
+                        <button type="button" class="toggle-password" id="togglePassword" title="Show password">
+                            <i class="fas fa-eye" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-footer">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="customCheck">
+                        <label for="customCheck">Remember me</label>
+                    </div>
+                    <a href="forgot-password.html" class="forgot-link">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-login">Log In</button>
+            </form>
+
+            <div class="register-text">
+                Don't have an account? <a href="register.html">Register</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('passwordInput');
+    const toggleIcon = document.getElementById('toggleIcon');
+
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        if (type === 'text') {
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    });
+    
+    const loginForm = document.getElementById('loginForm');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    
+    loginForm.addEventListener('submit', function(e) {
+        loadingOverlay.classList.add('active');
+    });
+    
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.3s';
+            setTimeout(() => alert.remove(), 300);
+        }, 5000);
+    });
+});
+</script>
+{% endblock %}

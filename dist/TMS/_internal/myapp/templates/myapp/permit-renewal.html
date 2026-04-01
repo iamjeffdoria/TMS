@@ -1,0 +1,101 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block content %}<style>
+    .table-responsive {
+        font-size: 0.95rem;
+        overflow-x: auto;
+    }
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+    #dataTable {
+        min-width: 1800px;
+    }
+</style>
+    <!-- DataTales Example -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">Permit Renewal</h6>
+                           
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Control No</th>
+                                            <th>Status</th>
+                                            <th>Name</th>
+                                            <th>Address</th>
+                                            <th>Business Name</th>
+                                            <th>Motorized Operation</th>
+                                            <th>OR No</th>
+                                            <th>Amount Paid</th>
+                                            <th>Issue Date</th>
+                                            <th>Expiry Date</th>
+                                            <th>Issued At</th>
+                                            <th>Mayor</th>
+                                            <th>Quarter</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                            <th>Control No</th>
+                                            <th>Status</th>
+                                            <th>Name</th>
+                                            <th>Address</th>
+                                            <th>Business Name</th>
+                                            <th>Motorized Operation</th>
+                                            <th>OR No</th>
+                                            <th>Amount Paid</th>
+                                            <th>Issue Date</th>
+                                            <th>Expiry Date</th>
+                                            <th>Issued At</th>
+                                            <th>Mayor</th>
+                                            <th>Quarter</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                        {% for permit in permits %}
+                                        <tr>
+                                            <td>{{ permit.control_no }}</td>
+                                            <td class="{% if permit.status == 'active' %}text-success{% else %}text-danger{% endif %}">
+                                                {{ permit.get_status_display }}
+                                            </td>
+                                            <td>{{ permit.name }}</td>
+                                            <td>{{ permit.address }}</td>
+                                            <td>{{ permit.business_name }}</td>
+                                            <td>{{ permit.motorized_operation }}</td>
+                                            <td>{{ permit.or_no }}</td>
+                                            <td>{{ permit.amount_paid }}</td>
+                                            <td>{{ permit.issue_date }}</td>
+                                            <td>{{ permit.expiry_date }}</td>
+                                            <td>{{ permit.issued_at }}</td>
+                                            <td>{{ permit.mayor }}</td>
+                                            <td>{{ permit.get_quarter_display }}</td>
+                                <td class="text-center">
+                                        <div class="btn-group" role="group" aria-label="actions">
+                                            <!-- Renew Button -->
+                                            <a href="#" class="btn btn-sm btn-warning" title="Renew">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+
+
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="13" class="text-center text-muted">No permits found</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+{% endblock %}

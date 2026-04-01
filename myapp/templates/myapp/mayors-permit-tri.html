@@ -1299,15 +1299,27 @@ function printPermit(permitId) {
         </div>
 
         <!-- RIGHT: CONTROL NUMBER -->
-        <div style="position: absolute; right: 0; top: 0; font-size:16px; text-align:right;">
-            <strong>Control No:</strong> ${controlNo}
+        <div style="position: absolute; right: 0; top: 15px; font-size:13px; text-align:center;">
+          <div style="font-family: 'Courier New', monospace; letter-spacing:3px; text-transform:uppercase; font-weight:300; font-size:14px; margin-bottom:3px;">CONTROL NO.</div>
+            <div style="
+                border: 1px solid black;
+                padding: 4px 12px;
+                font-size: 35px;
+                font-weight: bold;
+                letter-spacing: 2px;
+                min-width: 100px;
+                text-align: center;
+            ">${controlNo}</div>
+           <div style="font-family: 'Courier New', monospace; letter-spacing:2px; text-transform:uppercase; font-weight:300; font-size:13px; margin-top:3px; text-align:center;">
+                Series of ${issueDate ? new Date(issueDate).getFullYear() : ''}
+            </div>
         </div>
 
         <!-- CENTER: GOV HEADER -->
         <div style="
             position: absolute;
             left: 50%;
-            top: 25px;
+            top: 15px;
             transform: translateX(-50%);
             text-align: center;
             font-size: 16px;
@@ -1317,13 +1329,14 @@ function printPermit(permitId) {
             <div style="font-weight:bold;">Republic of the Philippines</div>
             <div>Province of Leyte</div>
             <div>Municipality of Palompon</div>
+            <div>-oOo-</div>
         </div>
     </div>
 
     <!-- SUBHEADER -->
     <div style="text-align:center; margin-bottom:20px; font-size:22px;">
-        <div style="letter-spacing:1px; font-weight: bold">OFFICE OF THE MUNICIPAL MAYOR</div>
-        <div style="margin-top:5px; font-weight: bold">MAYOR'S PERMIT</div>
+        <div style="letter-spacing:1px; font-weight: bold; font-size:25px;">OFFICE OF THE MUNICIPAL MAYOR</div>
+        <div style="margin-top:5px; font-weight: bold; font-size:38px;">MAYOR'S PERMIT</div>
 
         <div style="margin-top:8px; font-size:15px; font-weight:normal; line-height:1.3;">
             To Operate, Drive Public Utility Cab<br>
@@ -1332,7 +1345,7 @@ function printPermit(permitId) {
             </span>
         </div>
 
-        <div style="margin-top:10px; font-size:22px; font-weight:bold; letter-spacing:1px;">
+        <div style="margin-top:10px; font-size:30px; font-weight:bold; letter-spacing:1px;">
             PERMIT IS HEREBY GRANTED
         </div>
 
@@ -1376,7 +1389,7 @@ function printPermit(permitId) {
             </div>
 
         <!-- MOTORIZED OPERATION INLINE -->
-        <div style="margin-top:15px; text-align:center; font-size:16px;">
+        <div style="margin-top:8px; text-align:center; font-size:16px;">
             to engage in 
             <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
                 <span style="position: relative; z-index: 1;">
@@ -1388,7 +1401,7 @@ function printPermit(permitId) {
         </div>
 
         <!-- BUSINESS NAME INLINE -->
-        <div style="margin-top:15px; text-align:center; font-size:16px;">
+        <div style="margin-top:6px; text-align:center; font-size:16px;">
             business name (if any) 
             <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
                 <span style="font-weight:bold; position: relative; z-index: 1;">
@@ -1400,7 +1413,7 @@ function printPermit(permitId) {
         </div>
 
         <!-- BUSINESS ADDRESS INLINE -->
-        <div style="margin-top:15px; text-align:center; font-size:16px;">
+        <div style="margin-top:6px; text-align:center; font-size:16px;">
             business address at 
             <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
                 <span style="position: relative; z-index: 1;">
@@ -1412,7 +1425,7 @@ function printPermit(permitId) {
         </div>
 
         <!-- EXPIRY DATE INLINE -->
-        <div style="margin-top:15px; text-align:center; font-size:16px;">
+        <div style="margin-top:6px; text-align:center; font-size:16px;">
             This permit expires on 
             <span style="display: inline-block; position: relative; width: 300px; text-align: center;">
                 <span style="font-weight:bold; position: relative; z-index: 1;">
@@ -1424,25 +1437,25 @@ function printPermit(permitId) {
         </div>
 
         <!-- QUARTER CHECKBOXES -->
-        <div style="margin-top:15px; text-align:center; font-size:16px;">
+        <div style="margin-top:6px; text-align:center; font-size:16px;">
             Applicable Quarter: <br>
 
-            <label class="custom-checkbox"><em>1<sup>st</sup> Quarter</em>
+            <label class="custom-checkbox" style="margin-top:10px;"><em>1<sup>st</sup> Quarter</em>
                 <input type="checkbox" ${isFirstQuarter ? 'checked' : ''} disabled>
                 <span class="checkmark"></span>
             </label>
 
-            <label class="custom-checkbox"><em>2<sup>nd</sup> Quarter</em>
+            <label class="custom-checkbox style="margin-top:10px;"><em>2<sup>nd</sup> Quarter</em>
                 <input type="checkbox" ${isSecondQuarter ? 'checked' : ''} disabled>
                 <span class="checkmark"></span>
             </label>
 
-            <label class="custom-checkbox"><em>3<sup>rd</sup> Quarter</em>
+            <label class="custom-checkbox style="margin-top:10px;" ><em>3<sup>rd</sup> Quarter</em>
                 <input type="checkbox" ${isThirdQuarter ? 'checked' : ''} disabled>
                 <span class="checkmark"></span>
             </label>
 
-            <label class="custom-checkbox"><em>4<sup>th</sup> Quarter</em>
+            <label class="custom-checkbox style="margin-top:10px;"><em>4<sup>th</sup> Quarter</em>
                 <input type="checkbox" ${isFourthQuarter ? 'checked' : ''} disabled>
                 <span class="checkmark"></span>
             </label>
@@ -1453,15 +1466,14 @@ function printPermit(permitId) {
         </div>
 
         <!-- ISSUE DATE -->
-        <div style="margin-top:15px; text-align:center; font-size:16px;">
+        <div style="margin-top:6px; text-align:center; font-size:16px;">
             Issued this ${formattedIssueDate} at Palompon, Leyte, Philippines
         </div>
 
         <!-- MAYOR SIGNATURE -->
         <div style="margin-top:60px; text-align:right; font-size:16px;">
             <div style="display:inline-block; text-align:center;">
-                <div style="
-                    border-bottom:1px solid black;
+               <div style="
                     padding-bottom:2px;
                     width:260px;
                     font-weight:bold;
@@ -1474,14 +1486,14 @@ function printPermit(permitId) {
                     ${mayor || '&nbsp;'}
                 </div>
 
-                <div style="margin-top:3px; text-transform:uppercase;">
+                <div style="margin-top:0px; text-transform:uppercase;">
                     MUNICIPAL MAYOR
                 </div>
             </div>
         </div>
 
         <!-- PAYMENT & ISSUANCE INFO -->
-        <div style="margin-top:60px; text-align:left; font-size:16px;">
+        <div style="margin-top:65px; text-align:left; font-size:16px; margin-left:10px;">
             <div>
                 Amount Paid: 
                 <span style="display:inline-block; width:120px; margin-left:5px;">
@@ -1527,27 +1539,28 @@ function printPermit(permitId) {
                     font-size: 16px;
                 }
                 
-                .print-container {
-                    padding: 40px;
-                    width: 210mm;
-                    min-height: 297mm;
+               .print-container {
+                    padding: 30px 120px;
+                    width: 216mm;
+                    min-height: 279mm;
                     margin: 0 auto;
                 }
-                
+
                 @media print {
                     @page {
-                        size: A4;
+                        size: letter;
                         margin: 0;
                     }
                     
                     body, html {
-                        width: 210mm;
-                        height: 297mm;
+                        width: 216mm;
+                        height: 279mm;
                         margin: 0;
                         padding: 0;
                     }
 
                     .print-container {
+                        padding: 30px 120px;
                         page-break-after: avoid;
                         page-break-before: avoid;
                         page-break-inside: avoid;
