@@ -153,11 +153,7 @@ MEDIA_URL  = '/media/'
 MEDIA_ROOT = _writable('media')          # ← writable location
 
 # Add this after your CLOUDINARY_STORAGE block
-if os.environ.get('CLOUDINARY_CLOUD_NAME'):
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Cloudinary — only activate when env vars are present (Render has them, local doesn't)
 CLOUDINARY_STORAGE = {
