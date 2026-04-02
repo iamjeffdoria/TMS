@@ -3,7 +3,11 @@
 # REPLACE your existing settings.py with this file.
 # It auto-detects whether it's running as a frozen EXE and
 # adjusts all file-system paths accordingly.
+from dotenv import load_dotenv
+load_dotenv()
 import dj_database_url
+import pymysql
+pymysql.install_as_MySQLdb()
 
 import os
 import sys
@@ -40,6 +44,8 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(" ")
 INSTALLED_APPS = [
     'myapp.apps.MyappConfig',
     'jazzmin',
+    'cloudinary',
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -83,12 +89,33 @@ TEMPLATES = [
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
 # ── Database ──────────────────────────────────────────────────────────────────
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': _writable('db.sqlite3'),        # ← writable location
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': _writable('db.sqlite3'),        # ← writable location
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'potpotdb',        # Your database name
+        'USER': 'potpotuser',      # Your MySQL username
+        'PASSWORD': 'StrongPassword123',  # Your MySQL password
+        'HOST': 'localhost',       # Usually localhost
+        'PORT': '3306',            # Default MySQL port
+        'NAME': 'potpotdb',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
+        },
     }
-}
+
 
 
 database_url = os.environ.get("DATABASE_URL")
@@ -124,6 +151,21 @@ if os.path.isdir(_dev_static):
 # ── Media files ───────────────────────────────────────────────────────────────
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = _writable('media')          # ← writable location
+
+# Cloudinary — only activate when env vars are present (Render has them, local doesn't)
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY':    os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+}
+if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY':    os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+}
 
 # ── Misc ──────────────────────────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
