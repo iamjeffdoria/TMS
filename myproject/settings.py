@@ -154,7 +154,7 @@ MEDIA_ROOT = _writable('media')          # ← writable location
 
 # Add this after your CLOUDINARY_STORAGE block
 
-
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Cloudinary — only activate when env vars are present (Render has them, local doesn't)
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
