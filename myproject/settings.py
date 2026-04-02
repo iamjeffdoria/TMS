@@ -154,13 +154,18 @@ MEDIA_ROOT = _writable('media')          # ← writable location
 # Add this after your CLOUDINARY_STORAGE block
 
 # Cloudinary — only activate when env vars are present (Render has them, local doesn't)
-if os.environ.get('CLOUDINARY_CLOUD_NAME'):
-    INSTALLED_APPS += ['cloudinary', 'cloudinary_storage']
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-        'API_KEY':    os.environ.get('CLOUDINARY_API_KEY', ''),
-        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
-    }
+# ── Cloudinary ────────────────────────────────────────────────────────────────
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY':    os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+}
+
+# Activate if cloud name is available
+_cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
+if _cloud_name and _cloud_name.strip():
+    if 'cloudinary' not in INSTALLED_APPS:
+        INSTALLED_APPS += ['cloudinary', 'cloudinary_storage']
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
