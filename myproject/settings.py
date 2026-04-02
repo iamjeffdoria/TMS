@@ -8,6 +8,7 @@ load_dotenv()
 import dj_database_url
 import pymysql
 pymysql.install_as_MySQLdb()
+import logging
 
 import os
 import sys
@@ -186,3 +187,10 @@ LOGGING = {
         'null': {'class': 'logging.NullHandler'},
     },
 }
+
+logger = logging.getLogger(__name__)
+if _cloud_name and _cloud_name.strip():
+    logger.warning(f"✅ Cloudinary ACTIVE: {_cloud_name}")
+    logger.warning(f"   DEFAULT_FILE_STORAGE = {DEFAULT_FILE_STORAGE}")
+else:
+    logger.warning("❌ Cloudinary NOT active — missing CLOUDINARY_CLOUD_NAME")
