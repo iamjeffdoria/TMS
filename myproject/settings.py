@@ -4,7 +4,7 @@
 # It auto-detects whether it's running as a frozen EXE and
 # adjusts all file-system paths accordingly.
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=False)
 import dj_database_url
 import pymysql
 pymysql.install_as_MySQLdb()
