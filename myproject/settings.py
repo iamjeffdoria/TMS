@@ -140,7 +140,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Where collectstatic writes files (also bundled into the EXE)
-STATIC_ROOT = _resource('staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
 
 # Extra locations Django's staticfiles finder checks during development
 STATICFILES_DIRS = []
