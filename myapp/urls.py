@@ -5,7 +5,8 @@ from django.conf.urls.static import static
 from .views import export_mayors_permit, import_mayors_permit
 from rest_framework.routers import DefaultRouter
 from .api import TricycleViewSet
-
+from django.views.static import serve
+from django.urls import re_path
 
 router = DefaultRouter()
 router.register(r'api/tricycles', TricycleViewSet)
@@ -89,9 +90,10 @@ urlpatterns = [
 # SERVE STATIC AND MEDIA FILES — NO if DEBUG condition!
 # This works in both development AND the EXE on any PC
 # ============================================================
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
+urlpatterns += [
+    re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+    re_path(r'^media/(?P<path>.*)$',  serve, {'document_root': settings.MEDIA_ROOT}),
+]
 
 
 

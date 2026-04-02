@@ -12,6 +12,15 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+
+    @media (max-width: 576px) {
+    #viewPermitModal .modal-dialog {
+        margin: 0.5rem;
+    }
+    #viewPermitModal .modal-content {
+        border-radius: 10px;
+    }
+}
 </style>
 <div class="card shadow mb-4">
     <!-- Card Header with Buttons -->
@@ -729,69 +738,118 @@ $(document).on('click', '.btn-view', function() {
     var status = $(this).data('status');
     var remarks = $(this).data('remarks');
     var toda = $(this).data('toda');
-    
-    var statusBadgeClass = 'badge-soft-secondary';
-    var statusBadgeStyle = 'background: #e2e8f0; color: #64748b;';
-    
-    if (status.toLowerCase().includes('active') || status.toLowerCase().includes('registered') || status.toLowerCase() === 'new') {
-        statusBadgeClass = 'badge-soft-success';
-        statusBadgeStyle = 'background: #e1fcef; color: #147d64;';
-    }  else if (status.toLowerCase() === 'renewal') {
-        badgeClass = 'badge-warning';   // ← ADD THIS BLOCK
-    }  else if (status.toLowerCase().includes('expired')) {
-        statusBadgeClass = 'badge-soft-danger';
-        statusBadgeStyle = 'background: #ffe5e5; color: #c41e3a;';
+
+    var statusBadgeStyle = 'background:#e2e8f0;color:#64748b;';
+    if (status.toLowerCase() === 'new' || status.toLowerCase().includes('registered') || status.toLowerCase().includes('active')) {
+        statusBadgeStyle = 'background:#e1fcef;color:#147d64;';
+    } else if (status.toLowerCase().includes('expired')) {
+        statusBadgeStyle = 'background:#ffe5e5;color:#c41e3a;';
     } else if (status.toLowerCase().includes('renewed')) {
-        statusBadgeClass = 'badge-soft-info';
-        statusBadgeStyle = 'background: #e0f2fe; color: #0369a1;';
-    } else if (status.toLowerCase().includes('pending')) {
-        statusBadgeClass = 'badge-soft-warning';
-        statusBadgeStyle = 'background: #fef3c7; color: #d97706;';
+        statusBadgeStyle = 'background:#e0f2fe;color:#0369a1;';
+    } else if (status.toLowerCase().includes('renewal')) {
+        statusBadgeStyle = 'background:#fef3c7;color:#d97706;';
+    } else if (status.toLowerCase().includes('inactive')) {
+        statusBadgeStyle = 'background:#f1f5f9;color:#475569;';
     }
-    
+
+    var remarksText = remarks === 'with_mayors_permit' ? "With Mayor's Permit"
+                    : remarks === 'without_mayors_permit' ? "Without Mayor's Permit"
+                    : remarks || '—';
+
     var modalHTML = `
-        <tr class="border-bottom">
-            <td class="py-3 text-muted font-weight-medium" style="width: 25%;">Body Number</td>
-            <td class="py-3 font-weight-bold text-dark" style="width: 25%;">${bodyNumber}</td>
-            <td class="py-3 text-muted font-weight-medium" style="width: 25%;">Name</td>
-            <td class="py-3 font-weight-bold text-dark" style="width: 25%;">${name}</td>
-        </tr>
-        <tr class="border-bottom">
-            <td class="py-3 text-muted font-weight-medium">Address</td>
-            <td class="py-3 font-weight-bold text-dark">${address}</td>
-            <td class="py-3 text-muted font-weight-medium">Make/Kind</td>
-            <td class="py-3 font-weight-bold text-dark">${makeKind}</td>
-        </tr>
-        <tr class="border-bottom">
-            <td class="py-3 text-muted font-weight-medium">Engine/Motor No</td>
-            <td class="py-3 font-weight-bold text-dark">${engineMotor || '-'}</td>
-            <td class="py-3 text-muted font-weight-medium">Chassis No</td>
-            <td class="py-3 font-weight-bold text-dark">${chassis || '-'}</td>
-        </tr>
-        <tr class="border-bottom">
-            <td class="py-3 text-muted font-weight-medium">Plate No</td>
-            <td class="py-3 font-weight-bold text-dark">${plateNo}</td>
-            <td class="py-3 text-muted font-weight-medium">Date Registered</td>
-            <td class="py-3 font-weight-bold text-dark">${formatTriDate(dateRegistered)}</td>
-        </tr>
-        <tr class="border-bottom">
-            <td class="py-3 text-muted font-weight-medium">Date Expired</td>
-            <td class="py-3 font-weight-bold text-dark">${formatTriDate(dateExpired)}</td>
-            <td class="py-3 text-muted font-weight-medium">Status</td>
-            <td class="py-3">
-                <span class="badge badge-pill ${statusBadgeClass}" style="${statusBadgeStyle}">${status}</span>
-            </td>
-        </tr>
-      <tr class="border-bottom">
-            <td class="py-3 text-muted font-weight-medium">Remarks</td>
-            <td class="py-3 font-weight-bold text-dark" colspan="3">${remarks || 'No remarks'}</td>
-        </tr>
-        <tr>
-            <td class="py-3 text-muted font-weight-medium">TODA</td>
-            <td class="py-3 font-weight-bold text-dark" colspan="3">${toda || '—'}</td>
-        </tr>
+        <div class="px-3 pb-3">
+            <div class="row g-2">
+
+                <div class="col-6">
+                    <div class="p-2 rounded" style="background:#f8fafc;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Body Number</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.95rem;">${bodyNumber || '—'}</div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="p-2 rounded" style="background:#f8fafc;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Plate No</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.95rem;">${plateNo || '—'}</div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="p-2 rounded" style="background:#f8fafc;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Name</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.95rem;">${name || '—'}</div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="p-2 rounded" style="background:#f8fafc;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Address</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.95rem;">${address || '—'}</div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="p-2 rounded" style="background:#f8fafc;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Make/Kind</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.95rem;">${makeKind || '—'}</div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="p-2 rounded" style="background:#f8fafc;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Status</div>
+                        <div>
+                            <span class="badge badge-pill" style="${statusBadgeStyle}font-size:0.8rem;padding:5px 10px;">${status || '—'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="p-2 rounded" style="background:#f8fafc;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Engine/Motor No</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.95rem;word-break:break-all;">${engineMotor || '—'}</div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="p-2 rounded" style="background:#f8fafc;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Chassis No</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.95rem;word-break:break-all;">${chassis || '—'}</div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="p-2 rounded" style="background:#e1fcef;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Date Registered</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.9rem;">${formatTriDate(dateRegistered)}</div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="p-2 rounded" style="background:#ffe5e5;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Date Expired</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.9rem;">${formatTriDate(dateExpired)}</div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="p-2 rounded" style="background:#f8fafc;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">Remarks</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.9rem;">${remarksText}</div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="p-2 rounded" style="background:#f8fafc;">
+                        <div class="text-muted" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.5px;">TODA</div>
+                        <div class="font-weight-bold text-dark" style="font-size:0.9rem;">${toda || '—'}</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     `;
-    
+
     $('#viewModalContent').html(modalHTML);
     $('#viewPermitModal').modal('show');
 });
