@@ -85,6 +85,7 @@ urlpatterns = [
     path('mtop/delete/', views.delete_mtop, name='delete-mtop'),
     path('franchise/delete/', views.delete_franchise, name='delete-franchise'),
     path('debug-storage/', views.debug_storage, name='debug-storage'),
+    path('debug-image/', views.debug_image, name='debug-image'),
 
 ]
 

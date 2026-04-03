@@ -4057,3 +4057,16 @@ def debug_storage(request):
     }
     from django.http import JsonResponse
     return JsonResponse(info)
+
+def debug_image(request):
+    from django.http import JsonResponse
+    from .models import IDCard
+    cards = IDCard.objects.all()
+    data = []
+    for card in cards:
+        data.append({
+            'name': card.name,
+            'image_name': str(card.image),
+            'image_url': card.image.url if card.image else None,
+        })
+    return JsonResponse({'cards': data})
