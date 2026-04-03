@@ -1578,7 +1578,8 @@ def update_idcard(request):
             if request.FILES.get('image'):
                 if card.image:
                     card.image.delete(save=False)
-                card.image = request.FILES['image']
+                image = request.FILES['image']
+                card.image.save(image.name, image, save=False)  # save=False because card.save() is called below
             
             # Attach current user info for the signal to use
             user_type = request.session.get('user_type')  # 'admin' or 'superadmin'
@@ -1615,9 +1616,10 @@ def add_idcard(request):
         weight = request.POST.get("weight")
         date_issued = request.POST.get("date_issued")
         expiration_date = request.POST.get("expiration_date")
-        image = request.FILES.get("image")  # Optional image
+        image = request.FILES.get("image")
 
-        IDCard.objects.create(
+        # Create card first WITHOUT image
+        card = IDCard.objects.create(
             name=name,
             address=address,
             id_number=id_number,
@@ -1628,8 +1630,11 @@ def add_idcard(request):
             weight=weight if weight else None,
             date_issued=date_issued,
             expiration_date=expiration_date,
-            image=image if image else None,  # Only set if image exists
         )
+
+        # Then save image separately so Cloudinary storage backend handles it properly
+        if image:
+            card.image.save(image.name, image, save=True)
 
         messages.success(request, "ID Card added successfully!")
         return JsonResponse({"success": True})
