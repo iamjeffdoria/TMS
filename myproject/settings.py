@@ -45,6 +45,8 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(" ")
 INSTALLED_APPS = [
     'myapp.apps.MyappConfig',
     'jazzmin',
+    'cloudinary',
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -162,12 +164,14 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
 }
 
-# Activate if cloud name is available
-_cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
-if _cloud_name and _cloud_name.strip():
-    if 'cloudinary' not in INSTALLED_APPS:
-        INSTALLED_APPS += ['cloudinary', 'cloudinary_storage']
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+import cloudinary
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
+)
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
 # ── Misc ──────────────────────────────────────────────────────────────────────
