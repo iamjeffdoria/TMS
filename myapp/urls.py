@@ -7,6 +7,7 @@ from rest_framework.routers import DefaultRouter
 from .api import TricycleViewSet
 from django.views.static import serve
 from django.urls import re_path
+import os
 
 router = DefaultRouter()
 router.register(r'api/tricycles', TricycleViewSet)
@@ -93,13 +94,13 @@ urlpatterns = [
 # ============================================================
 urlpatterns += [
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
-    re_path(r'^media/(?P<path>.*)$',  serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 
-
-
-
-
+# Only serve media locally — on Render, Cloudinary handles media files
+if not os.environ.get('CLOUDINARY_CLOUD_NAME'):
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]
 
 
 
