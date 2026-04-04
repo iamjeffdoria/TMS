@@ -84,26 +84,14 @@ urlpatterns = [
     path('delete-permit-tri/', views.delete_permit_tri, name='delete-permit-tri'),
     path('mtop/delete/', views.delete_mtop, name='delete-mtop'),
     path('franchise/delete/', views.delete_franchise, name='delete-franchise'),
-    path('debug-storage/', views.debug_storage, name='debug-storage'),
-    path('debug-image/', views.debug_image, name='debug-image'),
+
 
 ]
 
-# ============================================================
-# SERVE STATIC AND MEDIA FILES — NO if DEBUG condition!
-# This works in both development AND the EXE on any PC
-# ============================================================
 urlpatterns += [
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+    re_path(r'^media/(?P<path>.*)$',  serve, {'document_root': settings.MEDIA_ROOT}),
 ]
-
-# Only serve media locally — on Render, Cloudinary handles media files
-if not os.environ.get('CLOUDINARY_CLOUD_NAME'):
-    urlpatterns += [
-        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
-    ]
-
-
 
 
 

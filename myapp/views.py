@@ -1578,8 +1578,7 @@ def update_idcard(request):
             if request.FILES.get('image'):
                 if card.image:
                     card.image.delete(save=False)
-                image = request.FILES['image']
-                card.image.save(image.name, image, save=False)  # save=False because card.save() is called below
+                card.image = request.FILES['image']
             
             # Attach current user info for the signal to use
             user_type = request.session.get('user_type')  # 'admin' or 'superadmin'
@@ -1616,10 +1615,9 @@ def add_idcard(request):
         weight = request.POST.get("weight")
         date_issued = request.POST.get("date_issued")
         expiration_date = request.POST.get("expiration_date")
-        image = request.FILES.get("image")
+        image = request.FILES.get("image")  # Optional image
 
-        # Create card first WITHOUT image
-        card = IDCard.objects.create(
+        IDCard.objects.create(
             name=name,
             address=address,
             id_number=id_number,
@@ -1630,11 +1628,8 @@ def add_idcard(request):
             weight=weight if weight else None,
             date_issued=date_issued,
             expiration_date=expiration_date,
+            image=image if image else None,  # Only set if image exists
         )
-
-        # Then save image separately so Cloudinary storage backend handles it properly
-        if image:
-            card.image.save(image.name, image, save=True)
 
         messages.success(request, "ID Card added successfully!")
         return JsonResponse({"success": True})
@@ -4044,29 +4039,3 @@ def delete_tricycle(request):
     except Exception as e:
         messages.error(request, f'An error occurred: {str(e)}')
         return JsonResponse({'success': False, 'error': str(e)})
-
-    
-def debug_storage(request):
-    from django.conf import settings
-    info = {
-        'DEFAULT_FILE_STORAGE': getattr(settings, 'DEFAULT_FILE_STORAGE', 'NOT SET'),
-        'CLOUDINARY_CLOUD_NAME': 'SET' if settings.CLOUDINARY_STORAGE.get('CLOUD_NAME') else 'NOT SET',
-        'CLOUDINARY_API_KEY': 'SET' if settings.CLOUDINARY_STORAGE.get('API_KEY') else 'NOT SET',
-        'CLOUDINARY_API_SECRET': 'SET' if settings.CLOUDINARY_STORAGE.get('API_SECRET') else 'NOT SET',
-        'INSTALLED_APPS': list(settings.INSTALLED_APPS),
-    }
-    from django.http import JsonResponse
-    return JsonResponse(info)
-
-def debug_image(request):
-    from django.http import JsonResponse
-    from .models import IDCard
-    cards = IDCard.objects.all()
-    data = []
-    for card in cards:
-        data.append({
-            'name': card.name,
-            'image_name': str(card.image),
-            'image_url': card.image.url if card.image else None,
-        })
-    return JsonResponse({'cards': data})
