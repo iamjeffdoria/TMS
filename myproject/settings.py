@@ -147,10 +147,31 @@ _dev_static = str(BASE_DIR / 'static')
 if os.path.isdir(_dev_static):
     STATICFILES_DIRS = [_dev_static]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+
 # ── Media files ───────────────────────────────────────────────────────────────
-MEDIA_URL  = '/media/'
-MEDIA_ROOT = _writable('media')          # ← writable location
+# ── Media / Supabase Storage ──────────────────────────────────────────────────
+AWS_ACCESS_KEY_ID       = os.environ.get("SUPABASE_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY   = os.environ.get("SUPABASE_SECRET_KEY")
+AWS_STORAGE_BUCKET_NAME = 'media'
+AWS_S3_REGION_NAME      = os.environ.get("SUPABASE_REGION", "ap-southeast-1")
+AWS_S3_ENDPOINT_URL = "https://vxdrvbqkqzeowcveidue.supabase.co/storage/v1/s3"
+AWS_S3_ADDRESSING_STYLE = "path"
+AWS_DEFAULT_ACL         = "public-read"
+AWS_QUERYSTRING_AUTH    = False
+
+STORAGES = {
+    "default": {
+        "BACKEND": "myproject.storage_backends.SupabaseMediaStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
+
+SUPABASE_PROJECT_ID = os.environ.get("SUPABASE_PROJECT_ID")
+MEDIA_URL = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/media/"
+MEDIA_ROOT = _writable('media')
 
 
 
@@ -172,3 +193,4 @@ LOGGING = {
         'null': {'class': 'logging.NullHandler'},
     },
 }
+
