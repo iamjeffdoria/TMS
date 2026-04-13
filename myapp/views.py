@@ -804,6 +804,20 @@ def admin_management_datatable(request):
         'data': data
     })
 
+@superadmin_required
+def delete_admin(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid method'})
+    
+    admin_id = request.POST.get('admin_id')
+    try:
+        admin = Admin.objects.get(id=admin_id)
+        admin.delete()
+        return JsonResponse({'success': True})
+    except Admin.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Admin not found'})
+
+        
 @require_POST
 @superadmin_required
 def add_admin(request):

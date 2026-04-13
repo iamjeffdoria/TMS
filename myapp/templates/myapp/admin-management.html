@@ -479,11 +479,30 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // ── DELETE ────────────────────────────────────────────────────────
-    $('#dataTable tbody').on('click', '.btn-admin-delete', function (e) {
-        e.preventDefault();
-        if (!confirm('Are you sure you want to delete this admin?')) return;
-        // wire up your delete URL here if you have one
+$('#dataTable tbody').on('click', '.btn-admin-delete', function (e) {
+    e.preventDefault();
+    var adminId = this.dataset.adminId;
+    if (!confirm('Are you sure you want to delete this admin?')) return;
+
+    $.ajax({
+        url: '/delete-admin/',
+        type: 'POST',
+        data: {
+            admin_id: adminId,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#dataTable').DataTable().ajax.reload();
+            } else {
+                alert('Error: ' + (response.error || 'Could not delete admin.'));
+            }
+        },
+        error: function() {
+            alert('Server error. Please try again.');
+        }
     });
+});
 
 });
 </script>

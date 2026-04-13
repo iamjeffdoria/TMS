@@ -81,6 +81,8 @@ urlpatterns = [
 
     path('tricycles/list/', views.get_tricycles, name='get-tricycles'),
     path('admin-management/datatable/', views.admin_management_datatable, name='admin-management-datatable'),
+    path('admin-management/datatable/', views.admin_management_datatable, name='admin-management-datatable'),
+    path('delete-admin/', views.delete_admin, name='delete-admin'),
     path('', include(router.urls)),
     path('delete-tricycle/', views.delete_tricycle, name='delete-tricycle'),
     path('delete-permit-tri/', views.delete_permit_tri, name='delete-permit-tri'),
