@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin-list/', views.admin_list, name='admin-list'),
     path('mayors-permit/', views.mayors_permit, name='mayors-permit'),
     path('add-mayors-permit/', views.add_mayors_permit, name='add-mayors-permit'),
+    path('mayors-permit/delete/<int:permit_id>/', views.delete_mayors_permit, name='delete-mayors-permit'),
     path('id-cards/', views.id_cards, name='id-cards'),
     path('mayors-permit/update/<int:permit_id>/', views.update_mayors_permit, name='update-mayors-permit'),
     path('permit-renewal/', views.permit_renewal, name='permit-renewal'),
@@ -38,6 +39,7 @@ urlpatterns = [
     path('sample-print/', views.sample_print, name='sample-print'),
     path('api/permits/<str:control_no>/', views.permit_detail_api),
     path("add-idcard/", views.add_idcard, name="add-idcard"),
+    path('idcards/delete/<int:card_id>/', views.delete_idcard, name='delete-idcard'),
     path('add-mayors-permit-tri/', views.add_permit_tri, name='add-mayors-permit-tri'),
     path('mayors-permit-history/', views.mayors_permit_history, name='mayors-permit-history'),
     path('update-permit/<int:permit_id>/', views.update_permit_tri, name='update_permit'),
@@ -84,7 +86,8 @@ urlpatterns = [
     path('delete-permit-tri/', views.delete_permit_tri, name='delete-permit-tri'),
     path('mtop/delete/', views.delete_mtop, name='delete-mtop'),
     path('franchise/delete/', views.delete_franchise, name='delete-franchise'),
-
+    path('health/', views.health),
+    
 
 ]
 

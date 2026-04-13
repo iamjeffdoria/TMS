@@ -1043,6 +1043,9 @@ def mayors_permit_datatable(request):
             <a href="#" class="btn btn-sm btn-warning btn-history" data-id="{permit.id}" title="Status history">
                 <i class="fas fa-history"></i>
             </a>
+            <a href="#" class="btn btn-sm btn-danger btn-delete-permit" data-id="{permit.id}" data-name="{permit.name}" title="Delete">
+                <i class="fas fa-trash"></i>
+            </a>
         </div>
         '''
         
@@ -1071,6 +1074,21 @@ def mayors_permit_datatable(request):
         'recordsFiltered': filtered_records,
         'data': data
     })
+
+def delete_mayors_permit(request, permit_id):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    if request.method == 'POST':
+        try:
+            permit = MayorsPermit.objects.get(id=permit_id)
+            permit_name = permit.name
+            permit.delete()
+            messages.success(request, f'Mayor\'s Permit of "{permit_name}" has been deleted successfully.')
+            return JsonResponse({'status': 'success'})
+        except MayorsPermit.DoesNotExist:
+            messages.error(request, 'Permit not found.')
+            return JsonResponse({'status': 'error', 'message': 'Permit not found'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
 
 def get_permit_history(request, permit_id):
     """Get history data for a specific permit"""
@@ -1324,7 +1342,7 @@ def id_cards_datatable(request):
                 title="Update">
                 <i class="fas fa-edit"></i>
             </button>
-            <button type="button" class="btn btn-danger btn-delete-card" data-id="{card.id}" title="Delete">
+            <button type="button" class="btn btn-danger btn-delete-card" data-id="{card.id}" data-name="{card.name}" title="Delete">
                 <i class="fas fa-trash"></i>
             </button>
             <button type="button" class="btn btn-secondary btn-print-card"
@@ -1635,6 +1653,23 @@ def add_idcard(request):
         return JsonResponse({"success": True})
 
     return JsonResponse({"success": False})
+
+
+def delete_idcard(request, card_id):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    if request.method == 'POST':
+        try:
+            card = IDCard.objects.get(id=card_id)
+            card_name = card.name
+            card.delete()
+            messages.success(request, f'ID card of "{card_name}" has been deleted successfully.')
+            return JsonResponse({'status': 'success'})
+        except IDCard.DoesNotExist:
+            messages.error(request, 'ID card not found.')
+            return JsonResponse({'status': 'error', 'message': 'Card not found'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
 
 
 def permit_renewal(request):
@@ -4039,3 +4074,6 @@ def delete_tricycle(request):
     except Exception as e:
         messages.error(request, f'An error occurred: {str(e)}')
         return JsonResponse({'success': False, 'error': str(e)})
+    
+def health(request):
+    return HttpResponse("OK", status=200)

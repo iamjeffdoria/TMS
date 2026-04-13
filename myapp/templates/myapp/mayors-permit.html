@@ -930,6 +930,38 @@
         .catch(err => console.error(err));
     });
 
+
+     // ── DELETE ────────────────────────────────────────────────────────
+    let pendingDeletePermitId = null;
+
+    $('#dataTable tbody').on('click', '.btn-delete-permit', function(e) {
+        e.preventDefault();
+        pendingDeletePermitId = $(this).data('id');
+        const name = $(this).data('name') || 'this record';
+        document.getElementById('delete-permit-name').textContent = name;
+        $('#deletePermitModal').modal('show');
+    });
+
+    document.getElementById('confirmDeletePermitBtn').addEventListener('click', function () {
+        if (!pendingDeletePermitId) return;
+        fetch(`/mayors-permit/delete/${pendingDeletePermitId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                $('#deletePermitModal').modal('hide');
+                pendingDeletePermitId = null;
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(err => console.error(err));
+    });
+
+
     // History button - use event delegation
 $('#dataTable tbody').on('click', '.btn-history', function(e) {
     e.preventDefault();
@@ -1017,6 +1049,34 @@ $('#dataTable tbody').on('click', '.btn-history', function(e) {
     </script>
   
 
+  <!-- ===================== DELETE CONFIRM MODAL ===================== -->
+<div class="modal fade" id="deletePermitModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="fas fa-trash mr-2"></i> Delete Mayor's Permit</h5>
+        <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body text-center">
+        <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+        <p>Are you sure you want to delete the permit of:</p>
+        <h5 id="delete-permit-name" class="font-weight-bold text-danger"></h5>
+        <small class="text-muted">This action cannot be undone.</small>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeletePermitBtn">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
 <!-- Import Modal -->
 <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
