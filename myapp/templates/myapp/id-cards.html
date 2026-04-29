@@ -820,16 +820,37 @@ document.addEventListener("DOMContentLoaded", function () {
         preparePrint(d.image, d.name, d.idnumber, d.address, d.dob, d.gender, d.ornumber, d.height, d.weight, d.dateissued, d.expiry, d.dmonate);
     });
 
-    // ── SAVE ADD ──────────────────────────────────────────────────────
-    document.getElementById("saveIdCardBtn").addEventListener("click", function () {
-        fetch("{% url 'add-idcard' %}", {
-            method: "POST",
-            body: new FormData(document.getElementById("idCardForm")),
-            headers: { "X-CSRFToken": "{{ csrf_token }}" }
-        })
-        .then(r => { if (r.ok) { $('#addIdCardModal').modal('hide'); location.reload(); } })
-        .catch(err => console.error(err));
+// ── SAVE ADD ──────────────────────────────────────────────────────
+document.getElementById("saveIdCardBtn").addEventListener("click", function () {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Saving...';
+    document.getElementById('sidebar-loader').classList.add('active');
+
+    fetch("{% url 'add-idcard' %}", {
+        method: "POST",
+        body: new FormData(document.getElementById("idCardForm")),
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(r => {
+        if (r.ok) {
+            $('#addIdCardModal').modal('hide');
+            location.reload(); // loader stays until page reloads
+        } else {
+            document.getElementById('sidebar-loader').classList.remove('active');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Save';
+            alert('Something went wrong. Please try again.');
+        }
+    })
+    .catch(err => {
+        document.getElementById('sidebar-loader').classList.remove('active');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Save';
+        console.error(err);
+        alert('Something went wrong. Please check your connection.');
     });
+});
 
 // ── SAVE UPDATE ───────────────────────────────────────────────────
 document.getElementById("updateIdCardBtn").addEventListener("click", function () {

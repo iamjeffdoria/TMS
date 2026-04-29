@@ -1181,62 +1181,71 @@ def add_mayors_permit(request):
 
     return JsonResponse({"success": False, "error": "Invalid request method."})
 
-
 def update_mayors_permit(request, permit_id):
+    if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=401)
 
-    permit = get_object_or_404(MayorsPermit, id=permit_id)
-    old_status = permit.status
-    # Extract POST datar
-    control_no = request.POST.get("control_no")
-    name = request.POST.get("name")
-    address = request.POST.get("address")
-    business_name = request.POST.get("business_name")
-    motorized_operation = request.POST.get("motorized_operation")
-    or_no = request.POST.get("or_no")
-    amount_paid = request.POST.get("amount_paid")
-    issue_date = parse_date(request.POST.get("issue_date"))
-    expiry_date = parse_date(request.POST.get("expiry_date"))
-    issued_at = request.POST.get("issued_at")
-    mayor = request.POST.get("mayor")
-    quarter = request.POST.get("quarter")
-    status = request.POST.get("status")
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
 
-    # Update fields
-    permit.control_no = control_no
-    permit.name = name
-    permit.address = address
-    permit.business_name = business_name
-    permit.motorized_operation = motorized_operation
-    permit.or_no = or_no
-    permit.amount_paid = amount_paid
-    permit.issue_date = issue_date
-    permit.expiry_date = expiry_date
-    permit.issued_at = issued_at
-    permit.mayor = mayor
-    permit.quarter = quarter
-    permit.status = status
+    try:
+        permit = get_object_or_404(MayorsPermit, id=permit_id)
+        old_status = permit.status
 
-    permit.save()
-  # ✅ RECORD STATUS CHANGES WITH USER INFO
-    if old_status != permit.status:
-        # Get user info from session
-        user_type = request.session.get('user_type')
-        user_id = request.session.get('superadmin_id') if user_type == 'superadmin' else request.session.get('admin_id')
-        user_name = request.session.get('full_name')
-        
-        MayorsPermitHistory.objects.create(
-            permit=permit,
-            previous_status=old_status,
-            new_status=permit.status,
-            remarks=f"Status changed from {old_status} to {permit.status}",
-            updated_by_type=user_type,
-            updated_by_id=user_id,
-            updated_by_name=user_name
-        )
-    messages.success(request, f"Permit for **{permit.name}** updated successfully!")
+        # Extract POST data
+        control_no = request.POST.get("control_no")
+        name = request.POST.get("name")
+        address = request.POST.get("address")
+        business_name = request.POST.get("business_name")
+        motorized_operation = request.POST.get("motorized_operation")
+        or_no = request.POST.get("or_no")
+        amount_paid_raw = request.POST.get("amount_paid", "").replace(",", "").strip()
+        amount_paid = float(amount_paid_raw) if amount_paid_raw else None
+        issue_date = parse_date(request.POST.get("issue_date")) if request.POST.get("issue_date") else None
+        expiry_date = parse_date(request.POST.get("expiry_date")) if request.POST.get("expiry_date") else None
+        issued_at = request.POST.get("issued_at")
+        mayor = request.POST.get("mayor")
+        quarter = request.POST.get("quarter")
+        status = request.POST.get("status")
 
-    # Return JSON for AJAX success
-    return JsonResponse({"success": True, "message": "Permit updated successfully!"})
+        # Update fields
+        permit.control_no = control_no
+        permit.name = name
+        permit.address = address
+        permit.business_name = business_name
+        permit.motorized_operation = motorized_operation
+        permit.or_no = or_no
+        permit.amount_paid = amount_paid
+        permit.issue_date = issue_date
+        permit.expiry_date = expiry_date
+        permit.issued_at = issued_at
+        permit.mayor = mayor
+        permit.quarter = quarter
+        permit.status = status
+
+        permit.save()
+
+        # Record status change history
+        if old_status != permit.status:
+            user_type = request.session.get('user_type')
+            user_id = request.session.get('superadmin_id') if user_type == 'superadmin' else request.session.get('admin_id')
+            user_name = request.session.get('full_name')
+
+            MayorsPermitHistory.objects.create(
+                permit=permit,
+                previous_status=old_status,
+                new_status=permit.status,
+                remarks=f"Status changed from {old_status} to {permit.status}",
+                updated_by_type=user_type,
+                updated_by_id=user_id,
+                updated_by_name=user_name
+            )
+
+        messages.success(request, f"Permit for {permit.name} updated successfully!")
+        return JsonResponse({"success": True, "message": "Permit updated successfully!"})
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 def id_cards(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):

@@ -858,78 +858,121 @@
 
         $("#updateModal").modal("show");
     });
+// Save Update
+document.getElementById("saveUpdateBtn").addEventListener("click", function () {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Saving...';
+    document.getElementById('sidebar-loader').classList.add('active');
 
-    // Save Update
-    document.getElementById("saveUpdateBtn").addEventListener("click", function () {
-        let id = document.getElementById("u_id").value;
-        let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    let id = document.getElementById("u_id").value;
+    let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
-        let formData = new FormData();
-        formData.append("control_no", document.getElementById("u_control_no").value);
-        formData.append("status", document.getElementById("u_status").value);
-        formData.append("name", document.getElementById("u_name").value);
-        formData.append("address", document.getElementById("u_address").value);
-        formData.append("business_name", document.getElementById("u_business_name").value);
-        formData.append("motorized_operation", document.getElementById("u_motorized").value);
-        formData.append("or_no", document.getElementById("u_or_no").value);
-        formData.append("amount_paid", document.getElementById("u_amount_paid").value);
-        formData.append("issue_date", document.getElementById("u_issue_date").value);
-        formData.append("expiry_date", document.getElementById("u_expiry_date").value);
-        formData.append("issued_at", document.getElementById("u_issued_at").value);
-        formData.append("mayor", document.getElementById("u_mayor").value);
-        formData.append("quarter", document.getElementById("u_quarter").value);
+    let formData = new FormData();
+    formData.append("control_no", document.getElementById("u_control_no").value);
+    formData.append("status", document.getElementById("u_status").value);
+    formData.append("name", document.getElementById("u_name").value);
+    formData.append("address", document.getElementById("u_address").value);
+    formData.append("business_name", document.getElementById("u_business_name").value);
+    formData.append("motorized_operation", document.getElementById("u_motorized").value);
+    formData.append("or_no", document.getElementById("u_or_no").value);
+    formData.append("amount_paid", document.getElementById("u_amount_paid").value);
+    formData.append("issue_date", document.getElementById("u_issue_date").value);
+    formData.append("expiry_date", document.getElementById("u_expiry_date").value);
+    formData.append("issued_at", document.getElementById("u_issued_at").value);
+    formData.append("mayor", document.getElementById("u_mayor").value);
+    formData.append("quarter", document.getElementById("u_quarter").value);
 
-        fetch(`/mayors-permit/update/${id}/`, {
-            method: "POST",
-            body: formData,
-            headers: { "X-CSRFToken": csrftoken },
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                $("#updateModal").modal("hide");
+    fetch(`/mayors-permit/update/${id}/`, {
+        method: "POST",
+        body: formData,
+        headers: { "X-CSRFToken": csrftoken },
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.text().then(text => {
+                throw new Error('Server error ' + res.status + ': ' + text.substring(0, 300));
+            });
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            $("#updateModal").modal("hide");
 
-                let alertBox = document.createElement("div");
-                alertBox.className = "alert alert-success mt-3";
-                alertBox.innerText = data.message;
-                document.querySelector(".card-body").prepend(alertBox);
+            let alertBox = document.createElement("div");
+            alertBox.className = "alert alert-success mt-3";
+            alertBox.innerText = data.message;
+            document.querySelector(".card-body").prepend(alertBox);
 
-                setTimeout(() => alertBox.remove(), 3000);
-                location.reload();  // Reload table instead of page refresh
-            }
-        });
+            setTimeout(() => alertBox.remove(), 3000);
+            location.reload(); // loader stays until page reloads
+        } else {
+            document.getElementById('sidebar-loader').classList.remove('active');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Save Changes';
+            alert(data.error || 'Failed to update permit.');
+        }
+    })
+    .catch(err => {
+        document.getElementById('sidebar-loader').classList.remove('active');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Save Changes';
+        console.error('Update error:', err.message);
+        alert('Error: ' + err.message);
     });
+});
 
-    // Add Permit
-    document.getElementById("saveAddPermitBtn").addEventListener("click", function() {
-        let form = document.getElementById("addPermitForm");
-        let formData = new FormData(form);
-        let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+// Add Permit
+document.getElementById("saveAddPermitBtn").addEventListener("click", function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Saving...';
+    document.getElementById('sidebar-loader').classList.add('active');
 
-        fetch("{% url 'add-mayors-permit' %}", {
-            method: "POST",
-            body: formData,
-            headers: { "X-CSRFToken": csrftoken },
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                $("#addPermitModal").modal("hide");
+    let form = document.getElementById("addPermitForm");
+    let formData = new FormData(form);
+    let csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
-                let alertBox = document.createElement("div");
-                alertBox.className = "alert alert-success mt-3";
-                alertBox.innerText = data.message;
-                document.querySelector(".card-body").prepend(alertBox);
+    fetch("{% url 'add-mayors-permit' %}", {
+        method: "POST",
+        body: formData,
+        headers: { "X-CSRFToken": csrftoken },
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.text().then(text => {
+                throw new Error('Server error ' + res.status + ': ' + text.substring(0, 300));
+            });
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            $("#addPermitModal").modal("hide");
 
-                setTimeout(() => alertBox.remove(), 3000);
-                location.reload();  // Reload table instead of page refresh
-            } else {
-                alert(data.error || "Failed to add permit.");
-            }
-        })
-        .catch(err => console.error(err));
+            let alertBox = document.createElement("div");
+            alertBox.className = "alert alert-success mt-3";
+            alertBox.innerText = data.message;
+            document.querySelector(".card-body").prepend(alertBox);
+
+            setTimeout(() => alertBox.remove(), 3000);
+            location.reload(); // loader stays until page reloads
+        } else {
+            document.getElementById('sidebar-loader').classList.remove('active');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Save Permit';
+            alert(data.error || "Failed to add permit.");
+        }
+    })
+    .catch(err => {
+        document.getElementById('sidebar-loader').classList.remove('active');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Save Permit';
+        console.error(err);
+        alert('Error: ' + err.message);
     });
-
+});
 
      // ── DELETE ────────────────────────────────────────────────────────
     let pendingDeletePermitId = null;
