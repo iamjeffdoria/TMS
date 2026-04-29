@@ -831,20 +831,38 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(err => console.error(err));
     });
 
-    // ── SAVE UPDATE ───────────────────────────────────────────────────
-    document.getElementById("updateIdCardBtn").addEventListener("click", function () {
-        fetch("{% url 'update-idcard' %}", {
-            method: "POST",
-            body: new FormData(document.getElementById("updateIdCardForm")),
-            headers: { "X-CSRFToken": "{{ csrf_token }}" }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.status === 'success') { $('#updateIdCardModal').modal('hide'); location.reload(); }
-            else alert('Error: ' + data.message);
-        })
-        .catch(err => console.error(err));
+// ── SAVE UPDATE ───────────────────────────────────────────────────
+document.getElementById("updateIdCardBtn").addEventListener("click", function () {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Updating...';
+    document.getElementById('sidebar-loader').classList.add('active');
+
+    fetch("{% url 'update-idcard' %}", {
+        method: "POST",
+        body: new FormData(document.getElementById("updateIdCardForm")),
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            $('#updateIdCardModal').modal('hide');
+            location.reload(); // loader stays until page reloads
+        } else {
+            document.getElementById('sidebar-loader').classList.remove('active');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Update';
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(err => {
+        document.getElementById('sidebar-loader').classList.remove('active');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Update';
+        console.error(err);
+        alert('Something went wrong. Please check your connection.');
     });
+});
 
     // ── PRINT TEMPLATE BUTTONS ────────────────────────────────────────
     document.getElementById("printId1Btn").addEventListener("click", function () { executePrint(1); });
