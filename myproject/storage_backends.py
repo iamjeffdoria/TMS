@@ -1,5 +1,6 @@
 # myproject/storage_backends.py
 from storages.backends.s3boto3 import S3Boto3Storage
+import os
 
 class SupabaseMediaStorage(S3Boto3Storage):
     bucket_name      = 'media'
@@ -8,4 +9,5 @@ class SupabaseMediaStorage(S3Boto3Storage):
     querystring_auth = False
 
     def url(self, name):
-        return f"https://vxdrvbqkqzeowcveidue.supabase.co/storage/v1/object/public/media/{name}"
+        project_id = os.environ.get("SUPABASE_PROJECT_ID")
+        return f"https://{project_id}.supabase.co/storage/v1/object/public/media/{name}"
