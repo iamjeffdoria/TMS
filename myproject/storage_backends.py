@@ -1,3 +1,4 @@
+# myproject/storage_backends.py
 from storages.backends.s3boto3 import S3Boto3Storage
 import os
 
@@ -6,10 +7,6 @@ class SupabaseMediaStorage(S3Boto3Storage):
     file_overwrite   = False
     default_acl      = None
     querystring_auth = False
-    object_parameters = {}
-
-    def exists(self, name):
-        return False  # skip HeadObject check
 
     def url(self, name):
         project_id = os.environ.get("SUPABASE_PROJECT_ID")
