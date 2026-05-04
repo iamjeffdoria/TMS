@@ -159,6 +159,7 @@ AWS_S3_ENDPOINT_URL = "https://erbggatnrmmujkjlydxe.supabase.co/storage/v1/s3"
 AWS_S3_ADDRESSING_STYLE = "path"
 AWS_DEFAULT_ACL         = "public-read"
 AWS_QUERYSTRING_AUTH    = False
+AWS_S3_SIGNATURE_VERSION = "s3v4"
 
 STORAGES = {
     "default": {

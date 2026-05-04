@@ -7,6 +7,11 @@ class SupabaseMediaStorage(S3Boto3Storage):
     file_overwrite   = False
     default_acl      = None
     querystring_auth = False
+    addressing_style = 'path'
+    object_parameters = {'ACL': 'public-read'}
+
+    def exists(self, name):
+        return False  # skips HeadObject (403) entirely
 
     def url(self, name):
         project_id = os.environ.get("SUPABASE_PROJECT_ID")
