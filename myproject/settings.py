@@ -139,7 +139,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Where collectstatic writes files (also bundled into the EXE)
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True
 
 # Extra locations Django's staticfiles finder checks during development
 STATICFILES_DIRS = []
@@ -159,24 +162,35 @@ AWS_S3_ENDPOINT_URL = "https://erbggatnrmmujkjlydxe.supabase.co/storage/v1/s3"
 AWS_S3_ADDRESSING_STYLE = "path"
 AWS_DEFAULT_ACL         = "public-read"
 AWS_QUERYSTRING_AUTH    = False
-AWS_S3_SIGNATURE_VERSION = "s3v4"
 
-STORAGES = {
-    "default": {
-        "BACKEND": "myproject.storage_backends.SupabaseMediaStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
-}
+
 
 SUPABASE_PROJECT_ID = os.environ.get("SUPABASE_PROJECT_ID")
 MEDIA_URL = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/media/"
 MEDIA_ROOT = _writable('media')
 
 
-
-
+if os.environ.get("DATABASE_URL"):  # production (Render has this)
+    STORAGES = {
+        "default": {
+            "BACKEND": "myproject.storage_backends.SupabaseMediaStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+    }
+    MEDIA_URL = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/media/"
+else:  # local
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+    }
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = _writable('media')
 # ── Misc ──────────────────────────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

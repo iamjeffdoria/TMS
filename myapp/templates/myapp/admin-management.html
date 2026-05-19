@@ -10,8 +10,9 @@
     <!-- BUTTON GROUP -->
     <div class="btn-group" role="group">
         <!-- IMPORT -->
-        <a href="#" class="btn btn-sm btn-success">
+        <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#importAdminModal">
             <i class="fas fa-file-import mr-1"></i> Import File
+        </button>
 
         <!-- EXPORT -->
         <a href="#" class="btn btn-sm btn-danger">
@@ -19,7 +20,7 @@
         </a>
             <!-- ADD -->
            <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#addAdminModal">
-            <i class="fas fa-user-plus mr-1"></i> Add Admin
+            <i class="fas fa-user-plus mr-1"></i> Add New Admin
         </button>
 
     </div>
@@ -504,6 +505,52 @@ $('#dataTable tbody').on('click', '.btn-admin-delete', function (e) {
     });
 });
 
+});
+</script>
+
+<!-- IMPORT ADMIN MODAL -->
+<div class="modal fade" id="importAdminModal" tabindex="-1" role="dialog" aria-labelledby="importAdminModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="importAdminModalLabel">
+                    <i class="fas fa-file-import"></i> Import File
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="font-weight-bold">Select CSV or Excel File</label>
+                    <input type="file" id="adminFileInput" accept=".csv,.xlsx,.xls" class="form-control" required>
+                    <small class="form-text text-muted">
+                        <i class="fas fa-info-circle"></i> Supported formats: .csv, .xlsx, .xls
+                    </small>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-success" id="importAdminBtn" disabled>
+                    <i class="fas fa-upload"></i> Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var fileInput = document.getElementById('adminFileInput');
+    var importBtn = document.getElementById('importAdminBtn');
+
+    fileInput.addEventListener('change', function () {
+        importBtn.disabled = !fileInput.files || fileInput.files.length === 0;
+    });
 });
 </script>
 

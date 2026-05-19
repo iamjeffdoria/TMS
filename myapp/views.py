@@ -712,10 +712,12 @@ def admin_management_datatable(request):
             Q(full_name__icontains=search_value) |
             Q(email__icontains=search_value) |
             Q(created_by__username__icontains=search_value) |
-            Q(permissions__can_access_potpot_registration__icontains=search_value) |
-            Q(permissions__can_access_motorcycle_registration__icontains=search_value) |
             Q(created_at__icontains=search_value)
         )
+        if 'potpot' in search_value.lower():
+            q |= Q(role__icontains='potpot')
+        elif 'motorcycle' in search_value.lower() or 'tricycle' in search_value.lower():
+            q |= Q(role__icontains='tricycle')
         if 'inactive' in search_value.lower():
             q |= Q(is_active=False)
         elif 'active' in search_value.lower():
@@ -730,9 +732,9 @@ def admin_management_datatable(request):
             elif i == 3: queryset = queryset.filter(created_by__username__icontains=column_search)
             elif i == 4:
                 if 'potpot' in column_search.lower():
-                    queryset = queryset.filter(permissions__can_access_potpot_registration=True)
-                elif 'motorcycle' in column_search.lower():
-                    queryset = queryset.filter(permissions__can_access_motorcycle_registration=True)
+                    queryset = queryset.filter(role__in=['potpot_admin', 'both'])
+                elif 'motorcycle' in column_search.lower() or 'tricycle' in column_search.lower():
+                    queryset = queryset.filter(role__in=['tricycle_admin', 'both'])
             elif i == 5:
                 if column_search.lower() in ['active', 'act']:
                     queryset = queryset.filter(is_active=True)
@@ -1088,6 +1090,271 @@ def mayors_permit_datatable(request):
         'recordsFiltered': filtered_records,
         'data': data
     })
+
+  
+def import_mayors_permit(request):
+    if request.method == "POST":
+        uploaded_file = request.FILES.get("csv_file")
+
+        if not uploaded_file:
+            messages.error(request, "No file uploaded.")
+            return redirect("mayors-permit")
+
+        file_name = uploaded_file.name.lower()
+        is_excel = file_name.endswith(('.xlsx', '.xls'))
+        is_csv = file_name.endswith('.csv')
+
+        if not (is_csv or is_excel):
+            messages.error(request, "Please upload a CSV or Excel file (.csv, .xlsx, .xls)")
+            return redirect("mayors-permit")
+
+        errors = []
+        success_count = 0
+
+        # Expected header columns
+        expected_header = ['control_no', 'name', 'address', 'motorized_operation', 
+                          'business_name', 'expiry_date', 'amount_paid', 'or_no', 
+                          'issue_date', 'issued_at', 'mayor', 'quarter', 'status']
+
+        def normalize_header(header):
+            """Convert header to lowercase and replace spaces with underscores"""
+            return [h.strip().lower().replace(' ', '_') for h in header]
+        
+        def parse_date_flexible(date_val):
+            """Parse date from multiple formats"""
+            if isinstance(date_val, datetime):
+                return date_val.date()
+            elif date_val is None or str(date_val).strip() == '':
+                return None
+            
+            date_str = str(date_val).strip()
+            
+            # List of common date formats to try
+            date_formats = [
+                "%Y-%m-%d",      # 2025-01-13
+                "%m/%d/%Y",      # 1/13/2025
+                "%d/%m/%Y",      # 13/1/2025
+                "%Y/%m/%d",      # 2025/1/13
+                "%m-%d-%Y",      # 1-13-2025
+                "%d-%m-%Y",      # 13-1-2025
+            ]
+            
+            for date_format in date_formats:
+                try:
+                    return datetime.strptime(date_str, date_format).date()
+                except ValueError:
+                    continue
+            
+            # If no format works, raise an error
+            raise ValueError(f"Unable to parse date '{date_val}'. Expected formats: YYYY-MM-DD or M/D/YYYY")
+
+        try:
+            if is_excel:
+                # Handle Excel file
+                wb = load_workbook(uploaded_file)
+                ws = wb.active
+                rows = list(ws.iter_rows(values_only=True))
+                
+                if not rows:
+                    messages.error(request, "Excel file is empty.")
+                    return redirect("mayors-permit")
+                
+                # Validate and normalize header
+                raw_header = [str(cell).strip() if cell else '' for cell in rows[0]]
+                normalized_header = normalize_header(raw_header)
+                
+                if normalized_header != expected_header:
+                    messages.error(request, f"Invalid Excel header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
+                    return redirect('mayors-permit')
+                
+                # Skip header row
+                data_rows = rows[1:]
+                
+                for i, row in enumerate(data_rows, start=2):
+                    if not row or all(cell is None for cell in row):
+                        continue
+                        
+                    if len(row) < 13:
+                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}).")
+                        continue
+
+                    try:
+                        # Use flexible date parsing for Excel
+                        issue_date = parse_date_flexible(row[8])
+                        expiry_date = parse_date_flexible(row[5])
+                        amount_paid = int(float(row[6])) if row[6] else 0
+
+                        MayorsPermit.objects.update_or_create(
+                            control_no=str(row[0]) if row[0] else '',
+                            defaults={
+                                "name": str(row[1]) if row[1] else '',
+                                "address": str(row[2]) if row[2] else '',
+                                "motorized_operation": str(row[3]) if row[3] else '',
+                                "business_name": str(row[4]) if row[4] else '',
+                                "expiry_date": expiry_date,
+                                "amount_paid": amount_paid,
+                                "or_no": str(row[7]) if row[7] else '',
+                                "issue_date": issue_date,
+                                "issued_at": str(row[9]) if row[9] else '',
+                                "mayor": str(row[10]) if row[10] else '',
+                                "quarter": str(row[11]) if row[11] else '',
+                                "status": str(row[12]) if row[12] else 'active',
+                            },
+                        )
+                        success_count += 1
+
+                    except ValueError as ve:
+                        errors.append(f"Row {i}: Value error - {ve}")
+                    except Exception as e:
+                        errors.append(f"Row {i}: {e}")
+
+            else:
+                # Handle CSV file
+                file_data = uploaded_file.read().decode("utf-8").splitlines()
+                reader = csv.reader(file_data)
+                raw_header = next(reader)
+                
+                # Validate and normalize header
+                normalized_header = normalize_header(raw_header)
+                
+                if normalized_header != expected_header:
+                    messages.error(request, f"Invalid CSV header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
+                    return redirect('mayors-permit')
+
+                for i, row in enumerate(reader, start=2):
+                    if len(row) != 13:
+                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}).")
+                        continue
+
+                    try:
+                        # Use flexible date parsing for CSV
+                        issue_date = parse_date_flexible(row[8])
+                        expiry_date = parse_date_flexible(row[5])
+                        amount_paid = int(float(row[6])) if row[6] else 0
+
+                        MayorsPermit.objects.update_or_create(
+                            control_no=row[0],
+                            defaults={
+                                "name": row[1],
+                                "address": row[2],
+                                "motorized_operation": row[3],
+                                "business_name": row[4],
+                                "expiry_date": expiry_date,
+                                "amount_paid": amount_paid,
+                                "or_no": row[7],
+                                "issue_date": issue_date,
+                                "issued_at": row[9],
+                                "mayor": row[10],
+                                "quarter": row[11],
+                                "status": row[12],
+                            },
+                        )
+                        success_count += 1
+
+                    except ValueError as ve:
+                        errors.append(f"Row {i}: Value error - {ve}")
+                    except Exception as e:
+                        errors.append(f"Row {i}: {e}")
+
+            if success_count:
+                messages.success(request, f"{success_count} permits imported successfully!")
+
+            if errors:
+                messages.warning(request, "Some rows could not be imported:\n" + "\n".join(errors[:10]))
+                if len(errors) > 10:
+                    messages.warning(request, f"... and {len(errors) - 10} more errors.")
+
+        except Exception as e:
+            messages.error(request, f"Failed to read file: {e}")
+
+        return redirect("mayors-permit")
+
+
+def export_mayors_permit(request):
+    export_format = request.GET.get('format', 'csv')
+    
+    if export_format == 'excel':
+        # Create Excel workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Mayors Permit"
+        
+        # Header styling
+        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        # Excel Header
+        headers = [
+            'Control No', 'Name', 'Address', 'Motorized Operation',
+            'Business Name', 'Expiry Date', 'Amount Paid', 'OR No',
+            'Issue Date', 'Issued At', 'Mayor', 'Quarter', 'Status'
+        ]
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+        
+        # Excel Rows
+        for row_num, p in enumerate(MayorsPermit.objects.all(), 2):
+            ws.cell(row=row_num, column=1, value=p.control_no)
+            ws.cell(row=row_num, column=2, value=p.name)
+            ws.cell(row=row_num, column=3, value=p.address)
+            ws.cell(row=row_num, column=4, value=p.motorized_operation)
+            ws.cell(row=row_num, column=5, value=p.business_name)
+            ws.cell(row=row_num, column=6, value=str(p.expiry_date) if p.expiry_date else '')
+            ws.cell(row=row_num, column=7, value=p.amount_paid)
+            ws.cell(row=row_num, column=8, value=p.or_no)
+            ws.cell(row=row_num, column=9, value=str(p.issue_date) if p.issue_date else '')
+            ws.cell(row=row_num, column=10, value=p.issued_at)
+            ws.cell(row=row_num, column=11, value=p.mayor)
+            ws.cell(row=row_num, column=12, value=p.quarter)
+            ws.cell(row=row_num, column=13, value=p.status)
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(cell.value)
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            ws.column_dimensions[column_letter].width = adjusted_width
+        
+        # Create response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="mayors_permit.xlsx"'
+        wb.save(response)
+        return response
+    
+    else:  # CSV format (default)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="mayors_permit.csv"'
+        
+        writer = csv.writer(response)
+        
+        # CSV Header
+        writer.writerow([
+            'control_no', 'name', 'address', 'motorized_operation',
+            'business_name', 'expiry_date', 'amount_paid', 'or_no',
+            'issue_date', 'issued_at', 'mayor', 'quarter', 'status'
+        ])
+        
+        # CSV Rows
+        for p in MayorsPermit.objects.all():
+            writer.writerow([
+                p.control_no, p.name, p.address, p.motorized_operation,
+                p.business_name, p.expiry_date, p.amount_paid, p.or_no,
+                p.issue_date, p.issued_at, p.mayor, p.quarter, p.status
+            ])
+        
+        return response
 
 def delete_mayors_permit(request, permit_id):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
@@ -2792,91 +3059,6 @@ def get_tricycles(request):
     ).order_by('body_number')
     return JsonResponse({"tricycles": list(tricycles)})
 
-def export_mayors_permit(request):
-    export_format = request.GET.get('format', 'csv')
-    
-    if export_format == 'excel':
-        # Create Excel workbook
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Mayors Permit"
-        
-        # Header styling
-        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
-        header_font = Font(bold=True, color="FFFFFF")
-        
-        # Excel Header
-        headers = [
-            'Control No', 'Name', 'Address', 'Motorized Operation',
-            'Business Name', 'Expiry Date', 'Amount Paid', 'OR No',
-            'Issue Date', 'Issued At', 'Mayor', 'Quarter', 'Status'
-        ]
-        
-        for col_num, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col_num)
-            cell.value = header
-            cell.fill = header_fill
-            cell.font = header_font
-        
-        # Excel Rows
-        for row_num, p in enumerate(MayorsPermit.objects.all(), 2):
-            ws.cell(row=row_num, column=1, value=p.control_no)
-            ws.cell(row=row_num, column=2, value=p.name)
-            ws.cell(row=row_num, column=3, value=p.address)
-            ws.cell(row=row_num, column=4, value=p.motorized_operation)
-            ws.cell(row=row_num, column=5, value=p.business_name)
-            ws.cell(row=row_num, column=6, value=str(p.expiry_date) if p.expiry_date else '')
-            ws.cell(row=row_num, column=7, value=p.amount_paid)
-            ws.cell(row=row_num, column=8, value=p.or_no)
-            ws.cell(row=row_num, column=9, value=str(p.issue_date) if p.issue_date else '')
-            ws.cell(row=row_num, column=10, value=p.issued_at)
-            ws.cell(row=row_num, column=11, value=p.mayor)
-            ws.cell(row=row_num, column=12, value=p.quarter)
-            ws.cell(row=row_num, column=13, value=p.status)
-        
-        # Auto-adjust column widths
-        for column in ws.columns:
-            max_length = 0
-            column_letter = column[0].column_letter
-            for cell in column:
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(cell.value)
-                except:
-                    pass
-            adjusted_width = (max_length + 2)
-            ws.column_dimensions[column_letter].width = adjusted_width
-        
-        # Create response
-        response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename="mayors_permit.xlsx"'
-        wb.save(response)
-        return response
-    
-    else:  # CSV format (default)
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="mayors_permit.csv"'
-        
-        writer = csv.writer(response)
-        
-        # CSV Header
-        writer.writerow([
-            'control_no', 'name', 'address', 'motorized_operation',
-            'business_name', 'expiry_date', 'amount_paid', 'or_no',
-            'issue_date', 'issued_at', 'mayor', 'quarter', 'status'
-        ])
-        
-        # CSV Rows
-        for p in MayorsPermit.objects.all():
-            writer.writerow([
-                p.control_no, p.name, p.address, p.motorized_operation,
-                p.business_name, p.expiry_date, p.amount_paid, p.or_no,
-                p.issue_date, p.issued_at, p.mayor, p.quarter, p.status
-            ])
-        
-        return response
 
 def export_mayors_permit_tri(request):
     export_format = request.GET.get('format', 'csv')
@@ -3171,183 +3353,7 @@ def import_mayors_permit_tri(request):
     messages.error(request, "Invalid request method")
     return redirect("mayors-permit-tricycle")
 
-    
-def import_mayors_permit(request):
-    if request.method == "POST":
-        uploaded_file = request.FILES.get("csv_file")
-
-        if not uploaded_file:
-            messages.error(request, "No file uploaded.")
-            return redirect("mayors-permit")
-
-        file_name = uploaded_file.name.lower()
-        is_excel = file_name.endswith(('.xlsx', '.xls'))
-        is_csv = file_name.endswith('.csv')
-
-        if not (is_csv or is_excel):
-            messages.error(request, "Please upload a CSV or Excel file (.csv, .xlsx, .xls)")
-            return redirect("mayors-permit")
-
-        errors = []
-        success_count = 0
-
-        # Expected header columns
-        expected_header = ['control_no', 'name', 'address', 'motorized_operation', 
-                          'business_name', 'expiry_date', 'amount_paid', 'or_no', 
-                          'issue_date', 'issued_at', 'mayor', 'quarter', 'status']
-
-        def normalize_header(header):
-            """Convert header to lowercase and replace spaces with underscores"""
-            return [h.strip().lower().replace(' ', '_') for h in header]
-        
-        def parse_date_flexible(date_val):
-            """Parse date from multiple formats"""
-            if isinstance(date_val, datetime):
-                return date_val.date()
-            elif date_val is None or str(date_val).strip() == '':
-                return None
-            
-            date_str = str(date_val).strip()
-            
-            # List of common date formats to try
-            date_formats = [
-                "%Y-%m-%d",      # 2025-01-13
-                "%m/%d/%Y",      # 1/13/2025
-                "%d/%m/%Y",      # 13/1/2025
-                "%Y/%m/%d",      # 2025/1/13
-                "%m-%d-%Y",      # 1-13-2025
-                "%d-%m-%Y",      # 13-1-2025
-            ]
-            
-            for date_format in date_formats:
-                try:
-                    return datetime.strptime(date_str, date_format).date()
-                except ValueError:
-                    continue
-            
-            # If no format works, raise an error
-            raise ValueError(f"Unable to parse date '{date_val}'. Expected formats: YYYY-MM-DD or M/D/YYYY")
-
-        try:
-            if is_excel:
-                # Handle Excel file
-                wb = load_workbook(uploaded_file)
-                ws = wb.active
-                rows = list(ws.iter_rows(values_only=True))
-                
-                if not rows:
-                    messages.error(request, "Excel file is empty.")
-                    return redirect("mayors-permit")
-                
-                # Validate and normalize header
-                raw_header = [str(cell).strip() if cell else '' for cell in rows[0]]
-                normalized_header = normalize_header(raw_header)
-                
-                if normalized_header != expected_header:
-                    messages.error(request, f"Invalid Excel header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
-                    return redirect('mayors-permit')
-                
-                # Skip header row
-                data_rows = rows[1:]
-                
-                for i, row in enumerate(data_rows, start=2):
-                    if not row or all(cell is None for cell in row):
-                        continue
-                        
-                    if len(row) < 13:
-                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}).")
-                        continue
-
-                    try:
-                        # Use flexible date parsing for Excel
-                        issue_date = parse_date_flexible(row[8])
-                        expiry_date = parse_date_flexible(row[5])
-                        amount_paid = int(float(row[6])) if row[6] else 0
-
-                        MayorsPermit.objects.update_or_create(
-                            control_no=str(row[0]) if row[0] else '',
-                            defaults={
-                                "name": str(row[1]) if row[1] else '',
-                                "address": str(row[2]) if row[2] else '',
-                                "motorized_operation": str(row[3]) if row[3] else '',
-                                "business_name": str(row[4]) if row[4] else '',
-                                "expiry_date": expiry_date,
-                                "amount_paid": amount_paid,
-                                "or_no": str(row[7]) if row[7] else '',
-                                "issue_date": issue_date,
-                                "issued_at": str(row[9]) if row[9] else '',
-                                "mayor": str(row[10]) if row[10] else '',
-                                "quarter": str(row[11]) if row[11] else '',
-                                "status": str(row[12]) if row[12] else 'active',
-                            },
-                        )
-                        success_count += 1
-
-                    except ValueError as ve:
-                        errors.append(f"Row {i}: Value error - {ve}")
-                    except Exception as e:
-                        errors.append(f"Row {i}: {e}")
-
-            else:
-                # Handle CSV file
-                file_data = uploaded_file.read().decode("utf-8").splitlines()
-                reader = csv.reader(file_data)
-                raw_header = next(reader)
-                
-                # Validate and normalize header
-                normalized_header = normalize_header(raw_header)
-                
-                if normalized_header != expected_header:
-                    messages.error(request, f"Invalid CSV header. Expected: {', '.join(expected_header)}. Got: {', '.join(normalized_header)}")
-                    return redirect('mayors-permit')
-
-                for i, row in enumerate(reader, start=2):
-                    if len(row) != 13:
-                        errors.append(f"Row {i}: Incorrect number of columns ({len(row)}).")
-                        continue
-
-                    try:
-                        # Use flexible date parsing for CSV
-                        issue_date = parse_date_flexible(row[8])
-                        expiry_date = parse_date_flexible(row[5])
-                        amount_paid = int(float(row[6])) if row[6] else 0
-
-                        MayorsPermit.objects.update_or_create(
-                            control_no=row[0],
-                            defaults={
-                                "name": row[1],
-                                "address": row[2],
-                                "motorized_operation": row[3],
-                                "business_name": row[4],
-                                "expiry_date": expiry_date,
-                                "amount_paid": amount_paid,
-                                "or_no": row[7],
-                                "issue_date": issue_date,
-                                "issued_at": row[9],
-                                "mayor": row[10],
-                                "quarter": row[11],
-                                "status": row[12],
-                            },
-                        )
-                        success_count += 1
-
-                    except ValueError as ve:
-                        errors.append(f"Row {i}: Value error - {ve}")
-                    except Exception as e:
-                        errors.append(f"Row {i}: {e}")
-
-            if success_count:
-                messages.success(request, f"{success_count} permits imported successfully!")
-
-            if errors:
-                messages.warning(request, "Some rows could not be imported:\n" + "\n".join(errors[:10]))
-                if len(errors) > 10:
-                    messages.warning(request, f"... and {len(errors) - 10} more errors.")
-
-        except Exception as e:
-            messages.error(request, f"Failed to read file: {e}")
-
-        return redirect("mayors-permit")
+  
 
 
 def sample_print(request):

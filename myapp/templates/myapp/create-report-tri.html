@@ -1144,14 +1144,18 @@ $('#confirmPrintBtn').on('click', function(e) {
 
     var selectedReports = [selectedValue];
         
-        // Close dropdown properly using Bootstrap's method
-        $('#printReportBtn').dropdown('toggle');
+    // Close dropdown properly using Bootstrap's method
+    $('#printReportBtn').dropdown('toggle');
+
+    // Show the global sidebar loader
+    $('#sidebar-loader').addClass('active');
+    $('#sidebar-loader .sidebar-loader-text').text('Preparing Report...');
         
-        // Small delay to ensure dropdown closes before print dialog
-        setTimeout(function() {
-            generateAndPrintReports(selectedReports);
-        }, 150);
-    });
+    // Small delay to ensure dropdown closes before print dialog
+    setTimeout(function() {
+        generateAndPrintReports(selectedReports);
+    }, 150);
+});
 
 });
     function generateAndPrintReports(reportTypes) {
@@ -1174,11 +1178,14 @@ $('#confirmPrintBtn').on('click', function(e) {
             filter_end: filterEnd,
             'columns[11][search][value]': $('#todaFilter').val(),  // ✅ pass TODA filter
             },
-                success: function(json) {
+            success: function(json) {
                 var allData = json.data;
+                $('#sidebar-loader .sidebar-loader-text').text('Building Report...');
                 buildAndPrint(allData, reportTypes, currentDate, filterStart, filterEnd);
             },
             error: function() {
+                $('#sidebar-loader').removeClass('active');
+                $('#sidebar-loader .sidebar-loader-text').text('Loading...');
                 alert('Failed to fetch data for printing.');
             }
         });
@@ -1285,16 +1292,22 @@ function buildAndPrint(allData, reportTypes, currentDate, filterStart, filterEnd
     var totalImages = images.length;
     var loadedImages = 0;
 
-    if (totalImages === 0) {
+    function triggerPrint() {
+        // Hide loader just before the print dialog appears
+        $('#sidebar-loader').removeClass('active');
+        $('#sidebar-loader .sidebar-loader-text').text('Loading...');
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
+    }
+
+    if (totalImages === 0) {
+        triggerPrint();
     } else {
         for (var i = 0; i < totalImages; i++) {
             images[i].onload = function() {
                 loadedImages++;
                 if (loadedImages === totalImages) {
-                    iframe.contentWindow.focus();
-                    iframe.contentWindow.print();
+                    triggerPrint();
                 }
             };
         }
