@@ -1074,7 +1074,7 @@ def mayors_permit_datatable(request):
             permit.business_name or '',
             permit.motorized_operation or '',
             permit.or_no,
-            '{:,.2f}'.format(permit.amount_paid),
+            str(permit.amount_paid),
             (permit.issue_date.strftime('%b-') + str(permit.issue_date.day) + permit.issue_date.strftime('-%Y')),
             (permit.expiry_date.strftime('%b-') + str(permit.expiry_date.day) + permit.expiry_date.strftime('-%Y')),
             permit.issued_at or '',
