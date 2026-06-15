@@ -1,6 +1,6 @@
  document.addEventListener("DOMContentLoaded", function () {
 
-
+    
       document.querySelectorAll(".btn-view").forEach(button => {
       button.addEventListener("click", function () {
 

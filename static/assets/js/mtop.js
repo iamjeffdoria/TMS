@@ -115,13 +115,19 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    /* ── SAVE NEW RECORD ────────────────────────────────────── */
+/* ── SAVE NEW RECORD ────────────────────────────────────── */
     document.getElementById("saveRecordBtn").addEventListener("click", function () {
         let form = document.getElementById("addRecordForm");
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
         }
+
+        let btn = this;
+        let originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Saving...';
+        document.getElementById('sidebar-loader').classList.add('active');
 
         let formData = new FormData(form);
 
@@ -140,10 +146,16 @@ document.addEventListener("DOMContentLoaded", function () {
                         location.reload();
                     }, 300);
                 } else {
+                    document.getElementById('sidebar-loader').classList.remove('active');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
                     alert('Error: ' + (data.error || 'Unknown error'));
                 }
             })
             .catch(error => {
+                document.getElementById('sidebar-loader').classList.remove('active');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
                 console.error('Error:', error);
                 alert('An error occurred while saving the record.');
             });
@@ -179,8 +191,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    /* ── UPDATE BUTTON CLICK ────────────────────────────────── */
+/* ── UPDATE BUTTON CLICK ────────────────────────────────── */
     $("#updateRecordBtn").click(function () {
+        let btn = this;
+        let originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Updating...';
+        document.getElementById('sidebar-loader').classList.add('active');
+
         $.ajax({
             url: MTOP_CONFIG.updateUrl,
             type: "POST",
@@ -192,10 +210,16 @@ document.addEventListener("DOMContentLoaded", function () {
                         location.reload();
                     }, 300);
                 } else {
+                    document.getElementById('sidebar-loader').classList.remove('active');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
                     alert('Error: ' + (res.error || 'Unknown error'));
                 }
             },
             error: function (xhr, status, error) {
+                document.getElementById('sidebar-loader').classList.remove('active');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
                 console.error("Error updating MTOP:", error);
                 alert("Failed to update record. Please try again.");
             }

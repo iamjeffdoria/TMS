@@ -346,10 +346,15 @@ $('#updateRecordModal').on('shown.bs.modal', function () {
         .catch(() => location.reload());
     });
 
-    // ── SAVE UPDATE ───────────────────────────────────────────────────
+        // ── SAVE UPDATE ───────────────────────────────────────────────────
     document.getElementById("updateFranchiseBtn").addEventListener("click", function () {
         let form = document.getElementById("updateFranchiseForm");
         if (!form.checkValidity()) { form.reportValidity(); return; }
+
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Updating...';
+        document.getElementById('sidebar-loader').classList.add('active');
 
         fetch(window.FRANCHISE_CONFIG.updateUrl, {
             method: "POST",
@@ -362,10 +367,18 @@ $('#updateRecordModal').on('shown.bs.modal', function () {
                 $('#updateRecordModal').modal('hide');
                 setTimeout(() => location.reload(), 300);
             } else {
+                document.getElementById('sidebar-loader').classList.remove('active');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Update Record';
                 location.reload();
             }
         })
-        .catch(() => location.reload());
+        .catch(() => {
+            document.getElementById('sidebar-loader').classList.remove('active');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Update Record';
+            location.reload();
+        });
     });
 
     // Handle Delete Franchise button click

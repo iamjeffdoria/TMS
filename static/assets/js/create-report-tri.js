@@ -23,6 +23,13 @@ $('.modal').on('hide.bs.modal', function () {
 
 $('#saveAddPermitBtn').on('click', function () {
     var form = $('#addPermitForm');
+    var btn = this;
+    var originalHtml = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Saving...';
+    document.getElementById('sidebar-loader').classList.add('active');
+
     $.ajax({
         url: TRICYCLE_URLS.addTricycle,
         type: "POST",
@@ -34,10 +41,16 @@ $('#saveAddPermitBtn').on('click', function () {
                 form[0].reset();
                 location.reload();
             } else {
+                document.getElementById('sidebar-loader').classList.remove('active');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
                 alert('Error: ' + (data.error || 'Unknown error'));
             }
         },
         error: function () {
+            document.getElementById('sidebar-loader').classList.remove('active');
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
             alert('An error occurred while saving the tricycle.');
         }
     });
@@ -219,6 +232,12 @@ $(document).on('click', '.btn-update', function() {
 // Handle Update Save button click
 $('#saveUpdatePermitBtn').on('click', function () {
     var form = $('#updatePermitForm');
+    var btn = this;
+    var originalHtml = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Updating...';
+    document.getElementById('sidebar-loader').classList.add('active');
 
     $.ajax({
         url: TRICYCLE_URLS.updateTricycle,
@@ -238,14 +257,21 @@ $('#saveUpdatePermitBtn').on('click', function () {
                 }, 300);
 
             } else {
+                document.getElementById('sidebar-loader').classList.remove('active');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
                 alert('Error: ' + (data.error || 'Unknown error'));
             }
         },
         error: function (xhr, status, error) {
+            document.getElementById('sidebar-loader').classList.remove('active');
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
             alert('An error occurred while updating the tricycle: ' + error);
         }
     });
 });
+
 // Handle Delete button click — open confirmation modal
 var deleteTriId = null;
 $(document).on('click', '.btn-delete', function () {

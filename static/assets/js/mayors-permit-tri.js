@@ -60,6 +60,19 @@ function toInputDate(dateStr) {
 
 document.addEventListener("DOMContentLoaded", function () {
 
+// Add Permit form — show loader on submit
+document.getElementById('addPermitForm').addEventListener('submit', function () {
+    const btn = document.getElementById('savePermitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Saving...';
+    document.getElementById('sidebar-loader').classList.add('active');
+});
+
+// Handle Delete Permit button click
+var deletePermitTriId = null;
+    // Handle Delete Permit button click
+var deletePermitTriId = null;
+
 $('#addPermitModal').on('show.bs.modal', function () {
     fetch(window.TRI_CONFIG.getTricyclesUrl)
         .then(res => res.json())
@@ -469,6 +482,11 @@ $('#confirmDeletePermitTriBtn').on('click', function () {
 
         const csrftoken = window.TRI_CONFIG.csrfToken
 
+        const submitBtn = document.querySelector('#updatePermitForm button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Updating...';
+        document.getElementById('sidebar-loader').classList.add('active');
+
         fetch(`/update-permit/${permitId}/`, {
             method: 'POST',
             headers: {
@@ -481,12 +499,18 @@ $('#confirmDeletePermitTriBtn').on('click', function () {
         .then(data => {
             if (data.success) {
                 $('#updatePermitModal').modal('hide');
-                  location.reload(); 
+                location.reload();
             } else {
+                document.getElementById('sidebar-loader').classList.remove('active');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Permit';
                 alert('Error updating permit: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(error => {
+            document.getElementById('sidebar-loader').classList.remove('active');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Permit';
             console.error('Error:', error);
             alert('Error updating permit. Please try again.');
         });
