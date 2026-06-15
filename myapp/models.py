@@ -39,6 +39,7 @@ class Admin(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='potpot_admin')  # ← NEW FIELD
     created_by = models.ForeignKey(SuperAdmin, on_delete=models.SET_NULL, null=True, blank=True, related_name='admins')
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     # ← NEW PROPERTIES (replaces AdminPermission booleans)
     @property
@@ -53,7 +54,6 @@ class Admin(models.Model):
         return self.full_name
 
 # ← DELETE the entire AdminPermission class
-
 class MayorsPermit(models.Model):
     control_no = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=255)
@@ -80,11 +80,12 @@ class MayorsPermit(models.Model):
     ],
     default='active'
     )
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return f"{self.control_no} - {self.name}"
     
-
 class IDCard(models.Model):
     GENDER_CHOICES = [
         ('M', 'Male'),
@@ -103,6 +104,8 @@ class IDCard(models.Model):
     date_issued = models.DateField()
     expiration_date = models.DateField()
     image = models.ImageField(upload_to='idcard_images/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return f"{self.name} ({self.id_number})"
@@ -123,6 +126,8 @@ class Mtop(models.Model):
     municipal_treasurer = models.CharField(max_length=255)
     officer_in_charge = models.CharField(max_length=255)
     mayor = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return f"{self.name} - {self.case_no}"
@@ -162,6 +167,8 @@ class Franchise(models.Model):
     ],
     default='New'
     )
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return f"{self.name} - {self.plate_no}"
@@ -204,6 +211,8 @@ class MayorsPermitTricycle(models.Model):
     ],
     default='active'
     )
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return f"{self.control_no} - {self.name}"
@@ -246,7 +255,9 @@ class Tricycle(models.Model):
     date_expired = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     remarks = models.CharField(max_length=255, choices=REMARKS_CHOICES, blank=True, null=True)
-    
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
     def __str__(self):
         return f"{self.body_number} - {self.name}"
     

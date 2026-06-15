@@ -97,8 +97,8 @@ def add_mtop(request):
 def franchise(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
         return redirect('login')
-    franchises = Franchise.objects.all().order_by('-date')  # latest first
-    return render(request, 'myapp/franchise.html', {'franchises': franchises}) 
+    franchises = Franchise.objects.all().order_by('-updated_at')  # latest added/updated first
+    return render(request, 'myapp/franchise.html', {'franchises': franchises})
 
 def franchise_datatable(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
@@ -110,7 +110,7 @@ def franchise_datatable(request):
     length = int(request.GET.get('length', 10))
     search_value = request.GET.get('search[value]', '')
     
-    queryset = Franchise.objects.select_related('tricycle').all().order_by('-date')
+    queryset = Franchise.objects.select_related('tricycle').all().order_by('-updated_at')
 
     if search_value:
         queryset = queryset.filter(
@@ -688,7 +688,7 @@ def admin_management(request):
     if not (request.session.get('admin_id') or request.session.get('superadmin_id')):
         return redirect('login')
     # REMOVED .prefetch_related('permissions')
-    admins = Admin.objects.all().select_related('created_by').order_by('-created_at')
+    admins = Admin.objects.all().select_related('created_by').order_by('-updated_at')
     
     context = {
         'admins': admins,
@@ -705,7 +705,7 @@ def admin_management_datatable(request):
     length = int(request.GET.get('length', 10))
     search_value = request.GET.get('search[value]', '')
 
-    queryset = Admin.objects.select_related('created_by').order_by('-created_at')
+    queryset = Admin.objects.select_related('created_by').order_by('-updated_at')
     if search_value:
         q = (
             Q(username__icontains=search_value) |
@@ -976,7 +976,7 @@ def mayors_permit_datatable(request):
     search_value = request.GET.get('search[value]', '')
     
     # Base queryset
-    queryset = MayorsPermit.objects.all()
+    queryset = MayorsPermit.objects.all().order_by('-updated_at')
     
     # Global search
     if search_value:
@@ -1530,7 +1530,7 @@ def id_cards_datatable(request):
     length = int(request.GET.get('length', 10))
     search_value = request.GET.get('search[value]', '')
 
-    queryset = IDCard.objects.all()
+    queryset = IDCard.objects.all().order_by('-updated_at')
 
     # Global search
     if search_value:
@@ -2006,7 +2006,7 @@ def mtop_datatable(request):
     search_value = request.GET.get('search[value]', '')
     
     # Base queryset
-    queryset = Mtop.objects.all()
+    queryset = Mtop.objects.all().order_by('-updated_at')
     
     # Global search
     if search_value:
@@ -2695,7 +2695,7 @@ def mayors_permit_tricycle_datatable(request):
     length = int(request.GET.get('length', 10))
     search_value = request.GET.get('search[value]', '')
     
-    queryset = MayorsPermitTricycle.objects.select_related('tricycle').all()  # ✅ add select_related
+    queryset = MayorsPermitTricycle.objects.select_related('tricycle').all().order_by('-updated_at')  # ✅ add select_related
     
     if search_value:
         queryset = queryset.filter(
@@ -3391,7 +3391,7 @@ def create_report_tri_datatable(request):
     filter_end = request.GET.get('filter_end', '')
     
     # Base queryset
-    queryset = Tricycle.objects.all()
+    queryset = Tricycle.objects.all().order_by('-updated_at')
     
     # ✅ IMPROVED DATE FILTERING - Check BOTH date_registered AND date_expired
     if filter_start and filter_end:
