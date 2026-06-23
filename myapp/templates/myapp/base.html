@@ -929,15 +929,27 @@ a.text-primary:focus {
             // Real-time clock
            
             // Replace with:
-            function updateClock() {
+           function updateClock() {
                 const clockEl = document.getElementById('real-time-clock');
                 if (!clockEl) return; // ✅ login page doesn't have this element
                 const now = new Date();
-                const hours = now.getHours().toString().padStart(2, '0');
+
+                const day = now.toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+
+                let hours = now.getHours();
                 const minutes = now.getMinutes().toString().padStart(2, '0');
                 const seconds = now.getSeconds().toString().padStart(2, '0');
-                const day = now.toLocaleDateString();
-                clockEl.textContent = `${day} ${hours}:${minutes}:${seconds}`;
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                const hoursStr = hours.toString().padStart(2, '0');
+
+                clockEl.textContent = `${day} ${hoursStr}:${minutes}:${seconds} ${ampm}`;
             }
 
             setInterval(updateClock, 1000);
