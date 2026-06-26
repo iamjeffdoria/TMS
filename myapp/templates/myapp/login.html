@@ -15,7 +15,7 @@ body {
 }
 
 .login-wrapper {
-    background: linear-gradient(135deg, #1e2a3a 0%, #2c3e50 50%, #c0392b 100%);
+    background: #f5f7fa;
     min-height: 100vh;
     width: 100%;
     position: fixed;
@@ -126,14 +126,9 @@ body {
     font-size: 14px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
-    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
     outline: none;
     background: white;
     font-weight: 400;
-}
-
-.form-input:hover {
-    border-color: #b8c0cc;
 }
 
 .form-input.input-valid {
@@ -142,14 +137,7 @@ body {
 
 .form-input.input-invalid {
     border-color: #ff4444;
-    animation: shake 0.3s ease;
 }
-
-@keyframes shake {
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
-}
-
 .password-input-wrapper .form-input {
     padding-right: 40px;
 }
@@ -185,9 +173,7 @@ body {
 
 .form-input:focus {
     border-color: #ff4444;
-    box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.08);
 }
-
 .form-footer {
     display: flex;
     justify-content: space-between;
@@ -232,27 +218,10 @@ body {
     font-size: 14px;
     font-weight: 600;
     color: white;
-    background: linear-gradient(180deg, #c64545 10%, #f02525 100%) !important;
+    background: #f02525;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-}
-
-.btn-login:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(240, 37, 37, 0.25);
-}
-
-.btn-login:active {
-    transform: translateY(0);
-    box-shadow: none;
-}
-
-.btn-login:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
 }
 
 .btn-login:hover {
@@ -261,6 +230,11 @@ body {
 
 .btn-login:active {
     background: #cc2e2e;
+}
+
+.btn-login:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 .register-text {
@@ -421,8 +395,10 @@ body {
     </div>
 </div>
 
-{% block scripts %}
-<script src="{% static 'assets/js/login.js' %}"></script>
+
+
 {% endblock %}
 
+{% block scripts %}
+<script src="{% static 'assets/js/login.js' %}"></script>
 {% endblock %}
